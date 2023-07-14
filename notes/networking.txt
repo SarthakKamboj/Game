@@ -1,0 +1,50 @@
+article: https://pvigier.github.io/2019/09/08/beginner-guide-game-networking.html#:~:text=There%20are%20mainly%20two%20possible,between%20players%20and%20the%20server.
+
+- 3 main issues
+    1. how to transport data from client to server and vice verse (transport protocol)
+        - will use ENet to transport the data
+        - abstract away transport protocol as much as possible so it is easily rewritable
+        - do not optimize prematurely
+    2. what to send and in what format (application protocol)
+        - server should mainly send visual and audio data
+        - client should mainly sent inputs/action
+        - should use binary format for serialization
+        - try to compress data to limit data footprint
+            - optional
+        - use encryption to ensure the data is secure
+            - should be there but maybe not on the first iteration
+    3. how to use data to update client and server (application logic)
+        - may have to wait for server state update for the triggered input to see its effect
+        - simulation high latency and low refresh rate environments to test
+        the game
+
+article: https://web.archive.org/web/20190519135537/http://trac.bookofhook.com/bookofhook/trac.cgi/wiki/IntroductionToMultiplayerGameProgramming
+
+- often times, a hybrid model of peer-to-peer and client/server is used
+- client side prediction allows for the client to predict certain movements
+and the server and send what its supposed to be and client can compare, allows for 
+smoother gameplay viewing from the perspective of the player
+- UDP sends data to a IP address and a port
+- WinSock and BSD sockets are used to use UDP
+- Choosing ports
+    - 0-1023 are system ports (off limits)
+    - 1024-49151 are user/ephemeral ports (fair game)
+    - 49152-65535 are Dynamic/Private ports and are fair game but have unreliable availability
+    - should mainly use user ports
+- a lot of stuff about implementing UDP and UDP w/ reliability but since I will be using Enet,
+I won't be taking notes on it so much but just reading for context since a lot of it will be handled
+and it is my first time working with networking, but I may come back to it in the fture
+- dont perform any operations that could halt the system in the main loop of the application
+- pump network data every N milliseconds, maybe at the start of every frame
+
+- compress data before it even reaches networking library if possible
+    - truncation and quantization should give compression of about 25%-50%
+    - use delta compression for further compression by only sending changes in state
+        - this is done by keeping a local copy of the last state and comparing what has
+        changed and use delta flags to tell what has changed and to send that respective data
+
+- only send data to the client that the client ABSOLUTELY needs
+- for encryption look into combo of assymetric key encryption (private and public key) along with
+symmetric key encryption (using a single key)
+    
+

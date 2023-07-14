@@ -1,0 +1,6 @@
+- server (will most likely be linux)
+    - need to learn cmake to do my own build process
+    - will be responsible for physics, updating the world, and sending this data to client
+
+- client (will most likely be windows computers)
+    - will be responsible for rendering and sending input data
