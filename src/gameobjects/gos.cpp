@@ -5,7 +5,7 @@
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
-	mc.rec_render_handle = create_rectangle_render(mc.transform_handle, color, dims.x, dims.y, false);
+	mc.rec_render_handle = create_rectangle_render(mc.transform_handle, color, dims.x, dims.y, false, 0, -1);
 	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, dims.x, dims.y, false);
 	return mc;
 }
@@ -41,12 +41,14 @@ void update_main_character(const main_character_t& mc, key_state_t& key_state) {
 }
 
 const glm::vec3 ground_block_t::BLOCK_COLOR = glm::vec3(0.58f, 0.29f, 0.f);
+int ground_block_t::tex_handle = -1;
 
 ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot) {
 	ground_block_t block;
 	block.transform_handle = create_transform(pos, scale, rot);
 	glm::vec3 color = ground_block_t::BLOCK_COLOR;
-	block.rec_render_handle = create_rectangle_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false);
+	// block.rec_render_handle = create_rectangle_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::tex_handle);
+	block.rec_render_handle = create_rectangle_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::tex_handle);
 	block.rigidbody_handle = create_rigidbody(block.transform_handle, false, ground_block_t::WIDTH, ground_block_t::HEIGHT, true);
 	return block;
 }

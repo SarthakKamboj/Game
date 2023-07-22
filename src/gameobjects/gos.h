@@ -29,6 +29,8 @@ struct ground_block_t {
 	static const int WIDTH = 40;
 	static const int HEIGHT = 40;
 	static const glm::vec3 BLOCK_COLOR;
+
+    static int tex_handle;
 };
 
 ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot);

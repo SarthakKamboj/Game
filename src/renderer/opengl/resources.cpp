@@ -2,13 +2,28 @@
 #include "stb/stb_image.h"
 #include <iostream>
 #include "utils/io.h"
+#include <vector>
+#include "glad/glad.h"
+
+static std::vector<texture_t> textures;
 
 // TEXTURE
-texture_t create_texture(const char* path) {
-	texture_t texture;
+int create_texture(const char* path, int tex_slot) {
+    static int running_cnt = 0;
 
+    for (int i = 0; i < textures.size(); i++) {
+        if (strcmp(path, textures[i].path) == 0) {
+            return textures[i].handle;
+        }
+    }
+
+	texture_t texture{};
+    texture.tex_slot = tex_slot;
 	int num_channels, width, height;
 	stbi_set_flip_vertically_on_load(true);
+
+    std::cout << path << std::endl;
+
 	unsigned char* data = stbi_load(path, &width, &height, &num_channels, 0);
 
 	glGenTextures(1, &texture.id);
@@ -24,16 +39,41 @@ texture_t create_texture(const char* path) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(data);
+    texture.handle = running_cnt;
+    running_cnt++;
 
-	return texture;
+    textures.push_back(texture);
+
+	return texture.handle;
 }
 
 void bind_texture(const texture_t& texture) {
+    glActiveTexture(GL_TEXTURE0 + texture.tex_slot);
 	glBindTexture(GL_TEXTURE_2D, texture.id);
+}
+
+void bind_texture(int handle) {
+    for (int i = 0; i < textures.size(); i++) {
+        if (textures[i].handle == handle) {
+            glActiveTexture(GL_TEXTURE0 + textures[i].tex_slot);
+	        glBindTexture(GL_TEXTURE_2D, textures[i].id);
+            return;
+        }
+    }
+	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 void unbind_texture() {
 	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+texture_t* get_tex(int handle) {
+    for (int i = 0; i < textures.size(); i++) {
+        if (textures[i].handle == handle) {
+            return &textures[i];
+        }
+    }
+    return NULL;
 }
 
 // SHADER
@@ -58,7 +98,9 @@ shader_t create_shader(const char* vert_path, const char* frag_path) {
 	}
 
 	std::string frag_code_str = io::get_file_contents(frag_path);
+    std::cout << frag_code_str << std::endl;
 	const char* frag_shader_source = frag_code_str.c_str();
+    std::cout << frag_shader_source << std::endl;
 	glShaderSource(frag_shader, 1, &frag_shader_source, NULL);
 	glCompileShader(frag_shader);
 	glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
@@ -91,25 +133,46 @@ void unbind_shader() {
 
 void shader_set_mat4(shader_t& shader, const char* var_name, const glm::mat4& mat) {
 	glUseProgram(shader.id);
-	unsigned int loc = glGetUniformLocation(shader.id, var_name);
+	GLint loc = glGetUniformLocation(shader.id, var_name);
+    if (loc == -1) {
+        std::cout << var_name << " does not exist in shader " << shader.id << std::endl;
+    }
 	glUniformMatrix4fv(loc, 1, GL_FALSE, glm::value_ptr(mat));
 }
 
 void shader_set_int(shader_t& shader, const char* var_name, const int val) {
 	glUseProgram(shader.id);
-	unsigned int loc = glGetUniformLocation(shader.id, var_name);
+	GLint loc = glGetUniformLocation(shader.id, var_name);
+    if (loc == -1) {
+        std::cout << var_name << " does not exist in shader " << shader.id << std::endl;
+    }
 	glUniform1i(loc, val);
 }
 
 void shader_set_vec3(shader_t& shader, const char* var_name, const glm::vec3& v) {
 	glUseProgram(shader.id);
-	unsigned int loc = glGetUniformLocation(shader.id, var_name);
+	GLint loc = glGetUniformLocation(shader.id, var_name);
+    if (loc == -1) {
+        std::cout << var_name << " does not exist in shader " << shader.id << std::endl;
+    }
 	glUniform3fv(loc, 1, glm::value_ptr(v));
+}
+
+void shader_set_float(shader_t& shader, const char* var_name, const float val) {
+	glUseProgram(shader.id);
+	GLint loc = glGetUniformLocation(shader.id, var_name);
+    if (loc == -1) {
+        std::cout << var_name << " does not exist in shader " << shader.id << std::endl;
+    }
+	glUniform1f(loc, val);
 }
 
 glm::vec3 shader_get_vec3(const shader_t& shader, const char* var_name) {
 	glm::vec3 v;
-	unsigned int loc = glGetUniformLocation(shader.id, var_name);
+	GLint loc = glGetUniformLocation(shader.id, var_name);
+    if (loc == -1) {
+        std::cout << var_name << " does not exist in shader " << shader.id << std::endl;
+    }
 	glGetUniformfv(shader.id, loc, &v[0]);
 	return v;
 }

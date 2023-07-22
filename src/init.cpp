@@ -81,6 +81,7 @@ void init_rectangle_data() {
 	bind_vao(data.vao);
 	vao_enable_attribute(data.vao, data.vbo, 0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, position));
 	vao_enable_attribute(data.vao, data.vbo, 1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, color));
+	vao_enable_attribute(data.vao, data.vbo, 2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, tex_coord));
 	bind_ebo(data.ebo);
 	unbind_vao();
 	unbind_ebo();
@@ -90,11 +91,15 @@ void init_rectangle_data() {
     // set projection matrix in the shader
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
+	shader_set_mat4(data.shader, "view", glm::mat4(1.0f));
+	// shader_set_mat4(data.shader, "projection", glm::mat4(1.0f));
+	shader_set_int(data.shader, "tex", 0);
 }
 
 void init_placed_world_items() {
     // TODO: generalize level data paths
-    const char* file_path = "C:\\Sarthak\\projects\\Platformer\\Editor\\level1.txt";
+    // const char* file_path = "C:\\Sarthak\\projects\\Platformer\\Editor\\level1.txt";
+    const char* file_path = "C:\\Sarthak\\projects\\editor\\build\\level1.txt";
 
     /*
         FILE FORMAT
@@ -122,8 +127,6 @@ void init_placed_world_items() {
             fgets(line, 1024, file);
             // if just WORLD_ITEMS title, then skip
             if (strcmp(line, "WORLD_ITEMS\n") == 0) continue;
-            // this is the line break after WORLD_ITEMS section ends, so skip
-			if (!placed_items_section && (strcmp(line, "\n") == 0)) continue; 
             // in the world items section and looking at possible world item
             if (!placed_items_section && (strcmp(line, "PLACED_ITEMS\n") != 0)) {
                 std::string delim(WORLD_ITEM_TEXT_FILE_DELIM);
@@ -136,11 +139,13 @@ void init_placed_world_items() {
                 char path[1024]{};
                 int width = 0;
                 int height = 0;
-                // sscanf(line, world_item_format_char, name, 1023, path, 1023, &width, &height);
                 sscanf(line, world_item_format_char, name, path, &width, &height);
                 std::string name_str(name);
 
                 // for right now, texture path, width, and height are not being used but will be in the future
+                if (strcmp(name, "ground") == 0) {
+                    ground_block_t::tex_handle = create_texture(path, 0);
+                }
 
                 // correlate the item name to a particular index to be used as reference by the placed world items
                 idx_to_type[i] = name_str;

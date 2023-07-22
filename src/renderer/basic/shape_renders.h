@@ -7,6 +7,8 @@
 struct rectangle_render_t {
     int handle = -1;
 	int transform_handle = -1;
+    int tex_handle = -1;
+    float tex_influence = 0;
     // internal transform, especially needed for setting width and height
 	transform_t _internal_transform;
 	glm::vec3 color = glm::vec3(0, 0, 0);
@@ -17,6 +19,6 @@ struct rectangle_render_t {
 	static opengl_object_data obj_data;
 };
 
-int create_rectangle_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe);
+int create_rectangle_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle);
 void draw_rectangle_render(const rectangle_render_t& rectangle);
 void draw_rectangle_renders();
