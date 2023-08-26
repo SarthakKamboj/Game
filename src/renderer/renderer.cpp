@@ -1,4 +1,5 @@
 #include "renderer.h"
+#include "glad/glad.h"
 #include <vector>
 
 
@@ -8,7 +9,7 @@ void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
 
-    draw_rectangle_renders();
+    // draw_rectangle_renders();
 
 	SDL_GL_SwapWindow(app.window);
 }

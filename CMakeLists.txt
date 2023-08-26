@@ -1,46 +1,53 @@
 cmake_minimum_required(VERSION 3.22.1)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 project(game)
+
+message(CMAKE_BUILD_TYPE)
+message(${CMAKE_BUILD_TYPE})
+
+# set(CMAKE_DEBUG_INFORMATION_FORMAT "pdb")
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+# set(WINDOWS_WINSOCK32_INCLUDES "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/um")
+# set(WINDOWS_WINSOCK32_INCLUDES "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/shared")
+# set(WINDOWS_WINSOCK32_LIBS "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.22621.0/um/x64")
+
+message("looking for headers")
+# message(${WINDOWS_WINSOCK32_INCLUDES})
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
-    src/init.cpp
-    src/app.cpp
-    src/utils/conversion.cpp
-    src/utils/io.cpp
-    src/utils/time.cpp
-    src/transform/transform.cpp
-    src/renderer/renderer.cpp
-    src/renderer/basic/shape_renders.cpp
-    src/renderer/opengl/buffers.cpp
-    src/renderer/opengl/object_data.cpp
-    src/renderer/opengl/resources.cpp
-    src/renderer/opengl/vertex.cpp
-    src/physics/physics.cpp
+    src/networking.cpp
     src/input/input.cpp
-    src/gameobjects/gos.cpp
-    src/animation/animation.cpp
+    src/init.cpp
+    src/renderer/renderer.cpp
 )
 
-add_subdirectory(external/glm)
+add_subdirectory(external/enet)
 add_subdirectory(external/glad)
-add_subdirectory(external/stb_image)
 
 target_include_directories(${PROJECT_NAME} 
-    PUBLIC external/glm
-    PUBLIC external/glad/include
-    PUBLIC external/SDL2-x86/include/SDL2
-    PUBLIC external/stb_image
+    # PUBLIC ${WINDOWS_WINSOCK32_INCLUDES}
+    PUBLIC external/enet/include
     PUBLIC src
+    PUBLIC ../shared
+    PUBLIC external/SDL2_x64/include/SDL2
 )
 
 target_link_directories(${PROJECT_NAME} 
-    PUBLIC external/glm
-    PUBLIC external/glad
-    PUBLIC external/SDL2-x86/lib
-    PUBLIC external/stb_image
+    PUBLIC external/enet
+    PUBLIC external/SDL2_x64/lib
+    # PUBLIC ${WINDOWS_WINSOCK32_LIBS}
+    # PUBLIC external/enet_lib
 )
 
-target_link_libraries(${PROJECT_NAME} glm)
+# target_link_libraries(${PROJECT_NAME} ws2_32)
+target_link_libraries(${PROJECT_NAME} stdc++)
+target_link_libraries(${PROJECT_NAME} enet)
 target_link_libraries(${PROJECT_NAME} glad)
-target_link_libraries(${PROJECT_NAME} stb_image)
 target_link_libraries(${PROJECT_NAME} mingw32 SDL2main SDL2)
+# target_link_libraries(${PROJECT_NAME} ws2_32 enet)
