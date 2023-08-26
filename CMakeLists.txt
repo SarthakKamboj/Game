@@ -9,15 +9,8 @@ project(game)
 message(CMAKE_BUILD_TYPE)
 message(${CMAKE_BUILD_TYPE})
 
-# set(CMAKE_DEBUG_INFORMATION_FORMAT "pdb")
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-# set(WINDOWS_WINSOCK32_INCLUDES "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/um")
-# set(WINDOWS_WINSOCK32_INCLUDES "C:/Program Files (x86)/Windows Kits/10/Include/10.0.22621.0/shared")
-# set(WINDOWS_WINSOCK32_LIBS "C:/Program Files (x86)/Windows Kits/10/Lib/10.0.22621.0/um/x64")
-
-message("looking for headers")
-# message(${WINDOWS_WINSOCK32_INCLUDES})
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
@@ -31,7 +24,6 @@ add_subdirectory(external/enet)
 add_subdirectory(external/glad)
 
 target_include_directories(${PROJECT_NAME} 
-    # PUBLIC ${WINDOWS_WINSOCK32_INCLUDES}
     PUBLIC external/enet/include
     PUBLIC src
     PUBLIC ../shared
@@ -41,13 +33,9 @@ target_include_directories(${PROJECT_NAME}
 target_link_directories(${PROJECT_NAME} 
     PUBLIC external/enet
     PUBLIC external/SDL2_x64/lib
-    # PUBLIC ${WINDOWS_WINSOCK32_LIBS}
-    # PUBLIC external/enet_lib
 )
 
-# target_link_libraries(${PROJECT_NAME} ws2_32)
 target_link_libraries(${PROJECT_NAME} stdc++)
 target_link_libraries(${PROJECT_NAME} enet)
 target_link_libraries(${PROJECT_NAME} glad)
 target_link_libraries(${PROJECT_NAME} mingw32 SDL2main SDL2)
-# target_link_libraries(${PROJECT_NAME} ws2_32 enet)
