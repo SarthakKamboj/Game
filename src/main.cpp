@@ -8,15 +8,7 @@
 #include "networking.h"
 #include "app.h"
 #include "renderer/renderer.h"
-
-enum CHARACTER {
-	PLAYER = 0, VILLIAN
-};
-
-struct player_info_t {
-	CHARACTER character = CHARACTER::PLAYER;
-	char name = 0;
-};
+#include "utils/time.h"
 
 int main(int argc, char *argv[])
 {
@@ -41,10 +33,17 @@ int main(int argc, char *argv[])
 	
 	while (true)
     {
+		float start = platformer::get_time_since_start_in_sec();
 		process_input(mouse_state, key_state, app.window);
+		static float time_since_last_send = 0.f;
+		time_since_last_send += platformer::time_t::delta_time;
+		const int SEND_INTERVAL = 1.0f/60.f;
+		if (time_since_last_send >= SEND_INTERVAL) {
+			time_since_last_send -= SEND_INTERVAL;
+			send_user_cmd(client, game_server, key_state);
+		}
 		if (mouse_state.left_mouse_down) {
-			std::cout << "less mouse down" << std::endl;
-			send_join_room_req(client, game_server);
+			std::cout << "left mouse down" << std::endl;
 		}
 		if (mouse_state.right_mouse_down) {
 			std::cout << "right mouse down" << std::endl;
@@ -61,16 +60,24 @@ int main(int argc, char *argv[])
             }
                 break;
             case ENET_EVENT_TYPE_RECEIVE: {
-                printf("A packet of length %u containing %i was received from %s on channel %u.\n",
+                /* printf("A packet of length %u containing %i was received from %s on channel %u.\n",
                        event.packet->dataLength,
                        *((int*)event.packet->data),
                        event.peer->data,
-                       event.channelID);
+                       event.channelID); */
 
 				server_res_body_t server_res;
 				memcpy(&server_res, event.packet->data, sizeof(server_res_body_t));
-				std::cout << server_res.ack_type << std::endl;
-				std::cout << server_res.ack_data.join_code << std::endl;
+				std::cout << server_res.res_type << std::endl;
+				if (server_res.res_type == RES_TYPE::JOIN_CODE) {
+					std::cout << server_res.res_data.join_code << std::endl;
+				} else if (server_res.res_type == RES_TYPE::RES_MSG) {
+					std::cout << server_res.res_data.msg << std::endl;
+				}
+				else if (server_res.res_type == RES_TYPE::SNAPSHOT) {
+					gameobject_snapshot_t& snapshot = server_res.res_data.gameobject_snapshots[0];
+					std::cout << "snapshot received with x: " << snapshot.x << " and y: " << snapshot.y << std::endl;
+				}
 
                 /* Clean up the packet now that we're done using it. */
                 enet_packet_destroy(event.packet);
@@ -90,8 +97,10 @@ int main(int argc, char *argv[])
                 break;
             }
 
-			render(app);
         }
+		render(app);
+		float end = platformer::get_time_since_start_in_sec();
+		platformer::time_t::delta_time = end - start;
     }
 
 	enet_host_destroy(client.enet_host);

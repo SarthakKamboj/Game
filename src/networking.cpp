@@ -74,3 +74,25 @@ server_t find_game_server(client_t& client) {
 
     return server;
 }
+
+void send_user_cmd(client_t& client, server_t& server, key_state_t& key_state) {
+	server_req_body_t server_body_req;
+    server_body_req.req_type = REQ_TYPE::USER_CMD;
+
+	static unsigned int running_time = 0;
+
+    auto& user_cmd = server_body_req.req_data.user_cmd_info;
+	user_cmd.game_time = running_time;
+	const float SEND_INTERVAL = 1.0f/60.f;
+	user_cmd.delta_time = SEND_INTERVAL;
+    user_cmd.w_pressed = key_state.key_down['w'];
+    user_cmd.a_pressed = key_state.key_down['a'];
+    user_cmd.s_pressed = key_state.key_down['s'];
+    user_cmd.d_pressed = key_state.key_down['d'];
+
+	running_time++;
+
+	ENetPacket *packet = enet_packet_create((void*)&server_body_req, sizeof(server_body_req), 0);
+	enet_peer_send(server.enet_peer, 0, packet);
+	
+}
