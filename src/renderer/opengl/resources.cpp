@@ -22,8 +22,6 @@ int create_texture(const char* path, int tex_slot) {
 	int num_channels, width, height;
 	stbi_set_flip_vertically_on_load(true);
 
-    std::cout << path << std::endl;
-
 	unsigned char* data = stbi_load(path, &width, &height, &num_channels, 0);
 
 	glGenTextures(1, &texture.id);
@@ -100,7 +98,6 @@ shader_t create_shader(const char* vert_path, const char* frag_path) {
 	std::string frag_code_str = io::get_file_contents(frag_path);
     std::cout << frag_code_str << std::endl;
 	const char* frag_shader_source = frag_code_str.c_str();
-    std::cout << frag_shader_source << std::endl;
 	glShaderSource(frag_shader, 1, &frag_shader_source, NULL);
 	glCompileShader(frag_shader);
 	glGetShaderiv(frag_shader, GL_COMPILE_STATUS, &success);
