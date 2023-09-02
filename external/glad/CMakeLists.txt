@@ -1,4 +1,9 @@
 cmake_minimum_required(VERSION 3.22.1)
+
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Debug")
+endif()
+
 project(glad)
 
 add_library(${PROJECT_NAME} 
@@ -8,5 +13,5 @@ add_library(${PROJECT_NAME}
 )
 
 target_include_directories(${PROJECT_NAME}
-    PUBLIC ./include
+   PUBLIC include
 )
