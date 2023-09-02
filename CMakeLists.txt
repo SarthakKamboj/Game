@@ -14,16 +14,24 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(${PROJECT_NAME} 
     src/main.cpp
+    src/app.cpp
     src/networking.cpp
     src/input/input.cpp
     src/init.cpp
     src/renderer/renderer.cpp
     src/utils/time.cpp
-    # external/glad/src/glad.c
+    src/utils/io.cpp
+    src/renderer/basic/shape_renders.cpp
+    src/renderer/opengl/buffers.cpp
+    src/renderer/opengl/object_data.cpp
+    src/renderer/opengl/resources.cpp
+    src/renderer/opengl/vertex.cpp
+    src/transform/transform.cpp
 )
 
 add_subdirectory(external/enet)
 add_subdirectory(external/glad)
+add_subdirectory(external/stb_image)
 
 target_include_directories(${PROJECT_NAME} 
     PUBLIC external/enet/include
@@ -31,13 +39,12 @@ target_include_directories(${PROJECT_NAME}
     PUBLIC ../shared
     PUBLIC external/SDL2_x64/include/SDL2
     PUBLIC external/glad/include
+    PUBLIC external/glm
+    PUBLIC external/stb_image
 )
 
 target_link_directories(${PROJECT_NAME} 
-    # PUBLIC external/enet/build
-    # PUBLIC external/enet_lib
     PUBLIC external/SDL2_x64
-    # PUBLIC external/glad/build
 )
 
 # target_link_libraries(${PROJECT_NAME} stdc++)
@@ -47,5 +54,6 @@ target_link_directories(${PROJECT_NAME}
 # target_link_libraries(${PROJECT_NAME} enet64)
 target_link_libraries(${PROJECT_NAME} enet)
 target_link_libraries(${PROJECT_NAME} glad)
+target_link_libraries(${PROJECT_NAME} stb_image)
 # target_link_libraries(${PROJECT_NAME} mingw32 SDL2main SDL2)
 target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
