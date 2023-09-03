@@ -1,22 +1,12 @@
 #include "app.h" 
-// #include "gameobjects/gos.h"
-// #include "physics/physics.h"
 #include "transform/transform.h"
 #include "utils/time.h"
 #include "constants.h"
-// #include "animation/animation.h"
 
-// void update(key_state_t& key_state, const main_character_t& mc) {
-// 	update_rigidbodies();
-// 	update_animations();
-// 	update_main_character(mc, key_state);
-// }
-
-bool set_interpolating_snapshots(fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE>& snapshot_fifo, snapshot_data_t& snapshot_from, snapshot_data_t*& snapshot_to, float& cur_time) {
+bool set_interpolating_snapshots(fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE>& snapshot_fifo, snapshot_data_t& snapshot_from, snapshot_data_t*& snapshot_to) {
 	fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE>::dequeue_state_t dequeue_state = snapshot_fifo.dequeue();
 	if (dequeue_state.valid) {
 		snapshot_from = dequeue_state.val;
-		cur_time = snapshot_from.game_time;
 		// std::cout << "dequeue valid and got snapshot " << snapshot_from.snapshot_id << std::endl;
 	} else {
 		// TODO: this is most likely that we have nothing to even interpolate from or to
@@ -51,7 +41,8 @@ void update(int transform_handle, fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data)
 
 	if (!started_updates && snapshot_fifo.get_size() == NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION) {
 		started_updates = true;	
-		set_interpolating_snapshots(snapshot_fifo, snapshot_from, snapshot_to, cur_time);
+		set_interpolating_snapshots(snapshot_fifo, snapshot_from, snapshot_to);
+		cur_time = snapshot_from.game_time;
 		// std::cout << snapshot_from.game_time << " " << snapshot_to->game_time << std::endl;
 		// std::cout << cur_time << std::endl;
 	}
@@ -77,26 +68,18 @@ void update(int transform_handle, fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data)
 	static float prev_iter_val = 0.f;
 
 	if (iter_val >= 1.0f) {
-		// if (prev_iter_val < 0.98f) {
-		// 	cur_time = snapshot_to->game_time;
-		// 	iter_val = 1.0f;
-		// } else {
-			// std::cout << "finished snapshot " << snapshot_from.snapshot_id << std::endl;
-			bool res = set_interpolating_snapshots(snapshot_fifo, snapshot_from, snapshot_to, cur_time); 
+		bool res = set_interpolating_snapshots(snapshot_fifo, snapshot_from, snapshot_to); 
 
-			if (!res) {
-				cur_time += platformer::time_t::delta_time;	
-				std::cout << "extrapolating here" << std::endl;
-				return;
-			}
+		if (!res) {
+			cur_time += platformer::time_t::delta_time;	
+			std::cout << "extrapolating here" << std::endl;
+			return;
+		}
 
-			// std::cout << "new start time: " << snapshot_from.game_time << " (frame " << snapshot_from.snapshot_id << ") to new end time: " << snapshot_to->game_time << " (" << snapshot_to->snapshot_id << ")" << std::endl;
-			iter_val = (cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
-			// std::cout << snapshot_from.game_time << " " << snapshot_to->game_time << std::endl;
-			if (std::isinf(iter_val)) {
-				std::cout << "iter_val is inf: " << iter_val << std::endl;
-			}
-		// }
+		iter_val = (cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
+		if (std::isinf(iter_val)) {
+			std::cout << "iter_val is inf: " << iter_val << std::endl;
+		}
 	}
 
 	transform_t* transform_ptr = get_transform(transform_handle);
@@ -117,8 +100,8 @@ void update(int transform_handle, fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data)
 		multiplier = percentage_to_max_from_safe +  INITIAL_SPEED_UP;
 	}
 
-	// std::cout << "snapshot size: " << snapshot_fifo.get_size() << std::endl;
-	std::cout << "multiplier: " << multiplier << std::endl;
+	std::cout << "snapshot size: " << snapshot_fifo.get_size() << std::endl;
+	// std::cout << "multiplier: " << multiplier << std::endl;
 
 	cur_time += platformer::time_t::delta_time * multiplier;
 	prev_iter_val = iter_val; 

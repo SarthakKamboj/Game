@@ -17,10 +17,19 @@
 
 fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE> gameobject_saved_snapshots;
 
+/*
+	NOTE: When an event is sent by the client, start client prediction and save between what snapshots this occurred.
+	When the server gives back acknowledgement, at that moment, note the largest snapshot id in the fifo. We cannot expect
+	the snapshots to display this action by the client until after that snapshot. 
+*/
+
 float calc_new_time_between_snapshots(const int NUM_SNAPSHOTS_PER_SEC) {
+	// 0 to 1
 	float offset = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
-	offset -= 1.f;
-	offset *= (1.f / NUM_SNAPSHOTS_PER_SEC) * 0.5f;
+	// -0.5 to 0.5
+	offset -= 0.5f;
+	// -0.5 * (time between snaps) to 0.5 * (time between snaps)
+	offset *= (1.f / NUM_SNAPSHOTS_PER_SEC);
 	return (1.f / NUM_SNAPSHOTS_PER_SEC) + offset;
 }
 
