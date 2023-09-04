@@ -13,10 +13,6 @@
 #include "renderer/basic/shape_renders.h"
 #include "constants.h"
 
-#define SNAPSHOT_UNIT_TEST 0
-
-// snapshots_fifo_t gameobject_saved_snapshots;
-
 /*
 	NOTE: When an event is sent by the client, start client prediction and save between what snapshots this occurred.
 	When the server gives back acknowledgement, at that moment, note the largest snapshot id in the fifo. We cannot expect

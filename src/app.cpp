@@ -40,22 +40,8 @@ void handle_snapshots(snapshots_fifo_t& snapshot_fifo, update_info_t& update_inf
 
 	if (update_info.update_mode == update_mode_t::EXTRAPOLATION) return;
 	
-	// float time_from_older_snapshot = platformer::time_t::cur_time - snapshot_from.game_time;
-	// float time_between_snapshots = snapshot_to->game_time - snapshot_from.game_time;
-	// float iter_val = time_from_older_snapshot / time_between_snapshots;
-
 	if (platformer::time_t::cur_time >= snapshot_to->game_time) {
 		assign_interpolating_snapshots(snapshot_fifo, update_info); 
-		// if (update_info.update_mode == update_mode_t::EXTRAPOLATION) {
-		// 	platformer::time_t::cur_time += platformer::time_t::delta_time;	
-		// 	std::cout << "extrapolating here" << std::endl;
-		// 	return;
-		// }
-
-		// iter_val = (platformer::time_t::cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
-		// if (std::isinf(iter_val)) {
-		// 	std::cout << "iter_val is inf: " << iter_val << std::endl;
-		// }
 	}	
 }
 
