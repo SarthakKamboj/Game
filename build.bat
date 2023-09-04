@@ -1,6 +1,2 @@
 cls
-rm -fr build
-cmake -S . -B build -G "Unix Makefiles"
-cd build
-make
-cd ..
+cmake -S . -D TESTING=0 -B build 

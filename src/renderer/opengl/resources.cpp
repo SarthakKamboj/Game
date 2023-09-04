@@ -96,7 +96,6 @@ shader_t create_shader(const char* vert_path, const char* frag_path) {
 	}
 
 	std::string frag_code_str = io::get_file_contents(frag_path);
-    std::cout << frag_code_str << std::endl;
 	const char* frag_shader_source = frag_code_str.c_str();
 	glShaderSource(frag_shader, 1, &frag_shader_source, NULL);
 	glCompileShader(frag_shader);

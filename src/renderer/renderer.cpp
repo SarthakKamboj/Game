@@ -8,7 +8,7 @@
 
 // will add spritesheet renderers as well in the future
 
-extern fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE> gameobject_saved_snapshots;
+// extern fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE> gameobject_saved_snapshots;
 
 extern bool started_updates;
 void render(application_t& app) {

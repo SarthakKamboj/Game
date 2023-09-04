@@ -2,6 +2,8 @@
 #include "SDL.h"
 
 float platformer::time_t::delta_time = 0.f;
+float platformer::time_t::cur_time = 0.f;
+float platformer::time_t::cur_independent_time = 0.f;
 
 float platformer::get_time_since_start_in_sec() {
 	Uint32 ms_time = SDL_GetTicks();

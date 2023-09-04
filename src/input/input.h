@@ -16,4 +16,11 @@ struct mouse_state_t {
 	bool right_mouse_down = false, right_mouse_up = false, right_mouse_being_pressed = false;
 };
 
-void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Window* window);
+struct input_state_t {
+	key_state_t key_state;
+	mouse_state_t mouse_state;
+	SDL_Window* window = NULL;
+};
+
+// void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Window* window);
+void process_input(input_state_t& input_state);

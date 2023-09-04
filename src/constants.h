@@ -1,6 +1,8 @@
 #pragma once
 
 #include <string>
+#include "fifo.h"
+#include "shared/networking.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -10,9 +12,9 @@
 #define GRAVITY (9.8f * 100.f)
 #define MAX_HORIZONTAL_COL_OFFSET_PIXELS 2
 #define MAX_PIXELS_OVERLAP_FOR_VERT_COL 3.5f
-// #define WORLD_ITEM_TEXT_FILE_DELIM "GAME_DELIM"
 #define WORLD_ITEM_TEXT_FILE_DELIM " , "
 #define NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION 3
-// #define MAX_SNAPSHOT_BUFFER_SIZE (NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION * 2)
 #define MAX_SNAPSHOT_BUFFER_SIZE NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION
-// #define MAX_SNAPSHOT_BUFFER_SIZE 4 
+#define INVALID_SNAPSHOT_ID 0xFFFFFFFF
+
+typedef fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_t;

@@ -1,7 +1,12 @@
 #include "input.h"
 #include "constants.h"
 
-void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Window* window) {
+void process_input(input_state_t& input_state) {
+// void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Window* window) {
+
+	key_state_t& key_state = input_state.key_state;
+	mouse_state_t& mouse_state = input_state.mouse_state;
+
 	SDL_Event event;
     // clear data
 	mouse_state.left_mouse_down = false;
@@ -14,7 +19,7 @@ void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Windo
 	key_state.key_up.clear();
 
 	while (SDL_PollEvent(&event)) {
-		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(window)) {
+		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(input_state.window)) {
 			key_state.close_event_pressed = true;
 			continue;
 		}
