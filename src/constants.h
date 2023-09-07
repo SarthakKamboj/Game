@@ -1,8 +1,10 @@
 #pragma once
 
 #include <string>
-#include "fifo.h"
-#include "shared/networking.h"
+#include "shared/utils/fifo.h"
+#include "shared/networking/networking.h"
+#include "shared/world/world.h"
+#include "shared/input/input.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
@@ -15,6 +17,5 @@
 #define WORLD_ITEM_TEXT_FILE_DELIM " , "
 #define NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION 3
 #define MAX_SNAPSHOT_BUFFER_SIZE NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION
-#define INVALID_SNAPSHOT_ID 0xFFFFFFFF
 
-typedef fifo<TYPE_OF_MEMBER(res_data_t, snapshot_data), MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_t;
+#define INVALID_SNAPSHOT_ID 0xFFFFFFFF

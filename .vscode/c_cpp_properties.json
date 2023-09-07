@@ -5,7 +5,7 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "${workspaceFolder}/external/enet/include",
-                "C:/Sarthak/projects/shared"
+                "C:/Sarthak/projects/shared/**"
             ],
             "defines": [
                 "_DEBUG",

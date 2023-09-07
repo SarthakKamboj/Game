@@ -1,9 +1,8 @@
 #include "renderer.h"
 #include "glad/glad.h"
 #include <vector>
-#include "shared/networking.h"
+#include "shared/networking/networking.h"
 #include "renderer/basic/shape_renders.h"
-#include "fifo.h"
 #include "constants.h"
 
 // will add spritesheet renderers as well in the future

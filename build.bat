@@ -1,2 +1,2 @@
 cls
-cmake -S . -D TESTING=0 -B build 
+cmake -S . -D RUN_MOCKED=ON -D RUN_TESTCASES=OFF -B build 

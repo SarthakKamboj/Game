@@ -189,9 +189,8 @@ void init_rectangle_data() {
 //     }
 // }
 
-void init(application_t& app, input_state_t& input_state) {
+void init(application_t& app) {
 	app.window = init_sdl();
-	input_state.window = app.window;
 	// app.running = true;
     // initialize opengl data for a rectangle
 	init_rectangle_data();

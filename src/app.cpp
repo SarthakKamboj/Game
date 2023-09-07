@@ -1,9 +1,11 @@
+#if 0
+
 #include "app.h" 
 #include "transform/transform.h"
 #include "utils/time.h"
 #include "constants.h"
 
-bool assign_interpolating_snapshots(snapshots_fifo_t& snapshot_fifo, update_info_t& update_info) {
+bool assign_interpolating_snapshots(snapshots_fifo_t& snapshot_fifo, obj_update_info_t& update_info) {
 	snapshots_fifo_t::dequeue_state_t dequeue_state = snapshot_fifo.dequeue();
 	if (dequeue_state.valid) {
 		update_info.snapshot_from = dequeue_state.val;
@@ -22,63 +24,65 @@ bool assign_interpolating_snapshots(snapshots_fifo_t& snapshot_fifo, update_info
 		std::cout << "peek was not valid" << std::endl;
 		// put the from snapshot back in to be used later
 		snapshot_fifo.enqueue(update_info.snapshot_from);
-		update_info.update_mode = update_mode_t::EXTRAPOLATION;
+		update_info.update_mode = object_update_mode_t::EXTRAPOLATION;
 		return false;
 	}
 
-	update_info.update_mode = update_mode_t::INTERPOLATION;
+	update_info.update_mode = object_update_mode_t::INTERPOLATION;
 	return true;
 }
 
-void handle_snapshots(snapshots_fifo_t& snapshot_fifo, update_info_t& update_info) {
-	snapshot_data_t& snapshot_from = update_info.snapshot_from;
-	snapshot_data_t*& snapshot_to = update_info.snapshot_to;	
+void handle_snapshots(snapshots_fifo_t& snapshot_fifo, obj_update_info_t& update_info) {
+	snapshot_t& snapshot_from = update_info.snapshot_from;
+	snapshot_t*& snapshot_to = update_info.snapshot_to;	
 
-	if (update_info.update_mode == update_mode_t::EXTRAPOLATION) {
+	if (update_info.update_mode == object_update_mode_t::EXTRAPOLATION || platformer::time_t::cur_time >= snapshot_to->game_time) {
 		assign_interpolating_snapshots(snapshot_fifo, update_info);
 	}
-
-	if (update_info.update_mode == update_mode_t::EXTRAPOLATION) return;
-	
-	if (platformer::time_t::cur_time >= snapshot_to->game_time) {
-		assign_interpolating_snapshots(snapshot_fifo, update_info); 
-	}	
 }
 
 float remap(float val, float orig_low, float orig_high, float new_low, float new_high) {
 	return new_low + (val - orig_low) * ((new_high - new_low) / (orig_high - orig_low));
 }
 
-void update_object_positions(update_info_t& update_info, int transform_handle) {
-	transform_t* transform_ptr = get_transform(transform_handle);
+void update_object_positions(obj_update_info_t& update_info, int object_transform_handle) {
+	transform_t* transform_ptr = get_transform(object_transform_handle);
 	assert(transform_ptr != NULL);
 
-	if (update_info.update_mode == update_mode_t::INTERPOLATION) {
-		snapshot_data_t& snapshot_from = update_info.snapshot_from;
-		snapshot_data_t*& snapshot_to = update_info.snapshot_to;
+	if (update_info.update_mode == object_update_mode_t::INTERPOLATION) {
+		snapshot_t& snapshot_from = update_info.snapshot_from;
+		snapshot_t*& snapshot_to = update_info.snapshot_to;
 		float iter_val = (platformer::time_t::cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
 		transform_ptr->position.x = iter_val * (snapshot_to->gameobject_snapshots[0].x - snapshot_from.gameobject_snapshots[0].x) + snapshot_from.gameobject_snapshots[0].x;
 		transform_ptr->position.y = iter_val * (snapshot_to->gameobject_snapshots[0].y - snapshot_from.gameobject_snapshots[0].y) + snapshot_from.gameobject_snapshots[0].y;
-	} else if (update_info.update_mode == update_mode_t::EXTRAPOLATION) {
+	} else if (update_info.update_mode == object_update_mode_t::EXTRAPOLATION) {
 		// do extrapolation here
 	}
 }
 
+void update_player_position(input_state_t& input_state, int player_transform_handle) {
+	if (input_state.key_state.key_down['w']) {
+		transform_t* transform = get_transform(player_transform_handle);
+		transform->position.x += 10;
+	}
+}
+
 bool started_updates = false;
-void update(update_info_t& update_info, int transform_handle, snapshots_fifo_t& snapshot_fifo) {
+void update(input_state_t& input_state, obj_update_info_t& update_info, int object_transform_handle, int player_transform_handle, snapshots_fifo_t& snapshot_fifo) {
 
 	if (!started_updates && snapshot_fifo.get_size() == NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION) {
 		started_updates = true;	
 		assign_interpolating_snapshots(snapshot_fifo, update_info);
-		assert(update_info.update_mode == update_mode_t::INTERPOLATION);
+		assert(update_info.update_mode == object_update_mode_t::INTERPOLATION);
 		platformer::time_t::cur_time = update_info.snapshot_from.game_time;
 	}
 
 	if (!started_updates) return;
 
 	handle_snapshots(snapshot_fifo, update_info);
-	update_object_positions(update_info, transform_handle);
-	platformer::time_t::cur_time += platformer::time_t::delta_time;
+	update_object_positions(update_info, object_transform_handle);
+	update_player_position(input_state, player_transform_handle);
+	// platformer::time_t::cur_time += platformer::time_t::delta_time;
 
 	// basically if snapshot fifo is getting too packed, temporarily speed up time so that we don't have to drop snapshots
 	// float multiplier = 1.0f;
@@ -92,3 +96,5 @@ void update(update_info_t& update_info, int transform_handle, snapshots_fifo_t& 
 	// }
 	// platformer::time_t::cur_time += platformer::time_t::delta_time * multiplier;
 }
+
+#endif

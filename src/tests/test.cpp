@@ -1,10 +1,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "networking/networking.h"
-#include "fifo.h"
+#include "update.h"
 #include "constants.h"
 
-snapshots_fifo_t gameobject_saved_snapshots;
+#include "shared/utils/fifo.h"
+
+// snapshots_fifo_t gameobject_saved_snapshots;
 
 TEST_CASE("Testing basic server res handling for snapshots") {
 	gameobject_saved_snapshots.reset();
@@ -13,7 +15,7 @@ TEST_CASE("Testing basic server res handling for snapshots") {
 	server_res_body_t server_res_body;
 	server_res_body.res_type = RES_TYPE::SNAPSHOT;
 
-	snapshot_data_t snapshot;
+	snapshot_t snapshot;
 	snapshot.game_time = 0;
 	snapshot.snapshot_id = 0;
 	server_res_body.res_data.snapshot_data = snapshot;
@@ -56,7 +58,7 @@ TEST_CASE("Testing server res handling for snapshots out of order part 1") {
 	server_res_body_t server_res_body;
 	server_res_body.res_type = RES_TYPE::SNAPSHOT;
 
-	snapshot_data_t snapshot;
+	snapshot_t snapshot;
 	snapshot.game_time = 0.1;
 	snapshot.snapshot_id = 4;
 	server_res_body.res_data.snapshot_data = snapshot;
@@ -95,7 +97,7 @@ TEST_CASE("Testing server res handling for snapshots out of order part 2") {
 	server_res_body_t server_res_body;
 	server_res_body.res_type = RES_TYPE::SNAPSHOT;
 
-	snapshot_data_t snapshot;
+	snapshot_t snapshot;
 	snapshot.game_time = 0.1;
 	snapshot.snapshot_id = 0;
 	server_res_body.res_data.snapshot_data = snapshot;
