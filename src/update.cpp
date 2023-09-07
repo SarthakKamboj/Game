@@ -119,11 +119,9 @@ namespace world {
         if (peek_state.valid) {
             update_info.snapshot_to = peek_state.val;
         }	 else {
-            // TODO: this is most likely situation where we do not have anything to interpolate to so we will need to do extrapolation until the next snapshot comes
-            // put the from snapshot back in to be used later
             snapshot_fifo.enqueue(update_info.snapshot_from);
             update_info.update_mode = OBJECT_UPDATE_MODE::EXTRAPOLATION;
-            std::cout << "peek was not valid since snapshot is size " << snapshot_fifo.get_size() << std::endl;
+            // std::cout << "peek was not valid since snapshot is size " << snapshot_fifo.get_size() << std::endl;
             return false;
         }
 
@@ -154,16 +152,18 @@ namespace world {
     }
 
     // need to find a way to replicate this smooth damping on the server for acknowledgement and verification
-    float smooth_damp(float current, float target, float speed) {
+    float smooth_damp(float current, float target, float speed, bool& finished) {
         static float cur_vel = 0.0f;
         float diff = target - current;
         // float damp_factor = 1.f / smooth_time;
         float damp_factor = speed;
         cur_vel = damp_factor * diff * platformer::time_t::delta_time;
         float smooth_val = current + cur_vel * platformer::time_t::delta_time;
+        finished = false;
         if (abs((target - smooth_val) / diff) <= 0.02f) {
             smooth_val = target;
             cur_vel = 0.0f;
+            finished = true;
         }
         return smooth_val;
     }
@@ -186,6 +186,10 @@ namespace world {
 
             float target_x = lerp(snapshot_from.gameobjects[0].x, snapshot_to->gameobjects[0].x, iter_val);
             float target_y = lerp(snapshot_from.gameobjects[0].y, snapshot_to->gameobjects[0].y, iter_val);
+
+            // disabled smoothing for now since smoothing should probably be used mainly when there are
+            // some errors that need to be fixed, such as after extrapolation (main one I can think of right now)
+            // since as long as snapshots are coming in, we can just use snapshots to determine positions 
 
 #if SMOOTHING_ENABLED
 
@@ -224,8 +228,28 @@ namespace world {
             transform_ptr->position.x = smoothed_x;
             transform_ptr->position.y = smoothed_y;
 #else
-            transform_ptr->position.x = target_x;
-            transform_ptr->position.y = target_y;
+            // TODO: working on doing smoothing only when extrapolation has occurred so that we can smooth to correct location
+            static bool fixing_extrap_error = false;
+            if (fixing_extrap_error || last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+                fixing_extrap_error = true; 
+                std::cout << "currently fixing extrap" << std::endl;
+                static bool finished_fixing_x = false;
+                static bool finished_fixing_y = false;
+                float speed = 5000;
+                float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
+                float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
+
+                if (finished_fixing_x && finished_fixing_y) {
+                    std::cout << "finished fixing extrap" << std::endl;
+                    fixing_extrap_error = false;
+                }
+
+                transform_ptr->position.x = smoothed_x;
+                transform_ptr->position.y = smoothed_y;
+            } else {
+                transform_ptr->position.x = target_x;
+                transform_ptr->position.y = target_y;
+            }
 #endif
 
             if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
@@ -239,7 +263,7 @@ namespace world {
             transform_ptr->position.y += last_delta_y;
             last_extrapolation_time = platformer::time_t::cur_time;
 
-            std::cout << "extrapolating" << std::endl;
+            // std::cout << "extrapolating" << std::endl;
 
         }
 
