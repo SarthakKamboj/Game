@@ -77,12 +77,6 @@ namespace input {
 		user_cmd.input_cmd_id = id;
 		id++;
 
-		// user_input_t& user_input = user_cmd.user_input;
-		// user_input.w_pressed = key_state.key_down['w'];
-		// user_input.a_pressed = key_state.key_down['a'];
-		// user_input.s_pressed = key_state.key_down['s'];
-		// user_input.d_pressed = key_state.key_down['d'];
-
 		networking::client_cmd_t client_cmd;
 		client_cmd.cmd_type = networking::CLIENT_CMD_TYPE::USER_CMD;
 		client_cmd.size_of_data = sizeof(user_cmd_t);	
@@ -90,9 +84,6 @@ namespace input {
 		networking::send_client_cmd(client_cmd, false);
 
 		user_cmds_fifo.enqueue(user_cmd);
-
-		// ENetPacket *packet = enet_packet_create((void *)&server_body_req, sizeof(server_body_req), 0);
-		// enet_peer_send(server.enet_peer, 0, packet);
 	}
 
 	user_cmd_t clear_user_cmds_upto_id(unsigned int id) {
@@ -117,143 +108,8 @@ namespace input {
 			if (peek.valid && peek.val->input_cmd_id >= id) {
 				user_cmd_t& user_cmd = *peek.val;
 				cmds.push_back(user_cmd);
-				// user_input_t& user_input = user_cmd.user_input;
-				// input_state_t input_state;
-				// input_state.key_state.key_down['w'] = user_input.w_pressed;
-				// input_state.key_state.key_down['a'] = user_input.a_pressed;
-				// input_state.key_state.key_down['s'] = user_input.s_pressed;
-				// input_state.key_state.key_down['d'] = user_input.d_pressed;
-				// update_player_position(input_state, player_handle);
 			}
 		}
 		return cmds;
 	}
 }
-
-// void process_input(input_state_t& input_state) {
-// // void process_input(mouse_state_t& mouse_state, key_state_t& key_state, SDL_Window* window) {
-
-// 	key_state_t& key_state = input_state.key_state;
-// 	mouse_state_t& mouse_state = input_state.mouse_state;
-
-// 	SDL_Event event;
-//     // clear data
-// 	mouse_state.left_mouse_down = false;
-// 	mouse_state.left_mouse_up = false;
-// 	mouse_state.right_mouse_down = false;
-// 	mouse_state.right_mouse_up = false;
-
-// 	key_state.close_event_pressed = false;
-// 	key_state.key_down.clear();
-// 	key_state.key_up.clear();
-
-// 	while (SDL_PollEvent(&event)) {
-// 		if (event.type == SDL_WINDOWEVENT && event.window.event == SDL_WINDOWEVENT_CLOSE && event.window.windowID == SDL_GetWindowID(input_state.window)) {
-// 			key_state.close_event_pressed = true;
-// 			continue;
-// 		}
-// 		switch (event.type) {
-// 		case SDL_QUIT: {
-// 			key_state.close_event_pressed = true;
-// 		}
-// 					 break;
-// 		case SDL_MOUSEBUTTONUP: {
-// 			if (event.button.button == SDL_BUTTON_LEFT) {
-// 				mouse_state.left_mouse_up = true;
-// 				mouse_state.left_mouse_being_pressed = false;
-// 			}
-// 			else if (event.button.button == SDL_BUTTON_RIGHT) {
-// 				mouse_state.right_mouse_up = true;
-// 				mouse_state.right_mouse_being_pressed = false;
-// 			}
-// 		}
-// 							  break;
-// 		case SDL_MOUSEBUTTONDOWN: {
-// 			if (event.button.button == SDL_BUTTON_LEFT) {
-// 				mouse_state.left_mouse_down = true;
-// 				mouse_state.left_mouse_being_pressed = true;
-// 			}
-// 			else if (event.button.button == SDL_BUTTON_RIGHT) {
-// 				mouse_state.right_mouse_down = true;
-// 				mouse_state.right_mouse_being_pressed = true;
-// 			}
-// 		}
-// 								break;
-// 		case SDL_KEYDOWN: {
-// 			switch (event.key.keysym.sym) {
-// 			case SDLK_SPACE: {
-// 				key_state.key_down[' '] = true;
-// 				key_state.key_being_pressed[' '] = true;
-// 				break;
-// 			}
-// 			case SDLK_w: {
-// 				key_state.key_down['w'] = true;
-// 				key_state.key_being_pressed['w'] = true;
-// 				break;
-// 			}
-// 			case SDLK_a: {
-// 				key_state.key_down['a'] = true;
-// 				key_state.key_being_pressed['a'] = true;
-// 				break;
-// 			}
-// 			case SDLK_s: {
-// 				key_state.key_down['s'] = true;
-// 				key_state.key_being_pressed['s'] = true;
-// 				break;
-// 			}
-// 			case SDLK_d: {
-// 				key_state.key_down['d'] = true;
-// 				key_state.key_being_pressed['d'] = true;
-// 				break;
-// 			}
-// 			default:
-// 				break;
-// 			}
-// 		}
-// 						break;
-// 		case SDL_KEYUP: {
-// 			switch (event.key.keysym.sym) {
-// 			case SDLK_SPACE: {
-// 				key_state.key_up[' '] = true;
-// 				key_state.key_being_pressed[' '] = false;
-// 				break;
-// 			}
-// 			case SDLK_w: {
-// 				key_state.key_up['w'] = true;
-// 				key_state.key_being_pressed['w'] = false;
-// 				break;
-// 			}
-// 			case SDLK_a: {
-// 				key_state.key_up['a'] = true;
-// 				key_state.key_being_pressed['a'] = false;
-// 				break;
-// 			}
-// 			case SDLK_s: {
-// 				key_state.key_up['s'] = true;
-// 				key_state.key_being_pressed['s'] = false;
-// 				break;
-// 			}
-// 			case SDLK_d: {
-// 				key_state.key_up['d'] = true;
-// 				key_state.key_being_pressed['d'] = false;
-// 				break;
-// 			}
-// 			case SDLK_ESCAPE: {
-// 				key_state.close_event_pressed = true;
-// 				break;
-// 			}
-// 			default:
-// 				break;
-// 			}
-// 		}
-// 					  break;
-// 		default:
-// 			break;
-// 		}
-// 	}
-
-// 	int sdl_mouse_x, sdl_mouse_y;
-// 	SDL_GetMouseState(&sdl_mouse_x, &sdl_mouse_y);
-// 	mouse_state.x = sdl_mouse_x;
-// 	mouse_state.y = WINDOW_HEIGHT - sdl_mouse_y;
-// }

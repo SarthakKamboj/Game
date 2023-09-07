@@ -5,7 +5,9 @@
 #include "shared/input/input.h"
 #include <cassert>
 
-#define SMOOTHING_ENABLED 0
+#include "test_config.h"
+
+#define SMOOTHING_ENABLED 1
 
 bool started_updates = false;
 
@@ -16,6 +18,7 @@ typedef utils::fifo<world::snapshot_t, MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_
 
 unsigned int from_snapshot_id = INVALID_SNAPSHOT_ID;
 unsigned int to_snapshot_id = INVALID_SNAPSHOT_ID;
+
 
 namespace world {
 
@@ -39,15 +42,7 @@ namespace world {
     void resync_ack_user_cmd(gameobject_snapshot_cmd_t& go_cmd) {
         unsigned int user_cmd_response_id = go_cmd.input_cmd_response;
         input::user_cmd_t orig_user_cmd = input::clear_user_cmds_upto_id(user_cmd_response_id);
-        // if (!user_cmd_peek.valid) return;
-        // if (user_cmd_response_id < user_cmd_peek.val->input_cmd_id) return;
-        // while (user_cmd_peek.valid && user_cmd_peek.val->input_cmd_id != user_cmd_response_id) {
-        // 	user_cmds_fifo.dequeue();
-        // 	user_cmd_peek = user_cmds_fifo.peek_read();
-        // }
-        // if (!user_cmd_peek.valid) return;
-        // user_cmds_fifo_t::dequeue_state_t dequeud = user_cmds_fifo.dequeue();
-        // user_cmd_t& orig_user_cmd = dequeud.val;
+        
         transform_t* player_transform = get_transform(player_transform_handle);
         
         // set player to correct position
@@ -67,36 +62,12 @@ namespace world {
             input::user_input_t& user_input = cmd_to_replay.user_input;
             update_player_position(user_input);
         }
-
-        // for (int i = 0; i < user_cmds_fifo.get_size(); i++) {
-        // 	user_cmds_fifo_t::peek_state_t peek = user_cmds_fifo.get_at_idx(i);
-        // 	if (peek.valid) {
-        // 		user_cmd_t& user_cmd = *peek.val;
-        // 		user_input_t& user_input = user_cmd.user_input;
-        // 		input_state_t input_state;
-        // 		input_state.key_state.key_down['w'] = user_input.w_pressed;
-        // 		input_state.key_state.key_down['a'] = user_input.a_pressed;
-        // 		input_state.key_state.key_down['s'] = user_input.s_pressed;
-        // 		input_state.key_state.key_down['d'] = user_input.d_pressed;
-        // 		update_player_position(input_state, player_handle);
-        // 	}
-        // }
     }
 
     void receive_snapshot(networking::server_cmd_t& server_cmd) {
         if (server_cmd.res_type == networking::SERVER_CMD_TYPE::SNAPSHOT) {
             static unsigned int last_enqueued_snapshot_id = 0;
             snapshot_t* snapshot = reinterpret_cast<snapshot_t*>(server_cmd.server_cmd_data);
-            // snapshot_t& snapshot = server_res.res_data.snapshot_data;
-            // snapshots_fifo_t& snapshot_fifo = network_info.snapshots_fifo;
-            
-            // snapshots_fifo_t::peek_state_t peek_state = snapshot_fifo.peek_read();
-            // // snapshot receiving out of order logic
-            // if (peek_state.valid && snapshot.snapshot_id < peek_state.val->snapshot_id) {
-            //     std::cout << "cannot render this because it is too far back in interpolation time on client" << std::endl;
-            //     return;
-            // }
-            // std::cout << "can hold " << snapshot_fifo.get_size() << " frames at a time" << std::endl;
             snapshot_fifo.enqueue(*snapshot);
         } else if (server_cmd.res_type == networking::SERVER_CMD_TYPE::USER_CMD_ACK) {
             gameobject_snapshot_cmd_t* go_snapshot = reinterpret_cast<gameobject_snapshot_cmd_t*>(server_cmd.server_cmd_data);
@@ -163,8 +134,6 @@ namespace world {
         float diff = target - current;
         float damp_factor = speed;
         cur_vel = damp_factor * diff * platformer::time_t::delta_time;
-        // float max_vel = 1;
-        // cur_vel = clamp(cur_vel, -max_vel, max_vel);
         float smooth_val = current + (cur_vel * platformer::time_t::delta_time);
         if (abs(target - smooth_val) > abs(target - current)) {
             std::cout << "here" << std::endl;
@@ -211,95 +180,36 @@ namespace world {
             // https://www.reddit.com/r/gamedev/comments/4zbrgp/how_does_unitys_smoothdamp_work/
             // TODO: read up on smooth damper functions and improve smoothing to be more seamless
             // but this is good for now
-            float smoothed_x = target_x;
-            float smoothed_y = target_y;
 
-#if 1
-            const float NON_SMOOTH_THRESHOLD = 5.f;
-			float speed = 10000;
-            if (target_x - prev_x >= NON_SMOOTH_THRESHOLD)  {
-                std::cout << "smoothing x" << std::endl;
-				smoothed_x = smooth_damp(prev_x, target_x, speed);
-            }
-            
-            static int i = 0;
-            i++;
-
-            if (i == 100) {
-                std::cout << "hi" << std::endl;
-            }
-
-            if (target_y - prev_y >= NON_SMOOTH_THRESHOLD) {
-                std::cout << "smoothing y" << std::endl;
-                smoothed_y = smooth_damp(prev_y, target_y, speed);
-            }
-#else
-            float speed = 5000;
-            smoothed_x = smooth_damp(prev_x, target_x, speed);
-            smoothed_y = smooth_damp(prev_y, target_y, speed);
-
-#endif
-
-            transform_ptr->position.x = smoothed_x;
-            transform_ptr->position.y = smoothed_y;
-#else
             // TODO: working on doing smoothing only when extrapolation has occurred so that we can smooth to correct location
             static bool fixing_extrap_error = false;
             if (fixing_extrap_error || last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-            // if (false) {
                 fixing_extrap_error = true; 
                 static bool finished_fixing_x = false;
                 static bool finished_fixing_y = false;
-                // time_fixing += platformer::time_t::delta_time;
 
                 float speed = 30000;
                 float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
                 float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
 
-                // std::cout << "finished_fixing_x: " << finished_fixing_x << " finished_fixing_y: " << finished_fixing_y << std::endl;
-
-                time_count_t time_fixing = platformer::time_t::cur_time - last_extrapolation_time;
-                if (time_fixing >= 0.25 || (finished_fixing_x && finished_fixing_y)) {
-                // if (finished_fixing_x && finished_fixing_y) {
+                time_count_t time_since_extrap = platformer::time_t::cur_time - last_extrapolation_time;
+                if (time_since_extrap >= 0.25 || (finished_fixing_x && finished_fixing_y)) {
                     std::cout << "finished fixing extrap" << std::endl;
                     fixing_extrap_error = false;
-                    // time_fixing = 0;
                 }
-
-                // if (target_x - smoothed_x > 100 || target_y - smoothed_y > 100) {
-                //     // std::cout << "here" << std::endl;
-                //     float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
-                //     float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);
-                // }
-
-                // std::cout << "fixing extrap prev_x: " << prev_x << " prev_y: " << prev_y << " smoothed_x: " << smoothed_x << " smoothed_y: " << smoothed_y << std::endl;
 
                 transform_ptr->position.x = smoothed_x;
                 transform_ptr->position.y = smoothed_y;
-
-                // if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-                //     // last_delta_x = transform_ptr->position.x - prev_x;
-                //     // last_delta_y = transform_ptr->position.y - prev_y;
-                //     last_delta_x = smoothed_x - prev_x;
-                //     last_delta_y = smoothed_y - prev_y;
-                // }
-
             } else {
                 transform_ptr->position.x = target_x;
                 transform_ptr->position.y = target_y;
-
-                // std::cout << "doing interp target_x: " << target_x << " target_y: " << target_y << std::endl; 
             }
 
             if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
                 last_delta_x = transform_ptr->position.x - prev_x;
                 last_delta_y = transform_ptr->position.y - prev_y;
-                // last_delta_x = target_x - prev_x;
-                // last_delta_y = target_y - prev_y;
             }
 #endif 
-
-            // std::cout << "last_delta_x: " << last_delta_x << " last_delta_y: " << last_delta_y << std::endl;
 
         } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
             // do extrapolation here
@@ -310,8 +220,6 @@ namespace world {
             if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
                 std::cout << "started extrapolating" << std::endl;
             }
-
-            // std::cout << "last_delta_x: " << last_delta_x << " last_delta_y: " << last_delta_y << " transform_ptr->position.x: " << transform_ptr->position.x << " transform_ptr->position.y: " << transform_ptr->position.y << std::endl; 
 
         }
 
