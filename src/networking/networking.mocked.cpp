@@ -110,7 +110,7 @@ namespace networking {
 			static int num_dropped = 0;
 			num_dropped++;
 			snapshot_id++;
-			std::cout << "dropped snapshot " << snapshot_id << std::endl;
+			// std::cout << "dropped snapshot " << snapshot_id << std::endl;
 			next_send_time = time_of_first_snapshot + calc_new_snapshot_network_send_time(snapshot_id);
 			// std::cout << "drop rate: " << (static_cast<float>(num_dropped) / snapshot_id) << std::endl;
 			// time_since_last_receive = 0.f;
