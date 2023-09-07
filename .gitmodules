@@ -9,3 +9,6 @@
 	path = external/Catch2
 	url = git@github.com:catchorg/Catch2.git
 	branch = devel
+[submodule "external/enet"]
+	path = external/enet
+	url = git@github.com:lsalzman/enet.git

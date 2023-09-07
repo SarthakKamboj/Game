@@ -63,7 +63,7 @@ namespace networking {
 
 		float speed = 100.f;
 		// const float move = speed * platformer::time_t::delta_time;
-		const float move = 0.1f;
+		const float move = 1.f;
 
 		if (input_state.w_pressed) {
 			dir[0] = 0;
