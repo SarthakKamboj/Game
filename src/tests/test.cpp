@@ -1,6 +1,8 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "test_config.h"
+#include "update.h"
+#include "transform/transform.h"
 #include <iostream>
 // #include "networking/networking.h"
 // #include "update.h"
@@ -10,12 +12,15 @@
 
 // snapshots_fifo_t gameobject_saved_snapshots;
 
+int object_transform_handle;
+int player_transform_handle;
+extern snapshots_fifo_t snapshot_fifo;
+
 TEST_CASE("Testing basic server res handling for snapshots") {
-#ifdef RUN_TESTCASES
-	std::cout << "test cases" << std::endl;
-#endif
-	// world::reset();
-	// REQUIRE();
+	world::reset();
+	REQUIRE(snapshot_fifo.empty);
+	object_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
+	player_transform_handle = -1;
 
 	// gameobject_saved_snapshots.reset();
 	// REQUIRE(gameobject_saved_snapshots.empty == true);

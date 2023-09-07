@@ -7,6 +7,8 @@
 
 #define NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION 3
 
+typedef utils::fifo<world::snapshot_t, MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_t;
+
 namespace world {
     enum class OBJECT_UPDATE_MODE {
         NONE = 0,

@@ -6,14 +6,18 @@
 #include "shared/world/world.h"
 #include "shared/input/input.h"
 
+#include "test_config.h"
+
 #include <cassert>
 
 #define DROP_RATE 0.2f
 #define JITTER_EFFECT 0.5f
 #define NUM_SNAPSHOTS_PER_SEC 20
 
+#ifndef RUN_TESTCASES
 extern input::user_input_t input_state;
 extern int server_object_transform_handle; 
+#endif
 
 namespace networking {
 	float calc_new_snapshot_network_send_time(unsigned int snapshot_count) {
@@ -46,6 +50,7 @@ namespace networking {
 	void send_client_cmd(client_cmd_t& client_cmd, bool reliable) {}
 
 	bool poll_network_event(network_event_t& network_event) {
+#ifndef RUN_TESTCASES
 		static const time_count_t time_of_first_snapshot = platformer::time_t::cur_independent_time;
 		static time_count_t next_send_time = platformer::time_t::cur_independent_time;
 
@@ -139,6 +144,9 @@ namespace networking {
 		// std::cout << "sending snapshot " << snapshot.snapshot_id << " with game time: " << snapshot.game_time << " at time " << (platformer::time_t::cur_independent_time - time_of_first_snapshot) << std::endl;
 
 		return true;
+#endif
+		network_event.event_valid = false;
+		return false;
 	}
 
 	void destroy_network_event(network_event_t& network_event) {

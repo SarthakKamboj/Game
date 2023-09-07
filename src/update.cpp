@@ -14,15 +14,16 @@ bool started_updates = false;
 extern int object_transform_handle; 
 extern int player_transform_handle; 
 
-typedef utils::fifo<world::snapshot_t, MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_t;
-
 unsigned int from_snapshot_id = INVALID_SNAPSHOT_ID;
 unsigned int to_snapshot_id = INVALID_SNAPSHOT_ID;
 
+#ifdef RUN_TESTCASES
+snapshots_fifo_t snapshot_fifo;
+#else
+static snapshots_fifo_t snapshot_fifo;
+#endif
 
 namespace world {
-
-    static snapshots_fifo_t snapshot_fifo;
 
     void reset() {
         from_snapshot_id = INVALID_SNAPSHOT_ID;
