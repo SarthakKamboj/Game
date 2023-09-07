@@ -16,7 +16,7 @@
 
 #include "shared/input/input.h"
 
-#define RENDER_SERVER_VIEW 1
+#define RENDER_SERVER_VIEW 0
 
 /*
 	NOTE: When an event is sent by the client, start client prediction and save between what snapshots this occurred.

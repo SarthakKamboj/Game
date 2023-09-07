@@ -151,13 +151,24 @@ namespace world {
         return new_low + (val - orig_low) * ((new_high - new_low) / (orig_high - orig_low));
     }
 
+    float clamp(float val, float low, float high) {
+        if (val < low) return low;
+        if (val > high) return high;
+        return val;
+    }
+
     // need to find a way to replicate this smooth damping on the server for acknowledgement and verification
     float smooth_damp(float current, float target, float speed, bool& finished) {
         static float cur_vel = 0.0f;
         float diff = target - current;
         float damp_factor = speed;
         cur_vel = damp_factor * diff * platformer::time_t::delta_time;
-        float smooth_val = current + cur_vel * platformer::time_t::delta_time;
+        // float max_vel = 1;
+        // cur_vel = clamp(cur_vel, -max_vel, max_vel);
+        float smooth_val = current + (cur_vel * platformer::time_t::delta_time);
+        if (abs(target - smooth_val) > abs(target - current)) {
+            std::cout << "here" << std::endl;
+        }
         finished = false;
         if (abs(target - smooth_val) <= 0.05f) {
             smooth_val = target;
@@ -234,40 +245,61 @@ namespace world {
 #else
             // TODO: working on doing smoothing only when extrapolation has occurred so that we can smooth to correct location
             static bool fixing_extrap_error = false;
-            // if (fixing_extrap_error || last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-            if (false) {
+            if (fixing_extrap_error || last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+            // if (false) {
                 fixing_extrap_error = true; 
                 static bool finished_fixing_x = false;
                 static bool finished_fixing_y = false;
-                // static time_count_t time_fixing = 0;
                 // time_fixing += platformer::time_t::delta_time;
-                float speed = 1000;
+
+                float speed = 30000;
                 float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
                 float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
 
                 // std::cout << "finished_fixing_x: " << finished_fixing_x << " finished_fixing_y: " << finished_fixing_y << std::endl;
 
-                // if (time_fixing >= 0.25 || (finished_fixing_x && finished_fixing_y)) {
-                if (finished_fixing_x && finished_fixing_y) {
+                time_count_t time_fixing = platformer::time_t::cur_time - last_extrapolation_time;
+                if (time_fixing >= 0.25 || (finished_fixing_x && finished_fixing_y)) {
+                // if (finished_fixing_x && finished_fixing_y) {
                     std::cout << "finished fixing extrap" << std::endl;
                     fixing_extrap_error = false;
                     // time_fixing = 0;
                 }
 
+                // if (target_x - smoothed_x > 100 || target_y - smoothed_y > 100) {
+                //     // std::cout << "here" << std::endl;
+                //     float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
+                //     float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);
+                // }
+
+                // std::cout << "fixing extrap prev_x: " << prev_x << " prev_y: " << prev_y << " smoothed_x: " << smoothed_x << " smoothed_y: " << smoothed_y << std::endl;
+
                 transform_ptr->position.x = smoothed_x;
                 transform_ptr->position.y = smoothed_y;
+
+                // if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
+                //     // last_delta_x = transform_ptr->position.x - prev_x;
+                //     // last_delta_y = transform_ptr->position.y - prev_y;
+                //     last_delta_x = smoothed_x - prev_x;
+                //     last_delta_y = smoothed_y - prev_y;
+                // }
+
             } else {
                 transform_ptr->position.x = target_x;
                 transform_ptr->position.y = target_y;
+
+                // std::cout << "doing interp target_x: " << target_x << " target_y: " << target_y << std::endl; 
             }
-#endif
 
             if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-                // last_delta_x = transform_ptr->position.x - prev_x;
-                // last_delta_y = transform_ptr->position.y - prev_y;
-                last_delta_x = target_x - prev_x;
-                last_delta_y = target_y - prev_y;
+                last_delta_x = transform_ptr->position.x - prev_x;
+                last_delta_y = transform_ptr->position.y - prev_y;
+                // last_delta_x = target_x - prev_x;
+                // last_delta_y = target_y - prev_y;
             }
+#endif 
+
+            // std::cout << "last_delta_x: " << last_delta_x << " last_delta_y: " << last_delta_y << std::endl;
 
         } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
             // do extrapolation here
@@ -278,6 +310,8 @@ namespace world {
             if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
                 std::cout << "started extrapolating" << std::endl;
             }
+
+            // std::cout << "last_delta_x: " << last_delta_x << " last_delta_y: " << last_delta_y << " transform_ptr->position.x: " << transform_ptr->position.x << " transform_ptr->position.y: " << transform_ptr->position.y << std::endl; 
 
         }
 
