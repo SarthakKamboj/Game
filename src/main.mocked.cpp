@@ -20,9 +20,8 @@ int player_transform_handle = -1;
 input::user_input_t input_state;
 
 int main(int argc, char *argv[])
-{	
+{	 
 	application_t app;
-
 	init(app);
 
 	if (networking::init_networking() != 0) {

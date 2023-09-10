@@ -14,18 +14,70 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 option(RUN_MOCKED "Running in mocked network environment" ON)
 option(RUN_TESTCASES "Run unit tests and test cases" OFF)
 
+set(BASE_FILES)
+list(APPEND BASE_FILES 
+    src/app.cpp
+    src/update.cpp
+    src/networking/networking.cpp
+    src/input/input.cpp
+    src/init.cpp
+    src/renderer/renderer.cpp
+    src/utils/time.cpp
+    src/utils/io.cpp
+    src/renderer/basic/shape_renders.cpp
+    src/renderer/opengl/buffers.cpp
+    src/renderer/opengl/object_data.cpp
+    src/renderer/opengl/resources.cpp
+    src/renderer/opengl/vertex.cpp
+    src/transform/transform.cpp
+)
+
 function(configure_test_cases)
     add_subdirectory(external/Catch2)
+    add_subdirectory(external/glad)
+    add_subdirectory(external/stb_image)
+    add_subdirectory(../shared external/shared)
+    add_subdirectory(external/enet)
 
     add_executable(${PROJECT_NAME} 
         src/tests/test.cpp
+
+        src/app.cpp
+        src/update.cpp
+        # src/networking/networking.cpp
+        # src/networking/networking.mocked.cpp
+        # src/input/input.cpp
+        src/utils/time.cpp
+        src/input/input.mocked.cpp
+        # src/utils/io.cpp
+        # src/renderer/basic/shape_renders.cpp
+        # src/renderer/opengl/buffers.cpp
+        # src/renderer/opengl/object_data.cpp
+        # src/renderer/opengl/resources.cpp
+        # src/renderer/opengl/vertex.cpp
+        src/transform/transform.cpp
     )
 
     target_include_directories(${PROJECT_NAME} 
-        PUBLIC external/Catch2/src
+        PUBLIC ../shared
         PUBLIC src
+        PUBLIC external/SDL2_x64/include/SDL2
+        PUBLIC external/glad/include
+        PUBLIC external/glm
+        PUBLIC external/stb_image
+        PUBLIC external/Catch2/src
+        PUBLIC external/enet/include
     )
 
+    target_link_directories(${PROJECT_NAME} 
+        PUBLIC external/SDL2_x64
+    )
+
+    # target_link_libraries(${PROJECT_NAME} glad)
+    # target_link_libraries(${PROJECT_NAME} stb_image)
+    # target_link_libraries(${PROJECT_NAME} enet)
+    target_link_libraries(${PROJECT_NAME} shared)
+    # target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
     target_link_libraries(${PROJECT_NAME} Catch2::Catch2WithMain)
 
 endfunction()
@@ -50,21 +102,7 @@ function(configure_game)
     endif()
 
     add_executable(${PROJECT_NAME} 
-        src/app.cpp
-        src/update.cpp
-        src/networking/networking.cpp
-        src/input/input.cpp
-        src/init.cpp
-        src/renderer/renderer.cpp
-        src/utils/time.cpp
-        src/utils/io.cpp
-        src/renderer/basic/shape_renders.cpp
-        src/renderer/opengl/buffers.cpp
-        src/renderer/opengl/object_data.cpp
-        src/renderer/opengl/resources.cpp
-        src/renderer/opengl/vertex.cpp
-        src/transform/transform.cpp
-
+        ${BASE_FILES}
         ${EXTRA_FILES}
     )
 

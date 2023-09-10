@@ -28,9 +28,6 @@ int create_rectangle_render(int transform_handle, glm::vec3& color, float width,
 
 void draw_rectangle_renders() {
     for (int i = 0; i < rectangles.size(); i++) {
-        if (i == 96) {
-            int j = 10;
-        }
         const rectangle_render_t& rectangle = rectangles[i];
 		draw_rectangle_render(rectangle);
 	}

@@ -8,6 +8,5 @@ namespace platformer {
 		static time_count_t cur_time;
 		static time_count_t cur_independent_time;
 	};
-
-	time_count_t get_time_since_start_in_sec();
+	// time_count_t get_time_since_start_in_sec();
 }
