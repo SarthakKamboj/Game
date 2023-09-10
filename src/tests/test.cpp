@@ -1,12 +1,12 @@
 
 #include <catch2/catch_test_macros.hpp>
 #include "test_config.h"
-#include <iostream>
 #include "update.h"
-#include "shared/utils/timer.h"
-#include "utils/time.h"
-#include "renderer/renderer.h"
 #include "transform/transform.h"
+#include <iostream>
+// #include "networking/networking.h"
+// #include "update.h"
+// #include "constants.h"
 
 // extern bool started_updates;
 extern snapshots_fifo_t snapshot_fifo;
