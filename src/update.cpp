@@ -14,16 +14,16 @@ bool started_updates = false;
 extern int object_transform_handle; 
 extern int player_transform_handle; 
 
-typedef utils::fifo<world::snapshot_t, MAX_SNAPSHOT_BUFFER_SIZE> snapshots_fifo_t;
-
 unsigned int from_snapshot_id = INVALID_SNAPSHOT_ID;
 unsigned int to_snapshot_id = INVALID_SNAPSHOT_ID;
 
+#ifdef RUN_TESTCASES
+snapshots_fifo_t snapshot_fifo;
+#else
+static snapshots_fifo_t snapshot_fifo;
+#endif
 
 namespace world {
-
-    static snapshots_fifo_t snapshot_fifo;
-
     void reset() {
         from_snapshot_id = INVALID_SNAPSHOT_ID;
         to_snapshot_id = INVALID_SNAPSHOT_ID;
@@ -129,6 +129,37 @@ namespace world {
     }
 
     // need to find a way to replicate this smooth damping on the server for acknowledgement and verification
+    float smooth_damp(float current, float target, smooth_damp_info_t& damp_info) {
+        static const float SMOOTH_CONST = sqrt(0.0396f);
+        float diff = target - current;
+        if (diff == 0) {
+            damp_info.finished = true;
+            return target;
+        }
+        time_count_t time_elaspsed = platformer::time_t::cur_time - damp_info.start_time;
+        float ratio = time_elaspsed / damp_info.total_time;
+        float pt_98_multiplier = abs(0.98f * diff / SMOOTH_CONST);
+        float multiplier = 2 * ratio * pt_98_multiplier;
+        float final_multiplier = multiplier - pt_98_multiplier;
+        float intermediate_diff = ((diff * final_multiplier) / sqrt((diff * diff) + (final_multiplier * final_multiplier)));
+        float smooth_diff = (intermediate_diff + diff) * 0.5f;
+        float smooth_val = smooth_diff + current;
+        damp_info.finished = false;
+        if (abs((target - smooth_val) / target) <= 0.02) {
+            std::cout << "finished cause of dist" << std::endl;
+            smooth_val = target;
+            damp_info.finished = true;
+        }
+
+        if (abs((damp_info.total_time - time_elaspsed) / damp_info.total_time) <= 0.01) {
+            std::cout << "finished cause of time" << std::endl;
+            smooth_val = target;
+            damp_info.finished = true;
+        }
+
+        return smooth_val;
+    }
+
     float smooth_damp(float current, float target, float speed, bool& finished) {
         static float cur_vel = 0.0f;
         float diff = target - current;
@@ -151,15 +182,24 @@ namespace world {
         transform_t* transform_ptr = get_transform(object_transform_handle);
         assert(transform_ptr != NULL);
 
-        static float last_delta_x = 0.f;
-        static float last_delta_y = 0.f;
-        static time_count_t last_extrapolation_time = 0;
-        static OBJECT_UPDATE_MODE last_mode = OBJECT_UPDATE_MODE::INTERPOLATION;
+        // static float last_delta_x = 0.f;
+        // static float last_delta_y = 0.f;
+        // static time_count_t last_extrapolation_time = 0;
+        // static OBJECT_UPDATE_MODE last_mode = OBJECT_UPDATE_MODE::INTERPOLATION;
+
+        const time_count_t extrap_fix_time = 0.6;
 
         if (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
 
-            if (last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+            static smooth_damp_info_t x_damp_info;
+            static smooth_damp_info_t y_damp_info;
+            y_damp_info.total_time = extrap_fix_time;
+            x_damp_info.total_time = extrap_fix_time;
+
+            if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
                 std::cout << "done extrapolating" << std::endl;
+                x_damp_info.start_time = update_data.last_extrapolation_time;
+                y_damp_info.start_time = update_data.last_extrapolation_time;
             }
 
             snapshot_t& snapshot_from = update_data.snapshot_from;
@@ -183,47 +223,54 @@ namespace world {
 
             // TODO: working on doing smoothing only when extrapolation has occurred so that we can smooth to correct location
             static bool fixing_extrap_error = false;
-            if (fixing_extrap_error || last_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+            if (fixing_extrap_error || update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
                 fixing_extrap_error = true; 
-                static bool finished_fixing_x = false;
-                static bool finished_fixing_y = false;
+                // static bool finished_fixing_x = false;
+                // static bool finished_fixing_y = false;
 
                 float speed = 30000;
-                float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
-                float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
+                // float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
+                // float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
 
-                time_count_t time_since_extrap = platformer::time_t::cur_time - last_extrapolation_time;
-                if (time_since_extrap >= 0.25 || (finished_fixing_x && finished_fixing_y)) {
+                float smoothed_x = smooth_damp(prev_x, target_x, x_damp_info);
+                float smoothed_y = smooth_damp(prev_y, target_y, y_damp_info);
+                // float smoothed_y = smooth_damp(float current, float target, float total_time, bool& finished) {
+
+                time_count_t time_since_extrap = platformer::time_t::cur_time - update_data.last_extrapolation_time;
+                if (time_since_extrap >= extrap_fix_time || (x_damp_info.finished && y_damp_info.finished)) {
                     std::cout << "finished fixing extrap" << std::endl;
                     fixing_extrap_error = false;
                 }
 
                 transform_ptr->position.x = smoothed_x;
                 transform_ptr->position.y = smoothed_y;
+
+                std::cout << smoothed_x << std::endl;
             } else {
                 transform_ptr->position.x = target_x;
                 transform_ptr->position.y = target_y;
             }
 
-            if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-                last_delta_x = transform_ptr->position.x - prev_x;
-                last_delta_y = transform_ptr->position.y - prev_y;
+            if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
+                update_data.last_delta_x = transform_ptr->position.x - prev_x;
+                update_data.last_delta_y = transform_ptr->position.y - prev_y;
             }
 #endif 
 
         } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
             // do extrapolation here
-            transform_ptr->position.x += last_delta_x;
-            transform_ptr->position.y += last_delta_y;
-            last_extrapolation_time = platformer::time_t::cur_time;
+            transform_ptr->position.x += update_data.last_delta_x;
+            transform_ptr->position.y += update_data.last_delta_y;
+            update_data.last_extrapolation_time = platformer::time_t::cur_time;
 
-            if (last_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
+            if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
                 std::cout << "started extrapolating" << std::endl;
             }
 
         }
 
-        last_mode = update_data.update_mode;
+        update_data.last_frame_update_mode = update_data.update_mode;
+        // std::cout << "x: " << transform_ptr->position.x << " y: " << transform_ptr->position.y << std::endl;
     }
 
     void update_player() {
