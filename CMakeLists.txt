@@ -23,6 +23,7 @@ list(APPEND BASE_FILES
     src/init.cpp
     src/renderer/renderer.cpp
     src/utils/time.cpp
+    src/utils/math.cpp
     src/utils/io.cpp
     src/renderer/basic/shape_renders.cpp
     src/renderer/opengl/buffers.cpp
@@ -44,17 +45,9 @@ function(configure_test_cases)
 
         src/app.cpp
         src/update.cpp
-        # src/networking/networking.cpp
-        # src/networking/networking.mocked.cpp
-        # src/input/input.cpp
         src/utils/time.cpp
+        src/utils/math.cpp
         src/input/input.mocked.cpp
-        # src/utils/io.cpp
-        # src/renderer/basic/shape_renders.cpp
-        # src/renderer/opengl/buffers.cpp
-        # src/renderer/opengl/object_data.cpp
-        # src/renderer/opengl/resources.cpp
-        # src/renderer/opengl/vertex.cpp
         src/transform/transform.cpp
     )
 

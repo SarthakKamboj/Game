@@ -10,7 +10,7 @@
 
 #include <cassert>
 
-#define DROP_RATE 0.2f
+#define DROP_RATE 0.9f
 #define JITTER_EFFECT 0.5f
 #define NUM_SNAPSHOTS_PER_SEC 20
 

@@ -11,7 +11,7 @@
 
 #include "shared/input/input.h"
 
-#define RENDER_SERVER_VIEW 0
+#define RENDER_SERVER_VIEW 1
 
 int object_transform_handle = -1; 
 int server_object_transform_handle = -1; 
