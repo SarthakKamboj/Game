@@ -1,0 +1,1 @@
+python .\src\tests\view.py .\build\positions.csv .\build\target.csv

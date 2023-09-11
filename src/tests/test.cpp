@@ -4,13 +4,12 @@
 #include "update.h"
 #include "transform/transform.h"
 #include <iostream>
-// #include "networking/networking.h"
-// #include "update.h"
-// #include "constants.h"
 #include "update.h"
 #include "shared/utils/timer.h"
 #include "utils/time.h"
 #include "transform/transform.h"
+
+#include <fstream>
 
 // extern bool started_updates;
 extern snapshots_fifo_t snapshot_fifo;
@@ -72,7 +71,7 @@ TEST_CASE("Smooth damp tests -2.28") {
 */
 
 TEST_CASE("Testing basic server res handling for snapshots") {
-	object_transform_handle = create_transform(glm::vec3(250, 50, 0), glm::vec3(1), 0);
+	object_transform_handle = create_transform(glm::vec3(250, 100, 0), glm::vec3(1), 0);
 	transform_t* transform_ptr = get_transform(object_transform_handle);
 
 	world::reset();
@@ -82,8 +81,9 @@ TEST_CASE("Testing basic server res handling for snapshots") {
 	snapshot_1.gameobjects[0].y = 50;
 	snapshot_1.snapshot_id = 0;
 
+	time_count_t snap_2_gametime = 1;
 	world::snapshot_t snapshot_2;
-	snapshot_2.game_time = 0.05;
+	snapshot_2.game_time = snap_2_gametime;
 	snapshot_2.gameobjects[0].x = 300;
 	snapshot_2.gameobjects[0].y = 20;
 	snapshot_2.snapshot_id = 1;
@@ -96,17 +96,34 @@ TEST_CASE("Testing basic server res handling for snapshots") {
 	update_info.last_frame_update_mode = world::OBJECT_UPDATE_MODE::EXTRAPOLATION;
 	update_info.last_extrapolation_time = 0.008;
 
-	platformer::time_t::cur_time = 0.01;
+	platformer::time_t::cur_time = 0.0;
 
-	while (platformer::time_t::cur_time < 0.05) {
+	std::ofstream positions_file;
+	std::ofstream targets_file;
+	positions_file.open("positions.csv");
+	targets_file.open("target.csv");
+	positions_file << "time, x, y" << std::endl;
+	positions_file << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << "\n";
+	targets_file << "time, x, y" << std::endl;
+	// std::cout << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << std::endl;
+
+	while (platformer::time_t::cur_time < snap_2_gametime) {
 		utils::game_timer_t frame_timer;	
 		utils::start_timer(frame_timer);
 		world::update_interpolated_objs(update_info);
+		positions_file << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << "\n";
+		targets_file << platformer::time_t::cur_time << ", " << update_info.target_x << ", " << update_info.target_y << "\n";
+		// std::cout << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << std::endl;
 		utils::end_timer(frame_timer);
 		// world::update_interpolated_objs(update_info);
 		platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
 		platformer::time_t::cur_time += frame_timer.elapsed_time_sec;
+
 	}
+	std::cout << platformer::time_t::cur_time << std::endl;
+
+	positions_file.close();
+	targets_file.close();
 
 
 	// REQUIRE();

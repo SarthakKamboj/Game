@@ -130,6 +130,8 @@ namespace world {
 
     // need to find a way to replicate this smooth damping on the server for acknowledgement and verification
     float smooth_damp(float current, float target, smooth_damp_info_t& damp_info) {
+#if 0
+        if (damp_info.finished) return target;
         static const float SMOOTH_CONST = sqrt(0.0396f);
         float diff = target - current;
         if (diff == 0) {
@@ -146,18 +148,47 @@ namespace world {
         float smooth_val = smooth_diff + current;
         damp_info.finished = false;
         if (abs((target - smooth_val) / target) <= 0.02) {
-            std::cout << "finished cause of dist" << std::endl;
+            // std::cout << "finished cause of dist" << std::endl;
             smooth_val = target;
             damp_info.finished = true;
-        }
-
-        if (abs((damp_info.total_time - time_elaspsed) / damp_info.total_time) <= 0.01) {
-            std::cout << "finished cause of time" << std::endl;
+        } else if (abs((damp_info.total_time - time_elaspsed) / damp_info.total_time) <= 0.01) {
+            // std::cout << "finished cause of time" << std::endl;
             smooth_val = target;
             damp_info.finished = true;
         }
 
         return smooth_val;
+#else
+
+        if (damp_info.finished) return target;
+        static const float SMOOTH_CONST = sqrt(0.0396f);
+        float diff = target - current;
+        if (diff == 0) {
+            damp_info.finished = true;
+            return target;
+        }
+        time_count_t time_elaspsed = platformer::time_t::cur_time - damp_info.start_time;
+        const int power = 1;
+        float ratio = pow(time_elaspsed / damp_info.total_time, power);
+
+#if 1
+        float pt_98_multiplier = abs(0.98f * diff / SMOOTH_CONST);
+        float multiplier = 2 * ratio * pt_98_multiplier;
+        float final_multiplier = multiplier - pt_98_multiplier;
+        float intermediate_diff = ((diff * final_multiplier) / sqrt((diff * diff) + (final_multiplier * final_multiplier)));
+        float smooth_diff = (intermediate_diff + diff) * 0.5f;
+        float smooth_val = smooth_diff + current;
+#else
+        float smooth_val = (diff * ratio) + current;
+#endif
+        damp_info.finished = false;
+        if (abs(target - smooth_val) <= 0.01 || ratio >= 1.f) {
+            smooth_val = target;
+            damp_info.finished = true;
+        }
+
+        return smooth_val;
+#endif
     }
 
     float smooth_damp(float current, float target, float speed, bool& finished) {
@@ -181,13 +212,8 @@ namespace world {
     void update_interpolated_objs(obj_update_info_t& update_data) {
         transform_t* transform_ptr = get_transform(object_transform_handle);
         assert(transform_ptr != NULL);
-
-        // static float last_delta_x = 0.f;
-        // static float last_delta_y = 0.f;
-        // static time_count_t last_extrapolation_time = 0;
-        // static OBJECT_UPDATE_MODE last_mode = OBJECT_UPDATE_MODE::INTERPOLATION;
-
-        const time_count_t extrap_fix_time = 0.6;
+        
+        const time_count_t extrap_fix_time = 0.7;
 
         if (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
 
@@ -200,6 +226,9 @@ namespace world {
                 std::cout << "done extrapolating" << std::endl;
                 x_damp_info.start_time = update_data.last_extrapolation_time;
                 y_damp_info.start_time = update_data.last_extrapolation_time;
+
+                x_damp_info.finished = false;
+                y_damp_info.finished = false;
             }
 
             snapshot_t& snapshot_from = update_data.snapshot_from;
@@ -210,42 +239,31 @@ namespace world {
 
             float target_x = lerp(snapshot_from.gameobjects[0].x, snapshot_to->gameobjects[0].x, iter_val);
             float target_y = lerp(snapshot_from.gameobjects[0].y, snapshot_to->gameobjects[0].y, iter_val);
+            
+            update_data.target_x = target_x;
+            update_data.target_y = target_y;
 
             // disabled smoothing for now since smoothing should probably be used mainly when there are
             // some errors that need to be fixed, such as after extrapolation (main one I can think of right now)
             // since as long as snapshots are coming in, we can just use snapshots to determine positions 
 
-#if SMOOTHING_ENABLED
-
             // https://www.reddit.com/r/gamedev/comments/4zbrgp/how_does_unitys_smoothdamp_work/
             // TODO: read up on smooth damper functions and improve smoothing to be more seamless
             // but this is good for now
 
-            // TODO: working on doing smoothing only when extrapolation has occurred so that we can smooth to correct location
             static bool fixing_extrap_error = false;
             if (fixing_extrap_error || update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
                 fixing_extrap_error = true; 
-                // static bool finished_fixing_x = false;
-                // static bool finished_fixing_y = false;
-
-                float speed = 30000;
-                // float smoothed_x = smooth_damp(prev_x, target_x, speed, finished_fixing_x);
-                // float smoothed_y = smooth_damp(prev_y, target_y, speed, finished_fixing_y);    
-
-                float smoothed_x = smooth_damp(prev_x, target_x, x_damp_info);
                 float smoothed_y = smooth_damp(prev_y, target_y, y_damp_info);
-                // float smoothed_y = smooth_damp(float current, float target, float total_time, bool& finished) {
-
-                time_count_t time_since_extrap = platformer::time_t::cur_time - update_data.last_extrapolation_time;
-                if (time_since_extrap >= extrap_fix_time || (x_damp_info.finished && y_damp_info.finished)) {
-                    std::cout << "finished fixing extrap" << std::endl;
-                    fixing_extrap_error = false;
-                }
+                float smoothed_x = smooth_damp(prev_x, target_x, x_damp_info);
 
                 transform_ptr->position.x = smoothed_x;
                 transform_ptr->position.y = smoothed_y;
 
-                std::cout << smoothed_x << std::endl;
+                if (x_damp_info.finished && y_damp_info.finished) {
+                    fixing_extrap_error = false;
+                }
+
             } else {
                 transform_ptr->position.x = target_x;
                 transform_ptr->position.y = target_y;
@@ -255,7 +273,6 @@ namespace world {
                 update_data.last_delta_x = transform_ptr->position.x - prev_x;
                 update_data.last_delta_y = transform_ptr->position.y - prev_y;
             }
-#endif 
 
         } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
             // do extrapolation here

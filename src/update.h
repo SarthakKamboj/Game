@@ -30,6 +30,8 @@ namespace world {
         float last_delta_x = 0.f;
         float last_delta_y = 0.f;
         time_count_t last_extrapolation_time = 0;
+        float target_x;
+        float target_y;
         // time_count_t cur_time = 0;
     };
 
