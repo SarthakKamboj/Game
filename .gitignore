@@ -26,6 +26,8 @@ build/*.dll
 *.a
 build/*.lib
 
+*.png
+
 # Executables
 *.exe
 *.out
