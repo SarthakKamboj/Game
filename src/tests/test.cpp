@@ -105,7 +105,6 @@ TEST_CASE("Testing basic server res handling for snapshots") {
 	positions_file << "time, x, y" << std::endl;
 	positions_file << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << "\n";
 	targets_file << "time, x, y" << std::endl;
-	// std::cout << platformer::time_t::cur_time << ", " << transform_ptr->position.x << ", " << transform_ptr->position.y << std::endl;
 
 	while (platformer::time_t::cur_time < snap_2_gametime) {
 		utils::game_timer_t frame_timer;	
