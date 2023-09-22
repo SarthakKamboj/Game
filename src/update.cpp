@@ -10,7 +10,8 @@
 
 bool started_updates = false;
 
-extern int object_transform_handle; 
+// extern int object_transform_handle; 
+extern std::vector<int> interpolated_obj_transforms;
 extern int player_transform_handle; 
 
 unsigned int from_snapshot_id = INVALID_SNAPSHOT_ID;
@@ -75,7 +76,7 @@ namespace world {
     }
 
     // TODO: look at cur time assiging when the incoming snapshot after extrapolating is >= 2/3 frames than the last used frame
-    bool assign_interpolating_snapshots(obj_update_info_t& update_info) {
+    bool assign_interpolating_snapshots(interpolated_obj_update_info_t& update_info) {
         snapshots_fifo_t::dequeue_state_t dequeue_state = snapshot_fifo.dequeue();
         if (dequeue_state.valid) {
             update_info.snapshot_from = dequeue_state.val;
@@ -101,7 +102,7 @@ namespace world {
         return true;
     }
 
-    void handle_snapshots(obj_update_info_t& update_info) {
+    void handle_snapshots(interpolated_obj_update_info_t& update_info) {
         snapshot_t& snapshot_from = update_info.snapshot_from;
         snapshot_t*& snapshot_to = update_info.snapshot_to;	
         if (update_info.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION || platformer::time_t::cur_time >= snapshot_to->game_time) {
@@ -109,83 +110,85 @@ namespace world {
         }
     }
 
-    void update_interpolated_objs(obj_update_info_t& update_data) {
-        transform_t* transform_ptr = get_transform(object_transform_handle);
-        assert(transform_ptr != NULL);
-        
-        const time_count_t extrap_fix_time = 0.7;
+    void update_interpolated_objs(interpolated_obj_update_info_t& update_data) {
+        for (int i = 0; i < interpolated_obj_transforms.size(); i++) {
+            int object_transform_handle = interpolated_obj_transforms[i];
+            transform_t* transform_ptr = get_transform(object_transform_handle);
+            assert(transform_ptr != NULL);
 
-        if (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-            static math::smooth_damp_info_t x_damp_info;
-            static math::smooth_damp_info_t y_damp_info;
-            y_damp_info.total_time = extrap_fix_time;
-            x_damp_info.total_time = extrap_fix_time;
+            const time_count_t extrap_fix_time = 0.7;
 
-            if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-                x_damp_info.start_time = update_data.last_extrapolation_time;
-                y_damp_info.start_time = update_data.last_extrapolation_time;
+            if (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
+                static math::smooth_damp_info_t x_damp_info;
+                static math::smooth_damp_info_t y_damp_info;
+                y_damp_info.total_time = extrap_fix_time;
+                x_damp_info.total_time = extrap_fix_time;
 
-                x_damp_info.finished = false;
-                y_damp_info.finished = false;
-            }
+                if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+                    x_damp_info.start_time = update_data.last_extrapolation_time;
+                    y_damp_info.start_time = update_data.last_extrapolation_time;
 
-            snapshot_t& snapshot_from = update_data.snapshot_from;
-            snapshot_t*& snapshot_to = update_data.snapshot_to;
-            float iter_val = (platformer::time_t::cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
-            float prev_x = transform_ptr->position.x;
-            float prev_y = transform_ptr->position.y;
-
-            float target_x = math::lerp(snapshot_from.gameobjects[0].x, snapshot_to->gameobjects[0].x, iter_val);
-            float target_y = math::lerp(snapshot_from.gameobjects[0].y, snapshot_to->gameobjects[0].y, iter_val);
-            
-            update_data.target_x = target_x;
-            update_data.target_y = target_y;
-
-            // disabled smoothing for now since smoothing should probably be used mainly when there are
-            // some errors that need to be fixed, such as after extrapolation (main one I can think of right now)
-            // since as long as snapshots are coming in, we can just use snapshots to determine positions 
-
-            // https://www.reddit.com/r/gamedev/comments/4zbrgp/how_does_unitys_smoothdamp_work/
-            // TODO: read up on smooth damper functions and improve smoothing to be more seamless
-            // but this is good for now
-
-            static bool fixing_extrap_error = false;
-            if (fixing_extrap_error || update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-                fixing_extrap_error = true; 
-                float smoothed_y = math::smooth_damp(prev_y, target_y, y_damp_info);
-                float smoothed_x = math::smooth_damp(prev_x, target_x, x_damp_info);
-
-                transform_ptr->position.x = smoothed_x;
-                transform_ptr->position.y = smoothed_y;
-
-                if (x_damp_info.finished && y_damp_info.finished) {
-                    fixing_extrap_error = false;
+                    x_damp_info.finished = false;
+                    y_damp_info.finished = false;
                 }
 
-            } else {
-                transform_ptr->position.x = target_x;
-                transform_ptr->position.y = target_y;
+                snapshot_t& snapshot_from = update_data.snapshot_from;
+                snapshot_t*& snapshot_to = update_data.snapshot_to;
+                float iter_val = (platformer::time_t::cur_time - snapshot_from.game_time) / (snapshot_to->game_time - snapshot_from.game_time);
+                float prev_x = transform_ptr->position.x;
+                float prev_y = transform_ptr->position.y;
+
+                float target_x = math::lerp(snapshot_from.gameobjects[i].x, snapshot_to->gameobjects[i].x, iter_val);
+                float target_y = math::lerp(snapshot_from.gameobjects[i].y, snapshot_to->gameobjects[i].y, iter_val);
+
+
+                // disabled smoothing for now since smoothing should probably be used mainly when there are
+                // some errors that need to be fixed, such as after extrapolation (main one I can think of right now)
+                // since as long as snapshots are coming in, we can just use snapshots to determine positions 
+
+                // https://www.reddit.com/r/gamedev/comments/4zbrgp/how_does_unitys_smoothdamp_work/
+                // TODO: read up on smooth damper functions and improve smoothing to be more seamless
+                // but this is good for now
+
+                static bool fixing_extrap_error = false;
+                if (fixing_extrap_error || update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+                    fixing_extrap_error = true;
+                    float smoothed_y = math::smooth_damp(prev_y, target_y, y_damp_info);
+                    float smoothed_x = math::smooth_damp(prev_x, target_x, x_damp_info);
+
+                    transform_ptr->position.x = smoothed_x;
+                    transform_ptr->position.y = smoothed_y;
+
+                    if (x_damp_info.finished && y_damp_info.finished) {
+                        fixing_extrap_error = false;
+                    }
+                }
+                else {
+                    transform_ptr->position.x = target_x;
+                    transform_ptr->position.y = target_y;
+                }
+
+                if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
+                    transform_ptr->last_delta_x = transform_ptr->position.x - prev_x;
+                    transform_ptr->last_delta_y = transform_ptr->position.y - prev_y;
+                }
+
+            }
+            else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
+                transform_ptr->position.x += transform_ptr->last_delta_x;
+                transform_ptr->position.y += transform_ptr->last_delta_y;
+                update_data.last_extrapolation_time = platformer::time_t::cur_time;
             }
 
-            if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-                update_data.last_delta_x = transform_ptr->position.x - prev_x;
-                update_data.last_delta_y = transform_ptr->position.y - prev_y;
-            }
-
-        } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-            transform_ptr->position.x += update_data.last_delta_x;
-            transform_ptr->position.y += update_data.last_delta_y;
-            update_data.last_extrapolation_time = platformer::time_t::cur_time;
+            update_data.last_frame_update_mode = update_data.update_mode;
         }
-
-        update_data.last_frame_update_mode = update_data.update_mode;
     }
 
     void update_player() {
 
     }
 
-    void update(obj_update_info_t& update_info) {
+    void update(interpolated_obj_update_info_t& update_info) {
         if (!started_updates && snapshot_fifo.get_size() == NUM_SNAPSHOTS_FOR_SAFE_INTERPOLATION) {
             started_updates = true;	
             assign_interpolating_snapshots(update_info);
