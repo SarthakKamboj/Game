@@ -36,4 +36,5 @@ namespace networking {
     client_t create_client(const char* username);
     server_t find_game_server(client_t& client);
     void send_client_cmd(client_cmd_t& client_cmd, bool reliable);
+    void add_interpolated_obj(int transform_handle);
 }

@@ -1,8 +1,16 @@
 #include "networking.h"
 #include "update.h"
 #include <cassert>
+#include <vector>
+
+std::vector<int> interpolated_obj_transforms;
 
 namespace networking {
+
+    void add_interpolated_obj(int transform_handle) {
+		interpolated_obj_transforms.push_back(transform_handle);
+	}
+
     void handle_network_event(network_event_t& network_event) {
 		if (!network_event.event_valid) return;
 		ENetEvent& event = network_event.enet_event;
