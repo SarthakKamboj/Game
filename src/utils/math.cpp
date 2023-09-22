@@ -43,7 +43,7 @@ namespace math {
         float smooth_val = (diff * ratio) + current;
     #endif
         damp_info.finished = false;
-        if (abs(target - smooth_val) <= 0.01 || ratio >= 1.f) {
+        if (ratio >= 1.f) {
             smooth_val = target;
             damp_info.finished = true;
         }
