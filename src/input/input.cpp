@@ -70,7 +70,7 @@ namespace input {
 		static unsigned int id = 0;
 
 		user_cmd_t user_cmd;
-		user_cmd.game_time = platformer::time_t::cur_independent_time;
+		user_cmd.game_time = platformer::time_t::cur_time;
 		user_cmd.snapshot_from_id = from_snapshot_id;
 		user_cmd.snapshot_to_id = to_snapshot_id;
 		user_cmd.user_input = user_input;
