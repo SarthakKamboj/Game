@@ -2,9 +2,7 @@
 #include <catch2/catch_test_macros.hpp>
 #include "test_config.h"
 #include "update.h"
-#include "transform/transform.h"
 #include <iostream>
-#include "update.h"
 #include "shared/utils/timer.h"
 #include "utils/time.h"
 #include "transform/transform.h"
