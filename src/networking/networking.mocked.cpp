@@ -99,7 +99,6 @@ namespace networking {
 
 		static const time_count_t time_of_first_snapshot = platformer::time_t::cur_server_time;
 		static int snapshot_id = 0;
-		// static float game_time_of_first_snapshot = platformer::time_t::cur_time;
 
 		float drop_factor = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
@@ -110,9 +109,6 @@ namespace networking {
 			num_dropped++;
 			snapshot_id++;
 			next_send_time = time_of_first_snapshot + calc_new_snapshot_network_send_time(snapshot_id);
-			// std::cout << "drop rate: " << (static_cast<float>(num_dropped) / snapshot_id) << std::endl;
-			// std::cout << "next_send_time: " << next_send_time << std::endl;
-			// time_since_last_receive = 0.f;
 			network_event.event_valid = false;
 			return false;
 		}
@@ -142,8 +138,6 @@ namespace networking {
 
 		network_event.event_valid = true;
 		next_send_time = time_of_first_snapshot + calc_new_snapshot_network_send_time(snapshot_id);
-
-		// std::cout << "sending snapshot " << snapshot.snapshot_id << " with timestamp " << snapshot.game_time << " at " << platformer::time_t::cur_time << std::endl;
 
 		return true;
 #endif
