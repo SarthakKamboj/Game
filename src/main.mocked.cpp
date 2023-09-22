@@ -14,7 +14,7 @@
 
 #define RENDER_SERVER_VIEW 1
 
-int object_transform_handle = -1; 
+// int object_transform_handle = -1; 
 int server_object_transform_handle = -1; 
 int player_transform_handle = -1;
 
@@ -29,11 +29,15 @@ int main(int argc, char *argv[])
 		return EXIT_FAILURE;
 	}
 
-	object_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
+	int object_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
+	networking::add_interpolated_obj(object_transform_handle);
+	int obj2 = create_transform(glm::vec3(200, 500, 0), glm::vec3(1), 0);
+	networking::add_interpolated_obj(obj2);
 	player_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
 	server_object_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
 
 	create_rectangle_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
+	create_rectangle_render(obj2, glm::vec3(0,0,1), 40, 40, false, 0, -1);
 
 #if RENDER_SERVER_VIEW
 	create_rectangle_render(server_object_transform_handle, glm::vec3(0,1,0), 40, 40, false, 0, -1);
@@ -41,7 +45,7 @@ int main(int argc, char *argv[])
 	// create_rectangle_render(player_transform_handle, glm::vec3(0,1,0), 40, 40, false, 0, -1);
 
 	
-	world::obj_update_info_t update_info;
+	world::interpolated_obj_update_info_t update_info;
 	while (true)
     {
 		utils::game_timer_t frame_timer;

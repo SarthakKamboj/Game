@@ -11,7 +11,7 @@
 #include <cassert>
 
 #define DROP_RATE 0.01f
-#define JITTER_EFFECT 0.1f
+#define JITTER_EFFECT 0.5f
 #define NUM_SNAPSHOTS_PER_SEC 20
 
 #ifndef RUN_TESTCASES
@@ -56,6 +56,9 @@ namespace networking {
 		static float x_s = 0;
 		static float y_s = 50.f;
 
+		static float g1x = 200.f;
+		static float g1y = 500.f;
+
 		static float dir[2] = { 0,0 };
 
 		float speed = 100.f;
@@ -87,6 +90,16 @@ namespace networking {
 
 		x_s += dir[0];
 		y_s += dir[1];
+
+		static float g1dir = 0;
+		if (g1dir == 0) {
+			g1x += move;
+			if (g1x >= 400.f) g1dir = 1;
+		}
+		else {
+			g1x -= move;
+			if (g1x <= 100.f) g1dir = 0;
+		}
 
 		transform_t* server_transform = get_transform(server_object_transform_handle);
 		server_transform->position.x = x_s;
@@ -122,6 +135,9 @@ namespace networking {
 
 		snapshot.gameobjects[0].x = x_s;
 		snapshot.gameobjects[0].y = y_s;
+
+		snapshot.gameobjects[1].x = g1x;
+		snapshot.gameobjects[1].y = g1y;
 	
 		network_event.enet_event.type = ENET_EVENT_TYPE_RECEIVE;
 		
@@ -146,7 +162,9 @@ namespace networking {
 	}
 
 	void destroy_network_event(network_event_t& network_event) {
-		free(network_event.enet_event.packet->data);
+		server_cmd_t* server_cmd = static_cast< server_cmd_t* >( static_cast<void*>( network_event.enet_event.packet->data ) );
+		free(server_cmd->server_cmd_data);
+		free(server_cmd);
 		free(network_event.enet_event.packet);
 	}
 
