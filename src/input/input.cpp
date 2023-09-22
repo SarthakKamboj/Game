@@ -25,27 +25,22 @@ namespace input {
 					switch (event.key.keysym.sym) {
 						case SDLK_w: {
 							user_input.w_pressed = true;
-							std::cout << "w pressed" << std::endl;
 							break;
 						}
 						case SDLK_a: {
 							user_input.a_pressed = true;
-							std::cout << "a pressed" << std::endl;
 							break;
 						}
 						case SDLK_s: {
 							user_input.s_pressed = true;
-							std::cout << "s pressed" << std::endl;
 							break;
 						}
 						case SDLK_d: {
 							user_input.d_pressed = true;
-							std::cout << "d pressed" << std::endl;
 							break;
 						}
 						case SDLK_SPACE: {
 							user_input.space_pressed = true;
-							std::cout << "d pressed" << std::endl;
 							break;
 						}
 						default:
