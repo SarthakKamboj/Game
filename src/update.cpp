@@ -8,8 +8,6 @@
 
 #include "test_config.h"
 
-#define SMOOTHING_ENABLED 1
-
 bool started_updates = false;
 
 extern int object_transform_handle; 
@@ -118,7 +116,6 @@ namespace world {
         const time_count_t extrap_fix_time = 0.7;
 
         if (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-
             static math::smooth_damp_info_t x_damp_info;
             static math::smooth_damp_info_t y_damp_info;
             y_damp_info.total_time = extrap_fix_time;
@@ -176,7 +173,6 @@ namespace world {
             }
 
         } else if (update_data.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-            // do extrapolation here
             transform_ptr->position.x += update_data.last_delta_x;
             transform_ptr->position.y += update_data.last_delta_y;
             update_data.last_extrapolation_time = platformer::time_t::cur_time;
