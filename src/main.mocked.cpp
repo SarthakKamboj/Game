@@ -10,6 +10,7 @@
 #include "input/input.h"
 
 #include "shared/input/input.h"
+#include "shared/components/basic.h"
 
 #define RENDER_SERVER_VIEW 1
 
@@ -54,14 +55,8 @@ int main(int argc, char *argv[])
 
 		utils::end_timer(frame_timer);
 		platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
-		platformer::time_t::cur_independent_time += frame_timer.elapsed_time_sec;
 		platformer::time_t::cur_time += frame_timer.elapsed_time_sec;
-		
-		// static int prev_sec_val = 0;
-		// if (static_cast<int>(platformer::time_t::cur_independent_time) != prev_sec_val) {
-		// 	prev_sec_val = static_cast<int>(platformer::time_t::cur_independent_time);
-		// 	std::cout << platformer::time_t::cur_independent_time << std::endl;
-		// }
+		platformer::time_t::cur_server_time += frame_timer.elapsed_time_sec;
     }
 
 	networking::cleanup_networking();

@@ -69,6 +69,7 @@ namespace world {
         if (server_cmd.res_type == networking::SERVER_CMD_TYPE::SNAPSHOT) {
             static unsigned int last_enqueued_snapshot_id = 0;
             snapshot_t* snapshot = reinterpret_cast<snapshot_t*>(server_cmd.server_cmd_data);
+            std::cout << "received snapshot " << snapshot->snapshot_id << " for " << snapshot->game_time << std::endl;
             snapshot_fifo.enqueue(*snapshot);
         } else if (server_cmd.res_type == networking::SERVER_CMD_TYPE::USER_CMD_ACK) {
             gameobject_snapshot_cmd_t* go_snapshot = reinterpret_cast<gameobject_snapshot_cmd_t*>(server_cmd.server_cmd_data);
@@ -84,14 +85,14 @@ namespace world {
         } else {
             // TODO: this is most likely that we have nothing to even interpolate from or to
             // LEAST IDEAL SITUATION TO BE IN
-            std::cout << "no snapshots to even pick from...WORST CASE SCENARIO" << std::endl;
+            // std::cout << "no snapshots to even pick from...WORST CASE SCENARIO" << std::endl;
             return false;
         }
 
         snapshots_fifo_t::peek_state_t peek_state = snapshot_fifo.peek_read();
         if (peek_state.valid) {
             update_info.snapshot_to = peek_state.val;
-        }	 else {
+        } else {
             snapshot_fifo.enqueue(update_info.snapshot_from);
             update_info.update_mode = OBJECT_UPDATE_MODE::EXTRAPOLATION;
             return false;
@@ -101,15 +102,24 @@ namespace world {
         from_snapshot_id = dequeue_state.val.snapshot_id;
         to_snapshot_id = peek_state.val->snapshot_id;
 
+        if (dequeue_state.val.game_time == 0.15) {
+            std::cout << "here" << std::endl;
+        }
+
         return true;
     }
 
     void handle_snapshots(obj_update_info_t& update_info) {
         snapshot_t& snapshot_from = update_info.snapshot_from;
         snapshot_t*& snapshot_to = update_info.snapshot_to;	
-
-        if (update_info.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION || platformer::time_t::cur_time >= snapshot_to->game_time) {
-            assign_interpolating_snapshots(update_info);
+        // std::cout << snapshot_to->game_time << std::endl;
+        // std::cout << "update_info.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION: " << (update_info.update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) << std::endl;
+        if (update_info.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION || platformer::time_t::cur_time >= snapshot_to->game_time) {
+        // if (platformer::time_t::cur_time >= snapshot_to->game_time) {
+            bool assigned = assign_interpolating_snapshots(update_info);
+            if (assigned) {
+                std::cout << "going from " << from_snapshot_id << "( " << snapshot_from.game_time << " ) now to " << to_snapshot_id << " ( " << snapshot_to->game_time << " ) at time " << platformer::time_t::cur_time << std::endl;
+            }
         }
     }
 
@@ -127,7 +137,7 @@ namespace world {
             x_damp_info.total_time = extrap_fix_time;
 
             if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::EXTRAPOLATION) {
-                std::cout << "done extrapolating" << std::endl;
+                // std::cout << "done extrapolating at " << platformer::time_t::cur_time << std::endl;
                 x_damp_info.start_time = update_data.last_extrapolation_time;
                 y_damp_info.start_time = update_data.last_extrapolation_time;
 
@@ -185,13 +195,14 @@ namespace world {
             update_data.last_extrapolation_time = platformer::time_t::cur_time;
 
             if (update_data.last_frame_update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) {
-                std::cout << "started extrapolating" << std::endl;
+                // std::cout << "started extrapolating at " << platformer::time_t::cur_time << std::endl;
             }
 
         }
 
         update_data.last_frame_update_mode = update_data.update_mode;
-        // std::cout << "x: " << transform_ptr->position.x << " y: " << transform_ptr->position.y << std::endl;
+;
+        // std::cout << "update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION: " << (update_data.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION) << std::endl;
     }
 
     void update_player() {
@@ -204,6 +215,8 @@ namespace world {
             assign_interpolating_snapshots(update_info);
             assert(update_info.update_mode == OBJECT_UPDATE_MODE::INTERPOLATION);
             platformer::time_t::cur_time = update_info.snapshot_from.game_time;
+            std::cout << "init" << std::endl;
+            // std::cout << "going from " << from_snapshot_id << " now to " << to_snapshot_id << " at time " << platformer::time_t::cur_time << std::endl;
         }
 
         if (!started_updates) return;
@@ -211,5 +224,6 @@ namespace world {
         handle_snapshots(update_info);
         update_interpolated_objs(update_info);
         update_player();
+        std::cout << "cur_time: " << platformer::time_t::cur_time << std::endl;
     }
 }

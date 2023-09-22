@@ -10,8 +10,8 @@
 
 #include <cassert>
 
-#define DROP_RATE 0.9f
-#define JITTER_EFFECT 0.5f
+#define DROP_RATE 0.01f
+#define JITTER_EFFECT 0.1f
 #define NUM_SNAPSHOTS_PER_SEC 20
 
 #ifndef RUN_TESTCASES
@@ -51,8 +51,7 @@ namespace networking {
 
 	bool poll_network_event(network_event_t& network_event) {
 #ifndef RUN_TESTCASES
-		static const time_count_t time_of_first_snapshot = platformer::time_t::cur_independent_time;
-		static time_count_t next_send_time = platformer::time_t::cur_independent_time;
+		static time_count_t next_send_time = platformer::time_t::cur_server_time;
 
 		static float x_s = 0;
 		static float y_s = 50.f;
@@ -93,24 +92,26 @@ namespace networking {
 		server_transform->position.x = x_s;
 		server_transform->position.y = y_s;
 
-		if (platformer::time_t::cur_independent_time < next_send_time) {
+		if (platformer::time_t::cur_server_time < next_send_time) {
 			network_event.event_valid = false;
 			return false;
 		}
 
+		static const time_count_t time_of_first_snapshot = platformer::time_t::cur_server_time;
 		static int snapshot_id = 0;
-		// static float game_time_of_first_snapshot = platformer::time_t::cur_independent_time;
+		// static float game_time_of_first_snapshot = platformer::time_t::cur_time;
 
 		float drop_factor = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
 
 		if (drop_factor < DROP_RATE)
 		{
 			static int num_dropped = 0;
+			std::cout << "dropped snapshot " << snapshot_id << std::endl;
 			num_dropped++;
 			snapshot_id++;
-			// std::cout << "dropped snapshot " << snapshot_id << std::endl;
 			next_send_time = time_of_first_snapshot + calc_new_snapshot_network_send_time(snapshot_id);
 			// std::cout << "drop rate: " << (static_cast<float>(num_dropped) / snapshot_id) << std::endl;
+			// std::cout << "next_send_time: " << next_send_time << std::endl;
 			// time_since_last_receive = 0.f;
 			network_event.event_valid = false;
 			return false;
@@ -120,7 +121,8 @@ namespace networking {
 		assert(snapshot_ptr != NULL);
 		world::snapshot_t& snapshot = *snapshot_ptr;
 		snapshot.game_time = static_cast<time_count_t>(snapshot_id) / NUM_SNAPSHOTS_PER_SEC;
-		snapshot.snapshot_id = snapshot_id++;
+		snapshot.snapshot_id = snapshot_id;
+		snapshot_id++;
 
 		snapshot.gameobjects[0].x = x_s;
 		snapshot.gameobjects[0].y = y_s;
@@ -141,7 +143,7 @@ namespace networking {
 		network_event.event_valid = true;
 		next_send_time = time_of_first_snapshot + calc_new_snapshot_network_send_time(snapshot_id);
 
-		// std::cout << "sending snapshot " << snapshot.snapshot_id << " with game time: " << snapshot.game_time << " at time " << (platformer::time_t::cur_independent_time - time_of_first_snapshot) << std::endl;
+		// std::cout << "sending snapshot " << snapshot.snapshot_id << " with timestamp " << snapshot.game_time << " at " << platformer::time_t::cur_time << std::endl;
 
 		return true;
 #endif
