@@ -22,18 +22,12 @@ namespace world {
         PREDICTION
     };
 
-    struct obj_update_info_t {
+    struct interpolated_obj_update_info_t {
+        snapshot_t snapshot_from;
+        time_count_t last_extrapolation_time = 0;
         OBJECT_UPDATE_MODE update_mode = OBJECT_UPDATE_MODE::NONE;	
         OBJECT_UPDATE_MODE last_frame_update_mode = OBJECT_UPDATE_MODE::NONE;
-        snapshot_t snapshot_from;
         snapshot_t* snapshot_to = NULL;
-
-        float last_delta_x = 0.f;
-        float last_delta_y = 0.f;
-        time_count_t last_extrapolation_time = 0;
-        float target_x;
-        float target_y;
-        // time_count_t cur_time = 0;
     };
 
     struct player_update_info_t {
@@ -43,11 +37,11 @@ namespace world {
         time_count_t cur_time = 0;
     };
 
-    bool assign_interpolating_snapshots(obj_update_info_t& update_info);
-    void handle_snapshots(obj_update_info_t& update_info);
-    void update_interpolated_objs(obj_update_info_t& update_data);
+    bool assign_interpolating_snapshots(interpolated_obj_update_info_t& update_info);
+    void handle_snapshots(interpolated_obj_update_info_t& update_info);
+    void update_interpolated_objs(interpolated_obj_update_info_t& update_data);
     void update_player();
-    void update(obj_update_info_t& update_data);
+    void update(interpolated_obj_update_info_t& update_data);
     void reset();
 
     void receive_snapshot(networking::server_cmd_t& server_cmd);
