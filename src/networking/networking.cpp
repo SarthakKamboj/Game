@@ -30,7 +30,6 @@ namespace networking {
 					default:
 						break;
 				}
-				// enet_packet_destroy(event.packet);
 				destroy_network_event(network_event);
 			}
 			break;
