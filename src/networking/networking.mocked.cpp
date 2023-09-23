@@ -62,31 +62,62 @@ namespace networking {
 		static float dir[2] = { 0,0 };
 
 		float speed = 100.f;
-		// const float move = speed * platformer::time_t::delta_time;
-		const float move = 0.1f;
+		const float move = speed * platformer::time_t::delta_time;
+		// const float move = 0.1f;
+
+		static bool moving_right = false;
+		static bool moving_up = false;
+		static bool moving_left = false;
+		static bool moving_down = false;
 
 		if (input_state.w_pressed) {
-			dir[0] = 0;
-			dir[1] = move;
+			moving_up = true;
+			moving_down = false;
+			moving_right = false;
+			moving_left = false;
 		}
 		else if (input_state.s_pressed) {
-			dir[0] = 0;
-			dir[1] = -move;
+			moving_down = true;
+			moving_up = false;
+			moving_right = false;
+			moving_left = false;		
 		}
 
 		if (input_state.d_pressed) {
-			dir[0] = move;
-			dir[1] = 0;
+			moving_right = true;
+			moving_left = false;
+			moving_up = false;
+			moving_down = false;
 		}
 		else if (input_state.a_pressed) {
-			dir[0] = -move;
-			dir[1] = 0;
+			moving_left = true;
+			moving_right = false;
+			moving_up = false;
+			moving_down = false;
 		}
 
 		if (input_state.space_pressed) {
-			dir[0] = 0;
-			dir[1] = 0;
+			moving_left = false;
+			moving_right = false;
+			moving_up = false;
+			moving_down = false;
 		}
+
+		dir[0] = 0;
+		dir[1] = 0;
+		if (moving_up) {
+			dir[1] = move;
+		}
+		else if (moving_down) {
+			dir[1] = -move;
+		}
+
+		if (moving_right) {
+			dir[0] = move;
+		}
+		else if (moving_left) {
+			dir[0] = -move;
+		}	
 
 		x_s += dir[0];
 		y_s += dir[1];
