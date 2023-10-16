@@ -60,8 +60,6 @@ void handle_position(rigidbody_t& kinematic_rb, rigidbody_t& non_kinematic_rb, P
 	}
 }
 
-extern key_state_t key_state;
-
 void handle_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
 	aabb_collider_t& collider_1 = rb1.aabb_collider;
 	aabb_collider_t& collider_2 = rb2.aabb_collider;

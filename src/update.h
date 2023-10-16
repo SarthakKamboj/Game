@@ -45,4 +45,5 @@ namespace world {
     void reset();
 
     void receive_snapshot(networking::server_cmd_t& server_cmd);
+    void update();
 }

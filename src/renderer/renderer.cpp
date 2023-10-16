@@ -1,3 +1,24 @@
+#if 1
+
+#include "renderer.h"
+#include "glad/glad.h"
+#include <vector>
+#include "shared/networking/networking.h"
+#include "renderer/basic/shape_renders.h"
+#include "constants.h"
+
+// will add spritesheet renderers as well in the future
+void render(application_t& app) {
+	glClearColor(0.f, 0.f, 0.f, 1.f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
+
+ 	draw_rectangle_renders();
+
+	SDL_GL_SwapWindow(app.window);
+}
+
+#else
+
 #include "renderer.h"
 #include "glad/glad.h"
 #include <vector>
@@ -20,3 +41,4 @@ void render(application_t& app) {
 
 	SDL_GL_SwapWindow(app.window);
 }
+#endif

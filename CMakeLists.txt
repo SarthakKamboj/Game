@@ -18,7 +18,8 @@ set(BASE_FILES)
 list(APPEND BASE_FILES 
     src/app.cpp
     src/update.cpp
-    src/networking/networking.cpp
+    # src/networking/networking.cpp
+    src/physics/physics.cpp
     src/input/input.cpp
     src/init.cpp
     src/renderer/renderer.cpp
@@ -86,7 +87,7 @@ function(configure_game)
         message("mocked")
         list(APPEND EXTRA_FILES 
             src/main.mocked.cpp
-            src/networking/networking.mocked.cpp
+            # src/networking/networking.mocked.cpp
         )
     else()
         message("unmocked")

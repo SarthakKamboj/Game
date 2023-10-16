@@ -19,6 +19,8 @@ extern input::user_input_t input_state;
 extern int server_object_transform_handle; 
 #endif
 
+int server_player_transform_handle = -1;
+
 namespace networking {
 	float calc_new_snapshot_network_send_time(unsigned int snapshot_count) {
 		// 0 to 1
@@ -28,6 +30,7 @@ namespace networking {
 	}
 
 	int init_networking() {
+		server_player_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
 		return 0;
 	}
 
@@ -40,14 +43,15 @@ namespace networking {
 		return client;
 	}
 
-	server_t find_game_server(client_t &client)
-	{
+	server_t find_game_server(client_t &client) {
 		server_t server;
 		server.enet_peer = NULL;
 		return server;
 	}
 
-	void send_client_cmd(client_cmd_t& client_cmd, bool reliable) {}
+	void send_client_cmd(client_cmd_t& client_cmd, bool reliable) {
+					
+	}
 
 	bool poll_network_event(network_event_t& network_event) {
 #ifndef RUN_TESTCASES
@@ -63,7 +67,6 @@ namespace networking {
 
 		float speed = 100.f;
 		const float move = speed * platformer::time_t::delta_time;
-		// const float move = 0.1f;
 
 		static bool moving_right = false;
 		static bool moving_up = false;
@@ -169,6 +172,11 @@ namespace networking {
 
 		snapshot.gameobjects[1].x = g1x;
 		snapshot.gameobjects[1].y = g1y;
+
+		transform_t* player_ptr = get_transform(server_player_transform_handle);
+		assert(player_ptr);
+		snapshot.player.x = player_ptr->position.x;
+		snapshot.player.y = player_ptr->position.y;
 	
 		network_event.enet_event.type = ENET_EVENT_TYPE_RECEIVE;
 		

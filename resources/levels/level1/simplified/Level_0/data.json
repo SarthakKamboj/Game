@@ -1,0 +1,34 @@
+{
+	"identifier": "Level_0",
+	"uniqueIdentifer": "504e0c60-6280-11ee-9b3a-bd257fff7a18",
+	"x": 0,
+	"y": 0,
+	"width": 3248,
+	"height": 256,
+	"bgColor": "#232EDC",
+	"neighbourLevels": [],
+	"customFields": {
+		"Brick": "#E14B32",
+		"LightedBrick": "#DC6E55",
+		"FinishFlag": "#E2E2E2",
+		"Ground": "#3CA9EE"
+	},
+	"layers": [
+		"Colors.png"
+	],
+	"entities": {
+		"PlayerStart": [
+			{
+				"id": "PlayerStart",
+				"iid": "38274b60-6280-11ee-9b3a-a78c20cb938f",
+				"layer": "Player_Entities",
+				"x": 80,
+				"y": 192,
+				"width": 16,
+				"height": 16,
+				"color": 6539085,
+				"customFields" : {}
+			}
+		]
+	}
+}
