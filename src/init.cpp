@@ -9,7 +9,10 @@
 #include "renderer/opengl/resources.h"
 #include "renderer/opengl/vertex.h"
 #include "renderer/basic/shape_renders.h"
+#include <vector>
 // #include <fstream>
+#include "stb/stb_image.h"
+#include "physics/physics.h"
 
 SDL_Window* init_sdl() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
@@ -189,10 +192,292 @@ void init_rectangle_data() {
 //     }
 // }
 
+enum class e_ldtk_value_type {
+	STRING,
+	ARRAY
+};
+
+void clean_line(const char* orig_line, char* cleaned_line) {
+	int orig_line_len = strlen(orig_line);
+	int cleaned_idx = 0;
+	bool opened_quote = false;
+	for (int i = 0; i < orig_line_len; i++) {
+		char c = orig_line[i];
+		if (c == '\t') continue;
+		if (c == ' ' && !opened_quote) continue;
+		if (c == ',' && !opened_quote) continue;
+		if (c == '\n') break;
+		if (c == '\"') {
+			opened_quote = !opened_quote;
+		}
+		cleaned_line[cleaned_idx] = c;
+		cleaned_idx++;
+	}
+}
+
+void clean_line(char* line) {
+	int orig_line_len = strlen(line);
+	int cleaned_idx = 0;
+	bool opened_quote = false;
+	for (int i = 0; i < orig_line_len; i++) {
+		char c = line[i];
+		if (c == '\t') continue;
+		if (c == ' ' && !opened_quote) continue;
+		if (c == ',' && !opened_quote) continue;
+		if (c == '\n') break;
+		if (c == '\"') {
+			opened_quote = !opened_quote;
+		}
+		line[cleaned_idx] = c;
+		cleaned_idx++;
+	}
+	memset(line + cleaned_idx, 0, orig_line_len-cleaned_idx+1);
+}
+
+/* 
+function sets : to 0, so buffer looks like key0value, so key can be used as separate string buffer
+but return value gives start of val index-1, so val can be indexed as well as its own string
+*/
+struct key_val_t {
+	char* key = NULL;
+	char* val = NULL;
+};
+key_val_t separate_key_val(char* buffer) {
+	int len = strlen(buffer);
+	key_val_t key_val;
+	bool key_section = true;
+	bool opened_quote = false;
+	for (int i = 0; i < len; i++) {
+		const char p = buffer[i];
+		if (p == '\"') {
+			buffer[i] = 0;
+			opened_quote = !opened_quote;
+			if (opened_quote) {
+				if (key_section) {
+					key_val.key = buffer + i + 1;
+				} else {
+					key_val.val = buffer + i + 1;
+				}
+			}
+		}
+		if (p == ':') {
+			buffer[i] = 0;
+			key_section = false;
+			key_val.val = buffer + i + 1;
+		}
+	}
+	return key_val;
+}
+
+struct color_t {
+	unsigned char r = 0, g = 0, b = 0;
+
+	color_t() {}
+
+	color_t(unsigned char r, unsigned char g, unsigned char b) {
+		this->r = r;
+		this->g = g;
+		this->b = b;
+	}
+
+	bool operator==(const color_t& other_color) {
+		return r == other_color.r && g == other_color.g && b == other_color.b;
+	}
+};
+
+struct color_conversion_t {
+	char m_item_name[128]{};
+	// char m_color[128]{};
+	color_t color;
+
+	color_conversion_t(const char* item_name, const char* color_str) {
+		memcpy(m_item_name, item_name, strlen(item_name));
+		// memcpy(m_color, color, strlen(color));
+		assert(color_str[0] == '#');
+		color_str++;
+		for (int i = 0; i < 6; i++) {
+			unsigned char* color_val = NULL;
+			if (i / 2 == 0) {
+				color_val = &color.r;
+			}
+			else if (i / 2 == 1) {
+				color_val = &color.g;
+			}
+			else {
+				color_val = &color.b;
+			}
+			unsigned char hex_char = color_str[i];
+			unsigned char hex_val = 0;
+			switch (hex_char) {
+				case '0': {
+					hex_val = 0;
+				}
+					 break;
+				case '1': {
+					hex_val = 1;
+				}
+					 break;
+				case '2': {
+					hex_val = 2;
+				}
+					 break;				 
+				case '3': {
+					hex_val = 3;
+				}
+					 break;
+				case '4': {
+					hex_val = 4;
+				}
+					 break;
+				case '5': {
+					hex_val = 5;
+				}
+					 break;
+				case '6': {
+					hex_val = 6;
+				}
+					 break;
+				case '7': {
+					hex_val = 7;
+				}
+					 break;
+				case '8': {
+					hex_val = 8;
+				}
+					 break;
+				case '9': {
+					hex_val = 9;
+				}
+					 break;
+				case 'A': {
+					hex_val = 10;
+				}
+					 break;
+				case 'B': {
+					hex_val = 11;
+				}
+					 break;
+				case 'C': {
+					hex_val = 12;
+				}
+					 break;
+				case 'D': {
+					hex_val = 13;
+				}
+					 break;
+				case 'E': {
+					hex_val = 14;
+				}
+					 break;
+				case 'F': {
+					hex_val = 15;
+				}
+					 break;
+				default: {
+					hex_val = 0;
+				}
+			}
+			*color_val = *color_val * 16;
+			*color_val += hex_val;
+		}
+	}
+};
+
+static std::vector<color_conversion_t> color_conversions;
+void read_color_map_info(FILE* file) {
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);
+
+		if (strcmp(line, "}") == 0) {
+			std::cout << "closed section";
+			break;
+		}
+
+		key_val_t key_val = separate_key_val(line);
+		color_conversion_t conversion(key_val.key, key_val.val);
+		color_conversions.push_back(conversion);
+	}
+}
+
+void recursive_section_traverse(FILE* file) {
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);
+
+		// reached end of section
+		if (strcmp(line, "}") == 0) {
+			break;
+		}
+
+		if (strcmp(line, "]") == 0) continue;
+
+		key_val_t key_val = separate_key_val(line);
+		if (key_val.key == NULL) {
+			key_val_t key_val = separate_key_val(line);
+		}
+		if (key_val.key && strcmp(key_val.key, "identifier") == 0) {
+			std::cout << key_val.key << " " << key_val.val << std::endl;
+		}
+		if (key_val.key && strcmp(key_val.key, "customFields") == 0) {
+			assert(*key_val.val == '{');
+			read_color_map_info(file);
+		}
+	}
+}
+
+void init_placed_world_items(const char* json_file_path, const char* level_img) {
+	FILE* file = fopen(json_file_path, "r");
+	if (!file) return;
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);
+		if (strcmp(line, "{") == 0) {
+			recursive_section_traverse(file);
+		}
+	}
+	fclose(file);
+
+	int level_file_width, level_file_height, num_channels;
+	// data organized left to right row by row
+	unsigned char* level_img_data = stbi_load(level_img, &level_file_width, &level_file_height, &num_channels, 0);
+	if (level_img_data == NULL) return;
+
+	assert(num_channels == 3 || num_channels == 4);
+
+	for (int top_y = 0; top_y < level_file_height; top_y++) {
+		for (int left_x = 0; left_x < level_file_width; left_x++) {
+			unsigned char r, g, b;
+			unsigned char* pixel_ptr = level_img_data + ((top_y * level_file_width) + left_x) * num_channels;
+			r = *pixel_ptr;
+			g = *(pixel_ptr+1);
+			b = *(pixel_ptr+2);
+
+			color_t level_pixel_color(r, g, b);
+			for (int i = 0; i < color_conversions.size(); i++) {
+				if (level_pixel_color == color_conversions[i].color) {
+					int level_row = level_file_height - 1 - top_y;
+					int level_col = left_x;
+
+					int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
+					create_rectangle_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
+					create_rigidbody(obj, false, 40, 40, true);
+				}
+			}
+		}
+	}
+}
+
 void init(application_t& app) {
 	app.window = init_sdl();
 	// app.running = true;
     // initialize opengl data for a rectangle
 	init_rectangle_data();
-    // init_placed_world_items();
+	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
+	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
+	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
+    init_placed_world_items(json_file, img_file);
 }
