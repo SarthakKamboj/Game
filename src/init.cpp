@@ -99,104 +99,6 @@ void init_rectangle_data() {
 	shader_set_int(data.shader, "tex", 0);
 }
 
-// void init_placed_world_items() {
-//     // TODO: generalize level data paths
-//     // const char* file_path = "C:\\Sarthak\\projects\\Platformer\\Editor\\level1.txt";
-//     // const char* file_path = "C:\\Sarthak\\projects\\editor\\build\\level10.gme";
-//     const char* file_path = "C:\\Sarthak\\projects\\game\\levels\\level01.gme";
-
-//     /*
-//         FILE FORMAT
-//         ------------
-//         WORLD_ITEMS
-//         list of world items as format: world item name, texture path, grid squares wide, grid squares high
-
-//         PLACED_ITEMS
-//         list of placed items in reference to the world items described in the beginning of the file, 
-//         referenced by index of the world item as format: index into world items section, grid x pos, grid y pos
-//     */
-
-//     FILE* file;
-//     file = fopen(file_path, "r");
-// 	size_t delim_len = std::string(WORLD_ITEM_TEXT_FILE_DELIM).size();
-//     std::map<int, std::string> idx_to_type;
-//     int i = 0;
-//     if (file) {
-//         // whether in the placed items section or not
-//         bool placed_items_section = false;
-//         char line[1024];
-//         while (!feof(file)) {
-//             memset(line, 0, 1024);
-//             // get the current line in the file
-//             fgets(line, 1024, file);
-//             // if just WORLD_ITEMS title, then skip
-//             if (strcmp(line, "WORLD_ITEMS\n") == 0) continue;
-//             // in the world items section and looking at possible world item
-//             if (!placed_items_section && (strcmp(line, "PLACED_ITEMS\n") != 0)) {
-//                 std::string delim(WORLD_ITEM_TEXT_FILE_DELIM);
-//                 size_t delim_len = delim.size();
-//                 // world_item_format is mentioned above in file format comment
-//                 static std::string world_item_format = "%1023s" + delim + "%1023s" + delim + "%i" + delim + "%i\n";
-//                 static const char* world_item_format_char = world_item_format.c_str();
-
-//                 char name[1024]{};
-//                 char path[1024]{};
-//                 int width = 0;
-//                 int height = 0;
-//                 sscanf(line, world_item_format_char, name, path, &width, &height);
-//                 std::string name_str(name);
-
-//                 // for right now, texture path, width, and height are not being used but will be in the future
-//                 if (strcmp(name, "ground") == 0) {
-//                     ground_block_t::tex_handle = create_texture(path, 0);
-//                 }
-
-//                 // correlate the item name to a particular index to be used as reference by the placed world items
-//                 idx_to_type[i] = name_str;
-// 				i++;
-//                 continue;
-//             } 
-//             // if the line is the PLACED_ITEMS title, indicating we are now in the placed items section
-//             if (strcmp(line, "PLACED_ITEMS\n") == 0) {
-//                 placed_items_section = true;
-//                 continue;
-//             }
-//             // line break after the placed items section
-// 			if ((strcmp(line, "\n") == 0) && placed_items_section) {
-// 				break;
-// 			}
-
-//             std::string delim(WORLD_ITEM_TEXT_FILE_DELIM);
-//             size_t delim_len = delim.size();
-//             // format for placed item described above in file format comment
-//             static std::string placed_item_format = "%i " + delim + " %i " + delim + " %i\n";
-//             static const char* placed_item_format_char = placed_item_format.c_str();
-
-//             int idx = -1;
-//             int x = -1;
-//             int y = -1;
-//             sscanf(line, placed_item_format_char, &idx, &x, &y);
-
-//             // get what item name corresponds to the world item index used by this placed world item
-//             std::string& type = idx_to_type[idx];
-//             // for now, just handle the ground block
-//             if (type == "ground") {
-//                 glm::vec2 grid_pos(x, y);
-//                 glm::vec3 pixel_pos((ground_block_t::WIDTH / 2) + ground_block_t::WIDTH * x, (ground_block_t::HEIGHT / 2) + ground_block_t::HEIGHT * y, 0.f);
-//                 create_ground_block(pixel_pos, glm::vec3(1.f), 0.f);
-//             }
-//         }
-//         fclose(file);
-//     } else {
-//         std::cout << "could not open world items file" << std::endl;
-//     }
-// }
-
-enum class e_ldtk_value_type {
-	STRING,
-	ARRAY
-};
-
 void clean_line(const char* orig_line, char* cleaned_line) {
 	int orig_line_len = strlen(orig_line);
 	int cleaned_idx = 0;
@@ -469,11 +371,12 @@ void init_placed_world_items(const char* json_file_path, const char* level_img) 
 			}
 		}
 	}
+
+	stbi_image_free(level_img_data);
 }
 
 void init(application_t& app) {
 	app.window = init_sdl();
-	// app.running = true;
     // initialize opengl data for a rectangle
 	init_rectangle_data();
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
