@@ -11,11 +11,14 @@ message(${CMAKE_BUILD_TYPE})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+option(RUN_MOCKED "Running in mocked network environment" ON)
 option(RUN_TESTCASES "Run unit tests and test cases" OFF)
+
 set(BASE_FILES)
 list(APPEND BASE_FILES 
     src/app.cpp
     src/update.cpp
+    # src/networking/networking.cpp
     src/physics/physics.cpp
     src/input/input.cpp
     src/init.cpp
@@ -46,7 +49,7 @@ function(configure_test_cases)
         src/update.cpp
         src/utils/time.cpp
         src/utils/math.cpp
-        # src/input/input.mocked.cpp
+        src/input/input.mocked.cpp
         src/transform/transform.cpp
     )
 
@@ -79,9 +82,21 @@ endfunction()
 function(configure_game)
 
     set(EXTRA_FILES)
-    list(APPEND EXTRA_FILES 
-        src/main.cpp
-    )
+
+    if (RUN_MOCKED)
+        message("mocked")
+        list(APPEND EXTRA_FILES 
+            src/main.mocked.cpp
+            # src/networking/networking.mocked.cpp
+        )
+    else()
+        message("unmocked")
+        
+        list(APPEND EXTRA_FILES 
+            src/main.real.cpp
+            src/networking/networking.real.cpp
+        )
+    endif()
 
     add_executable(${PROJECT_NAME} 
         ${BASE_FILES}
