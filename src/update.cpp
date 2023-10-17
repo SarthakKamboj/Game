@@ -11,6 +11,7 @@
 #include "test_config.h"
 
 extern input::user_input_t input_state;
+extern int object_transform_handle;
 
 namespace world {
     void update_player() {
@@ -34,7 +35,7 @@ namespace world {
             delta = glm::normalize(delta) * static_cast<float>(platformer::time_t::delta_time * speed);
             // delta = glm::normalize(delta) * 2.f;
         }
-        transform_t* player_transform = get_transform(0);
+        transform_t* player_transform = get_transform(object_transform_handle);
         assert(player_transform);
         player_transform->position += glm::vec3(delta, 0);
     }

@@ -18,20 +18,16 @@
 #define RENDER_SERVER_VIEW 1
 
 input::user_input_t input_state;
+int object_transform_handle;
 
 int main(int argc, char *argv[])
 {	 
 	application_t app;
 	init(app);
 
-	int object_transform_handle = create_transform(glm::vec3(0), glm::vec3(1), 0);
-	int obj2 = create_transform(glm::vec3(200, 500, 0), glm::vec3(1), 0);
-
+	object_transform_handle = create_transform(glm::vec3(200, 500, 0), glm::vec3(1), 0);
 	create_rectangle_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
-	create_rectangle_render(obj2, glm::vec3(0,0,1), 40, 40, false, 0, -1);
-
-	create_rigidbody(object_transform_handle, false, 40, 40, false);
-	create_rigidbody(obj2, false, 40, 40, true);
+	create_rigidbody(object_transform_handle, true, 40, 40, false);
 
 	while (true)
     {
