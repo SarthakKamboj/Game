@@ -9,6 +9,10 @@ struct application_t {
 	SDL_Window* window = NULL;
 };
 
+/// <summary>
+/// Initializes SDL and loads the test level for development.
+/// </summary>
+/// <param name="app">The application info struct to be populated</param>
 void init(application_t& app);
 
 #else

@@ -14,6 +14,12 @@
 #include "stb/stb_image.h"
 #include "physics/physics.h"
 
+/// <summary>
+/// This function initalizes SDL to OpenGL Version 4.1, 24-bit depth buffer, height of WINDOW_HEIGHT, 
+/// width of WINDOW_WIDTH, blending enabled, and mirrored texture wrapping.
+/// </summary>
+/// <returns>The SDL window that gets created.</returns>
+/// <see>See constants.h for WINDOW_HEIGHT and WINDOW_WIDTH</see>
 SDL_Window* init_sdl() {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		const char* sdl_error = SDL_GetError();
@@ -117,13 +123,20 @@ void clean_line(const char* orig_line, char* cleaned_line) {
 	}
 }
 
+/// <summary>
+/// Cleans the line by removing all tabs, spaces, and commas unless they are inside keys and value. 
+/// It removes the characters between key and value, except ":" if 
+/// this is a key value line. File line is considered done at the \n if it exists or
+/// whatever the last character is. Everything after is zero-ed out.
+/// </summary>
+/// <param name="line">A full line from a file</param>
 void clean_line(char* line) {
 	int orig_line_len = strlen(line);
 	int cleaned_idx = 0;
 	bool opened_quote = false;
 	for (int i = 0; i < orig_line_len; i++) {
 		char c = line[i];
-		if (c == '\t') continue;
+		if (c == '\t' && !opened_quote) continue;
 		if (c == ' ' && !opened_quote) continue;
 		if (c == ',' && !opened_quote) continue;
 		if (c == '\n') break;
@@ -136,14 +149,21 @@ void clean_line(char* line) {
 	memset(line + cleaned_idx, 0, orig_line_len-cleaned_idx+1);
 }
 
-/* 
-function sets : to 0, so buffer looks like key0value, so key can be used as separate string buffer
-but return value gives start of val index-1, so val can be indexed as well as its own string
-*/
 struct key_val_t {
 	char* key = NULL;
 	char* val = NULL;
 };
+
+/// <summary>
+/// Get the key and value from a buffer from the LDTK JSON file. Some key assumptions since it is a LDTK file
+/// is that keys are always words with quotation marks. Also, since only customFields is being
+/// parsed, values are also words with quotation marks. But this could change in the future when
+/// ints or floats become values as well. Note for the input buffer, the : between key and value will
+/// be replaced with NULL so the key and value char* can be extrapolated from the buffer itself. So buffer
+/// will get modified.
+/// </summary>
+/// <param name="buffer">The key-value line that has to be parsed. The key and value must both be in quotation marks.</param>
+/// <returns>A char* to the key and value (both extracted from input buffer)</returns>
 key_val_t separate_key_val(char* buffer) {
 	int len = strlen(buffer);
 	key_val_t key_val;
@@ -189,12 +209,18 @@ struct color_t {
 
 struct color_conversion_t {
 	char m_item_name[128]{};
-	// char m_color[128]{};
 	color_t color;
 
+	/// <summary>
+	/// Constructor for a color conversion between an item in the game and its corresponding color in
+	/// the level map. Note the color string must be in RGB hex format with ascii letters being uppercase
+	/// with format #______, not 0x______. So "#3C4F9A" is fine but not "#3c4f9a" since it is not uppercase.
+	/// "0x3C4F9A" is not okay either because it starts with 0x instead of #.
+	/// </summary>
+	/// <param name="item_name">Name of gameobject associated with color</param>
+	/// <param name="color_str">Color represented as string in uppercase hex format with # in the front</param>
 	color_conversion_t(const char* item_name, const char* color_str) {
 		memcpy(m_item_name, item_name, strlen(item_name));
-		// memcpy(m_color, color, strlen(color));
 		assert(color_str[0] == '#');
 		color_str++;
 		for (int i = 0; i < 6; i++) {
@@ -286,6 +312,13 @@ struct color_conversion_t {
 };
 
 static std::vector<color_conversion_t> color_conversions;
+/// <summary>
+/// Reads the customFields part of the LDTK JSON since this is where the color conversions exist and extracts these conversions.
+/// Must ensure the file position indicator for the file is AFTER the customFields section is declared 
+/// (the "customFields" and the "{") in the JSON file. The function returns upon the } and does not handle the opening {. The
+/// color conversions are stored in color_conversions.
+/// </summary>
+/// <param name="file">C file pointer</param>
 void read_color_map_info(FILE* file) {
 	while (!feof(file)) {
 		char line[128]{};
@@ -303,13 +336,19 @@ void read_color_map_info(FILE* file) {
 	}
 }
 
+/// <summary>
+/// Traverse a { } section of the LDTK JSON file. Store the gameobject to level composite image color mapping
+/// in the customFields section of the JSON file. Note the { must have been traversed by this point. This handles 
+/// exiting on } for the JSON file in general, not the "{".
+/// </summary>
+/// <param name="file"></param>
 void recursive_section_traverse(FILE* file) {
 	while (!feof(file)) {
 		char line[128]{};
 		fgets(line, sizeof(line), file);
 		clean_line(line);
 
-		// reached end of section
+		// reached end of JSON file
 		if (strcmp(line, "}") == 0) {
 			break;
 		}
@@ -330,6 +369,14 @@ void recursive_section_traverse(FILE* file) {
 	}
 }
 
+
+/// <summary>
+/// Responsible for loading the LDTK data from its corresponding JSON file and composite image. It just returns
+/// if neither file could be opened. The apropriate gameobjects in the game are loaded from this file based on the
+/// color of the pixels in the composition image.
+/// </summary>
+/// <param name="json_file_path">The absolute path to the JSON file for the level</param>
+/// <param name="level_img">The absolute path to the composite image for the level</param>
 void init_placed_world_items(const char* json_file_path, const char* level_img) {
 	FILE* file = fopen(json_file_path, "r");
 	if (!file) return;
@@ -371,7 +418,6 @@ void init_placed_world_items(const char* json_file_path, const char* level_img) 
 			}
 		}
 	}
-
 	stbi_image_free(level_img_data);
 }
 
