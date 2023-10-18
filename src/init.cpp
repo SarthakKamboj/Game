@@ -10,7 +10,6 @@
 #include "renderer/opengl/vertex.h"
 #include "renderer/basic/shape_renders.h"
 #include <vector>
-// #include <fstream>
 #include "stb/stb_image.h"
 #include "physics/physics.h"
 
@@ -62,6 +61,12 @@ SDL_Window* init_sdl() {
 	return window;
 }
 
+/// <summary>
+/// Initialize OpenGL data to render a rectangle (quad) to the screen. It creates the 4 vertices and stores it
+/// in a VAO, VBO, and EBO. The rectangle vertex and fragment shaders are loaded where defaults are loaded.
+/// The texture unit is defaulted to 0, the projection matrix is orthographic, and the view matrix
+/// is the identity matrix.
+/// </summary>
 void init_rectangle_data() {
 
 	opengl_object_data& data = rectangle_render_t::obj_data;
@@ -104,24 +109,6 @@ void init_rectangle_data() {
 	shader_set_int(data.shader, "tex", 0);
 }
 
-void clean_line(const char* orig_line, char* cleaned_line) {
-	int orig_line_len = strlen(orig_line);
-	int cleaned_idx = 0;
-	bool opened_quote = false;
-	for (int i = 0; i < orig_line_len; i++) {
-		char c = orig_line[i];
-		if (c == '\t') continue;
-		if (c == ' ' && !opened_quote) continue;
-		if (c == ',' && !opened_quote) continue;
-		if (c == '\n') break;
-		if (c == '\"') {
-			opened_quote = !opened_quote;
-		}
-		cleaned_line[cleaned_idx] = c;
-		cleaned_idx++;
-	}
-}
-
 /// <summary>
 /// Cleans the line by removing all tabs, spaces, and commas unless they are inside keys and value. 
 /// It removes the characters between key and value, except ":" if 
@@ -148,6 +135,9 @@ void clean_line(char* line) {
 	memset(line + cleaned_idx, 0, orig_line_len-cleaned_idx+1);
 }
 
+/// <summary>
+/// Stores a key and value both as char buffers.
+/// </summary>
 struct key_val_t {
 	char* key = NULL;
 	char* val = NULL;
@@ -190,6 +180,9 @@ key_val_t separate_key_val(char* buffer) {
 	return key_val;
 }
 
+/// <summary>
+/// Stores a color as rgb.
+/// </summary>
 struct color_t {
 	unsigned char r = 0, g = 0, b = 0;
 
@@ -206,6 +199,9 @@ struct color_t {
 	}
 };
 
+/// <summary>
+/// Maps some gameobject char buffer identifier to a color
+/// </summary>
 struct color_conversion_t {
 	char m_item_name[128]{};
 	color_t color;
