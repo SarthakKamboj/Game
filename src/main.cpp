@@ -13,8 +13,6 @@
 #include "shared/input/input.h"
 #include "shared/components/basic.h"
 
-#define RENDER_SERVER_VIEW 1
-
 input::user_input_t input_state;
 
 int main(int argc, char *argv[])
