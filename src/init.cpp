@@ -101,7 +101,6 @@ void init_rectangle_data() {
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_mat4(data.shader, "view", glm::mat4(1.0f));
-	// shader_set_mat4(data.shader, "projection", glm::mat4(1.0f));
 	shader_set_int(data.shader, "tex", 0);
 }
 
@@ -318,7 +317,7 @@ static std::vector<color_conversion_t> color_conversions;
 /// (the "customFields" and the "{") in the JSON file. The function returns upon the } and does not handle the opening {. The
 /// color conversions are stored in color_conversions.
 /// </summary>
-/// <param name="file">C file pointer</param>
+/// <param name="file">C file pointer to the LDTK JSON file</param>
 void read_color_map_info(FILE* file) {
 	while (!feof(file)) {
 		char line[128]{};
@@ -336,12 +335,59 @@ void read_color_map_info(FILE* file) {
 	}
 }
 
+int object_transform_handle = -1;
+int x_pos = 0, y_pos = 0;
+void read_player_start(FILE* file) {
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);
+
+		if (strcmp(line, "{") == 0) continue;
+		if (strcmp(line, "}") == 0) continue;
+		if (strcmp(line, "]") == 0) {
+			std::cout << "closed section";
+			break;
+		}
+
+		key_val_t key_val = separate_key_val(line);
+		if (strcmp(key_val.key, "x") == 0) {
+			std::cout << "x: " << std::endl;
+			x_pos = atoi(key_val.val);
+		}
+		if (strcmp(key_val.key, "y") == 0) {
+			std::cout << "y: " << std::endl;
+			y_pos = atoi(key_val.val);
+		}
+	}	
+}
+
+void read_entities(FILE* file) {
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);
+
+		if (strcmp(line, "}") == 0) {
+			std::cout << "closed section";
+			break;
+		}
+
+		key_val_t key_val = separate_key_val(line);
+		if (strcmp(key_val.key, "PlayerStart") == 0) {
+			assert(*key_val.val == '[');
+			read_player_start(file);
+		}
+	}	
+}
+
 /// <summary>
 /// Traverse a { } section of the LDTK JSON file. Store the gameobject to level composite image color mapping
-/// in the customFields section of the JSON file. Note the { must have been traversed by this point. This handles 
+/// in the customFields section of the JSON file. Also create the player based on the PlayerEntity in the entities section.
+/// Note the { must have been traversed by the file at this point. This function handles 
 /// exiting on } for the JSON file in general, not the "{".
 /// </summary>
-/// <param name="file"></param>
+/// <param name="file">The C File pointer to the LDTK JSON file</param>
 void recursive_section_traverse(FILE* file) {
 	while (!feof(file)) {
 		char line[128]{};
@@ -366,6 +412,10 @@ void recursive_section_traverse(FILE* file) {
 			assert(*key_val.val == '{');
 			read_color_map_info(file);
 		}
+		if (key_val.key && strcmp(key_val.key, "entities") == 0) {
+			assert(*key_val.val == '{');
+			read_entities(file);
+		}
 	}
 }
 
@@ -377,7 +427,7 @@ void recursive_section_traverse(FILE* file) {
 /// </summary>
 /// <param name="json_file_path">The absolute path to the JSON file for the level</param>
 /// <param name="level_img">The absolute path to the composite image for the level</param>
-void init_placed_world_items(const char* json_file_path, const char* level_img) {
+void load_level(const char* json_file_path, const char* level_img) {
 	FILE* file = fopen(json_file_path, "r");
 	if (!file) return;
 	while (!feof(file)) {
@@ -419,6 +469,12 @@ void init_placed_world_items(const char* json_file_path, const char* level_img) 
 		}
 	}
 	stbi_image_free(level_img_data);
+
+	int level_row = level_file_height - 1 - y_pos;
+	int level_col = x_pos;
+	object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
+	create_rectangle_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
+	create_rigidbody(object_transform_handle, true, 40, 40, false);
 }
 
 void init(application_t& app) {
@@ -428,5 +484,5 @@ void init(application_t& app) {
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
 	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
-    init_placed_world_items(json_file, img_file);
+    load_level(json_file, img_file);
 }

@@ -48,7 +48,7 @@
 			"uid": 8,
 			"doc": null,
 			"uiColor": null,
-			"gridSize": 16,
+			"gridSize": 1,
 			"guideGridWid": 0,
 			"guideGridHei": 0,
 			"displayOpacity": 1,
@@ -333,9 +333,9 @@
 				{
 					"__identifier": "Player_Entities",
 					"__type": "Entities",
-					"__cWid": 16,
-					"__cHei": 1,
-					"__gridSize": 16,
+					"__cWid": 256,
+					"__cHei": 16,
+					"__gridSize": 1,
 					"__opacity": 1,
 					"__pxTotalOffsetX": 0,
 					"__pxTotalOffsetY": 0,
@@ -353,7 +353,24 @@
 					"seed": 5696263,
 					"overrideTilesetUid": null,
 					"gridTiles": [],
-					"entityInstances": []
+					"entityInstances": [
+						{
+							"__identifier": "PlayerStart",
+							"__grid": [3,2],
+							"__pivot": [0,0],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#63C74D",
+							"__worldX": 3,
+							"__worldY": 2,
+							"iid": "807647e0-6280-11ee-bb3e-cfc6c3f98185",
+							"width": 1,
+							"height": 1,
+							"defUid": 7,
+							"px": [3,2],
+							"fieldInstances": []
+						}
+					]
 				},
 				{
 					"__identifier": "Colors",

@@ -4,6 +4,9 @@
 
 #include "SDL.h"
 
+/// <summary>
+/// Holds application (global) level info
+/// </summary>
 struct application_t {
 	bool running = true;
 	SDL_Window* window = NULL;

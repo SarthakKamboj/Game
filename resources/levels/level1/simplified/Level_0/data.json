@@ -16,5 +16,19 @@
 	"layers": [
 		"Colors.png"
 	],
-	"entities" : {}
+	"entities": {
+		"PlayerStart": [
+			{
+				"id": "PlayerStart",
+				"iid": "807647e0-6280-11ee-bb3e-cfc6c3f98185",
+				"layer": "Player_Entities",
+				"x": 3,
+				"y": 2,
+				"width": 1,
+				"height": 1,
+				"color": 6539085,
+				"customFields" : {}
+			}
+		]
+	}
 }
