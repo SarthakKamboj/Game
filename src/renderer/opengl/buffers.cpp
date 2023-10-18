@@ -79,10 +79,10 @@ void unbind_vao() {
 	glBindVertexArray(0);
 }
 
-void vao_enable_attribute(vao_t& vao, const vbo_t& vbo, const int attrId, const int numValues, const int dType, const int normalized, const int stride, const int offset) {
+void vao_enable_attribute(vao_t& vao, const vbo_t& vbo, const int attrId, const int numValues, const int dType, const int stride, const int offset) {
 	bind_vao(vao);
 	bind_vbo(vbo);
-	glVertexAttribPointer(attrId, numValues, dType, normalized, stride, (void*)offset);
+	glVertexAttribPointer(attrId, numValues, dType, GL_FALSE, stride, reinterpret_cast<void*>(offset));
 	glEnableVertexAttribArray(attrId);
 }
 

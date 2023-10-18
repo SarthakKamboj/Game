@@ -93,9 +93,9 @@ void init_rectangle_data() {
     // create vao and link the vbo/ebo to that vao
 	data.vao = create_vao();
 	bind_vao(data.vao);
-	vao_enable_attribute(data.vao, data.vbo, 0, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, position));
-	vao_enable_attribute(data.vao, data.vbo, 1, 3, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, color));
-	vao_enable_attribute(data.vao, data.vbo, 2, 2, GL_FLOAT, GL_FALSE, sizeof(vertex_t), offsetof(vertex_t, tex_coord));
+	vao_enable_attribute(data.vao, data.vbo, 0, 3, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, position));
+	vao_enable_attribute(data.vao, data.vbo, 1, 3, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, color));
+	vao_enable_attribute(data.vao, data.vbo, 2, 2, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, tex_coord));
 	bind_ebo(data.ebo);
 	unbind_vao();
 	unbind_ebo();
@@ -321,7 +321,6 @@ void read_color_map_info(FILE* file) {
 		clean_line(line);
 
 		if (strcmp(line, "}") == 0) {
-			std::cout << "closed section";
 			break;
 		}
 
@@ -342,18 +341,15 @@ void read_player_start(FILE* file) {
 		if (strcmp(line, "{") == 0) continue;
 		if (strcmp(line, "}") == 0) continue;
 		if (strcmp(line, "]") == 0) {
-			std::cout << "closed section";
 			break;
 		}
 
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "x") == 0) {
-			std::cout << "x: " << std::endl;
-			x_pos = atoi(key_val.val);
+			x_pos = static_cast<int>(strtol(key_val.val, NULL, 10));
 		}
 		if (strcmp(key_val.key, "y") == 0) {
-			std::cout << "y: " << std::endl;
-			y_pos = atoi(key_val.val);
+			y_pos = static_cast<int>(strtol(key_val.val, NULL, 10));
 		}
 	}	
 }
