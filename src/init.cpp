@@ -62,14 +62,14 @@ SDL_Window* init_sdl() {
 }
 
 /// <summary>
-/// Initialize OpenGL data to render a rectangle (quad) to the screen. It creates the 4 vertices and stores it
+/// Initialize OpenGL data to render a quad to the screen. It creates the 4 vertices and stores it
 /// in a VAO, VBO, and EBO. The rectangle vertex and fragment shaders are loaded where defaults are loaded.
 /// The texture unit is defaulted to 0, the projection matrix is orthographic, and the view matrix
 /// is the identity matrix.
 /// </summary>
-void init_rectangle_data() {
+void init_quad_data() {
 
-	opengl_object_data& data = rectangle_render_t::obj_data;
+	opengl_object_data& data = quad_render_t::obj_data;
 
     // create the vertices of the rectangle
 	vertex_t vertices[4];
@@ -454,7 +454,7 @@ void load_level(const char* json_file_path, const char* level_img) {
 					int level_col = left_x;
 
 					int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
-					create_rectangle_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
+					create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
 					create_rigidbody(obj, false, 40, 40, true);
 				}
 			}
@@ -465,14 +465,14 @@ void load_level(const char* json_file_path, const char* level_img) {
 	int level_row = level_file_height - 1 - y_pos;
 	int level_col = x_pos;
 	object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
-	create_rectangle_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
+	create_quad_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
 	create_rigidbody(object_transform_handle, true, 40, 40, false);
 }
 
 void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
-	init_rectangle_data();
+	init_quad_data();
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
 	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";

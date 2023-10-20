@@ -1,6 +1,6 @@
-#include "enet/enet.h"
+// #include "enet/enet.h"
 #include <iostream>
-#include "networking/networking.h"
+// #include "networking/networking.h"
 #include "app.h"
 #include "renderer/renderer.h"
 #include "utils/time.h"
@@ -10,8 +10,8 @@
 #include "input/input.h"
 #include "physics/physics.h"
 
-#include "shared/input/input.h"
-#include "shared/components/basic.h"
+// #include "shared/input/input.h"
+// #include "shared/components/basic.h"
 
 input::user_input_t input_state;
 

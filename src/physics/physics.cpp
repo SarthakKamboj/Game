@@ -28,7 +28,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 	// debug stuff
 	aabb_collider.collider_debug_transform_handle = create_transform(glm::vec3(aabb_collider.x, aabb_collider.y, 0.f), glm::vec3(1.f), 0.f);
 	glm::vec3 collider_color(0.f, 1.f, 0.f);
-	aabb_collider.collider_debug_render_handle = create_rectangle_render(aabb_collider.collider_debug_transform_handle, collider_color, collider_width, collider_height, true, 0, -1);
+	aabb_collider.collider_debug_render_handle = create_quad_render(aabb_collider.collider_debug_transform_handle, collider_color, collider_width, collider_height, true, 0, -1);
 
 	rigidbody.aabb_collider = aabb_collider;
 

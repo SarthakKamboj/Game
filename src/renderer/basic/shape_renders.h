@@ -4,7 +4,12 @@
 #include "glm/glm.hpp"
 #include "../opengl/object_data.h"
 
-struct rectangle_render_t {
+/// <summary>
+/// Represents the render settings for a quad in the game. Stores
+/// information about the transform its associated with, the texture its associated with
+/// and its influence, its color, width, height, and if it's in wireframe mode.
+/// </summary>
+struct quad_render_t {
     int handle = -1;
 	int transform_handle = -1;
     int tex_handle = -1;
@@ -19,6 +24,26 @@ struct rectangle_render_t {
 	static opengl_object_data obj_data;
 };
 
-int create_rectangle_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle);
-void draw_rectangle_render(const rectangle_render_t& rectangle);
-void draw_rectangle_renders();
+/// <summary>
+/// Creates a quad to be render
+/// </summary>
+/// <param name="transform_handle">Transform handle associated with this render</param>
+/// <param name="color">The base colors</param>
+/// <param name="width">In pixels</param>
+/// <param name="height">In pixels</param>
+/// <param name="wireframe">Whether wireframe mode or not, useful for debugging</param>
+/// <param name="tex_influence">Influence of the texture if it exists</param>
+/// <param name="tex_handle">Handle of the texture associated with the render quad</param>
+/// <returns>The quad to be rendered</returns>
+int create_quad_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle);
+
+/// <summary>
+/// Draw a particular quad
+/// </summary>
+/// <param name="quad">Quad/recntagle to draw</param>
+void draw_quad_render(const quad_render_t& quad);
+
+/// <summary>
+/// Draw all quads in the game
+/// </summary>
+void draw_quad_renders();

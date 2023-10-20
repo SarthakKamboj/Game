@@ -1,10 +1,10 @@
 #pragma once
 
 #include <string>
-#include "shared/utils/fifo.h"
-#include "shared/networking/networking.h"
-#include "shared/world/world.h"
-#include "shared/input/input.h"
+// #include "shared/utils/fifo.h"
+// #include "shared/networking/networking.h"
+// #include "shared/world/world.h"
+// #include "shared/input/input.h"
 
 #define WINDOW_WIDTH 800
 #define WINDOW_HEIGHT 600
