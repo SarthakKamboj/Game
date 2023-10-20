@@ -40,6 +40,7 @@ namespace world {
 
     void update(application_t& app) {
         update_player(app.main_character);
+        app.camera.update(input_state);
         update_rigidbodies();
     }
 }

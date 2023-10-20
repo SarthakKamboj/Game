@@ -15,6 +15,7 @@ option(RUN_TESTCASES "Run unit tests and test cases" OFF)
 set(BASE_FILES)
 list(APPEND BASE_FILES 
     src/app.cpp
+    src/camera.cpp
     src/update.cpp
     src/physics/physics.cpp
     src/input/input.cpp

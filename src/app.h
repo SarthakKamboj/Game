@@ -4,6 +4,7 @@
 
 #include "SDL.h"
 #include "gameobjects/gos.h"
+#include "camera.h"
 
 /// <summary>
 /// Holds application (global) level info
@@ -12,6 +13,7 @@ struct application_t {
 	bool running = true;
 	SDL_Window* window = NULL;
 	main_character_t main_character;
+	camera_t camera;
 };
 
 /// <summary>

@@ -43,7 +43,9 @@ int create_quad_render(int transform_handle, glm::vec3& color, float width, floa
 /// <param name="quad">Quad/recntagle to draw</param>
 void draw_quad_render(const quad_render_t& quad);
 
+struct application_t;
+
 /// <summary>
 /// Draw all quads in the game
 /// </summary>
-void draw_quad_renders();
+void draw_quad_renders(application_t& app);
