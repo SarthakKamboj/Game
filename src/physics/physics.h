@@ -25,6 +25,7 @@ struct rigidbody_t {
 	bool debug:1;
 
 	// rigidbody_t();
+	void get_corners(glm::vec2 corners[4]);
 };
 
 enum PHYSICS_COLLISION_DIR: uint8_t {
@@ -40,6 +41,7 @@ struct collision_info_t {
 	// collision_info_t();
 };
 
+bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
 int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic);
 void update_rigidbodies();
 rigidbody_t* get_rigidbody(int rb_handle);

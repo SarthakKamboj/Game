@@ -473,6 +473,8 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	// create_rigidbody(object_transform_handle, true, 40, 40, false);
 }
 
+int player_rb;
+
 void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
@@ -481,4 +483,5 @@ void init(application_t& app) {
 	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
     load_level(app, json_file, img_file);
+	player_rb = app.main_character.rigidbody_handle;
 }
