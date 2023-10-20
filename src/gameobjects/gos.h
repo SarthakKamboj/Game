@@ -14,6 +14,8 @@ struct main_character_t {
 	int rigidbody_handle = -1;
 	glm::vec3 color;
 	glm::vec2 dims;
+
+	void update(input::user_input_t& user_input);
 };
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims);

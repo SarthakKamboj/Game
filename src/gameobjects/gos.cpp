@@ -1,6 +1,7 @@
 #include "gos.h"
 #include "constants.h" 
 #include <iostream>
+#include "utils/time.h"
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
@@ -10,24 +11,25 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	return mc;
 }
 
-void update_main_character(const main_character_t& mc, input::user_input_t& user_input) {
+void main_character_t::update(input::user_input_t& user_input) {
+#if 1
     // get velocity
 	const float vel = WINDOW_WIDTH / 4.f;
 
     // get rigidbody and make sure its valid
-    rigidbody_t* rb_ptr = get_rigidbody(mc.rigidbody_handle);
+    rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
     assert(rb_ptr != NULL);
 	rigidbody_t& rb = *rb_ptr;
 
     // jump
-    bool jump_btn_pressed = user_input.w_pressed || user_input.space_pressed;
+    bool jump_btn_pressed = user_input.w_down;
     bool character_falling = rb.vel.y <= 0;
 	if (jump_btn_pressed && character_falling) {
 		rb.vel.y = 2*vel;
 	}
 
-    bool left_move_pressed = user_input.a_pressed;
-    bool right_move_pressed = user_input.d_pressed;
+    bool left_move_pressed = user_input.a_down;
+    bool right_move_pressed = user_input.d_down;
 
 	if (left_move_pressed) {
 		rb.vel.x = -vel;
@@ -38,7 +40,38 @@ void update_main_character(const main_character_t& mc, input::user_input_t& user
 	else {
 		rb.vel.x = 0;
 	}
+#else
+        glm::vec2 delta(0);
+        if (input_state.d_down) {
+            delta.x = 1;
+        }
+        else if (input_state.a_down) {
+            delta.x = -1;
+        }
+
+        if (input_state.w_down) {
+            delta.y = 1;
+        }
+        else if (input_state.s_down) {
+            delta.y = -1;
+        }
+
+        if (delta.x != 0 || delta.y != 0) {
+            const int speed = 200;
+            delta = glm::normalize(delta) * static_cast<float>(platformer::time_t::delta_time * speed);
+            // delta = glm::normalize(delta) * 2.f;
+        }
+        transform_t* player_transform = get_transform(transform_handle);
+        assert(player_transform);
+        player_transform->position += glm::vec3(delta, 0);
+#endif
 }
+
+#if 0
+void update_main_character(const main_character_t& mc, input::user_input_t& user_input) {
+ 
+}
+#endif
 
 const glm::vec3 ground_block_t::BLOCK_COLOR = glm::vec3(0.58f, 0.29f, 0.f);
 int ground_block_t::tex_handle = -1;
