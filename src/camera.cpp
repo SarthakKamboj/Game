@@ -3,7 +3,6 @@
 #include "utils/time.h"
 
 camera_t::camera_t() {
-	// pos = glm::vec3(WINDOW_WIDTH / 2, WINDOW_HEIGHT / 2, 0);
 	pos = glm::vec3(0, -10, 0);
 	rotation = 0;
 }
