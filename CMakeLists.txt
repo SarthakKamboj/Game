@@ -29,6 +29,7 @@ list(APPEND BASE_FILES
     src/renderer/opengl/resources.cpp
     src/renderer/opengl/vertex.cpp
     src/transform/transform.cpp
+    src/gameobjects/gos.cpp
 )
 
 function(configure_test_cases)

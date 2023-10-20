@@ -12,6 +12,7 @@
 #include <vector>
 #include "stb/stb_image.h"
 #include "physics/physics.h"
+#include "gameobjects/gos.h"
 
 /// <summary>
 /// This function initalizes SDL to OpenGL Version 4.1, 24-bit depth buffer, height of WINDOW_HEIGHT, 
@@ -330,7 +331,7 @@ void read_color_map_info(FILE* file) {
 	}
 }
 
-int object_transform_handle = -1;
+// int object_transform_handle = -1;
 int x_pos = 0, y_pos = 0;
 void read_player_start(FILE* file) {
 	while (!feof(file)) {
@@ -419,7 +420,7 @@ void recursive_section_traverse(FILE* file) {
 /// </summary>
 /// <param name="json_file_path">The absolute path to the JSON file for the level</param>
 /// <param name="level_img">The absolute path to the composite image for the level</param>
-void load_level(const char* json_file_path, const char* level_img) {
+void load_level(application_t& app, const char* json_file_path, const char* level_img) {
 	FILE* file = fopen(json_file_path, "r");
 	if (!file) return;
 	while (!feof(file)) {
@@ -453,9 +454,10 @@ void load_level(const char* json_file_path, const char* level_img) {
 					int level_row = level_file_height - 1 - top_y;
 					int level_col = left_x;
 
-					int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
-					create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
-					create_rigidbody(obj, false, 40, 40, true);
+					// int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
+					// create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
+					// create_rigidbody(obj, false, 40, 40, true);
+					create_ground_block(glm::vec3(level_col * 40, level_row * 40, 0), glm::vec3(1), 0);
 				}
 			}
 		}
@@ -464,9 +466,11 @@ void load_level(const char* json_file_path, const char* level_img) {
 
 	int level_row = level_file_height - 1 - y_pos;
 	int level_col = x_pos;
-	object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
-	create_quad_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
-	create_rigidbody(object_transform_handle, true, 40, 40, false);
+	// object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
+
+	app.main_character = create_main_character(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0, glm::vec3(1,1,0), glm::vec2(40, 40));
+	// create_quad_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
+	// create_rigidbody(object_transform_handle, true, 40, 40, false);
 }
 
 void init(application_t& app) {
@@ -476,5 +480,5 @@ void init(application_t& app) {
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
 	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
-    load_level(json_file, img_file);
+    load_level(app, json_file, img_file);
 }

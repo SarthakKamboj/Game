@@ -2,16 +2,18 @@
 
 #if 1
 
+#include "app.h"
+
 namespace world {
     /// <summary>
     /// update the player object (maybe moved into its own file at some point)
     /// </summary>
-    void update_player();
+    void update_player(main_character_t& main_character);
 
     /// <summary>
     /// updates the game. right now it updates the player and the rigidbodies in the game
     /// </summary>
-    void update();
+    void update(application_t& app);
 }
 
 #else

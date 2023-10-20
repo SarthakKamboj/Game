@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 
 		input::process_input(input_state);
 
-		world::update();
+		world::update(app);
 		render(app);
 
 		utils::end_timer(frame_timer);

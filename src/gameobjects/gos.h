@@ -17,7 +17,8 @@ struct main_character_t {
 };
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims);
-void update_main_character(const main_character_t& mc, key_state_t& key_state);
+
+void update_main_character(const main_character_t& mc, input::user_input_t& user_input);
 
 struct ground_block_t {
 	// create transform first

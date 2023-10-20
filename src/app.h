@@ -3,6 +3,7 @@
 #if 1
 
 #include "SDL.h"
+#include "gameobjects/gos.h"
 
 /// <summary>
 /// Holds application (global) level info
@@ -10,6 +11,7 @@
 struct application_t {
 	bool running = true;
 	SDL_Window* window = NULL;
+	main_character_t main_character;
 };
 
 /// <summary>

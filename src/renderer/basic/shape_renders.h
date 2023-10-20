@@ -28,7 +28,7 @@ struct quad_render_t {
 /// Creates a quad to be render
 /// </summary>
 /// <param name="transform_handle">Transform handle associated with this render</param>
-/// <param name="color">The base colors</param>
+/// <param name="color">The base color</param>
 /// <param name="width">In pixels</param>
 /// <param name="height">In pixels</param>
 /// <param name="wireframe">Whether wireframe mode or not, useful for debugging</param>

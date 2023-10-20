@@ -9,10 +9,10 @@
 #include "test_config.h"
 
 extern input::user_input_t input_state;
-extern int object_transform_handle;
+// extern int object_transform_handle;
 
 namespace world {
-    void update_player() {
+    void update_player(main_character_t& main_character) {
         glm::vec2 delta(0);
         if (input_state.d_down) {
             delta.x = 1;
@@ -33,13 +33,13 @@ namespace world {
             delta = glm::normalize(delta) * static_cast<float>(platformer::time_t::delta_time * speed);
             // delta = glm::normalize(delta) * 2.f;
         }
-        transform_t* player_transform = get_transform(object_transform_handle);
+        transform_t* player_transform = get_transform(main_character.transform_handle);
         assert(player_transform);
         player_transform->position += glm::vec3(delta, 0);
     }
 
-    void update() {
-        update_player();
+    void update(application_t& app) {
+        update_player(app.main_character);
         update_rigidbodies();
     }
 }
