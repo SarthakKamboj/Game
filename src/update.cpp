@@ -17,7 +17,7 @@ namespace world {
     void update(application_t& app) {
         // update_player(app.main_character);
         app.main_character.update(input_state);
-        // app.camera.update(input_state);
+        app.camera.update(input_state, app.main_character);
         update_rigidbodies();
     }
 }

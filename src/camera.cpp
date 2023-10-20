@@ -1,6 +1,7 @@
 #include "camera.h"
 #include "glm/gtc/type_ptr.hpp"
 #include "utils/time.h"
+#include "constants.h"
 
 camera_t::camera_t() {
 	pos = glm::vec3(0, -10, 0);
@@ -14,13 +15,21 @@ glm::mat4 camera_t::get_view_matrix() {
 	return view_mat;
 }
 
-void camera_t::update(input::user_input_t& user_input) {
+void camera_t::update(input::user_input_t& user_input, main_character_t& main_char) {
 	const float speed = 0.5f;
 	float delta = static_cast<float>(platformer::time_t::delta_time * speed);
-	if (user_input.d_down) {
-		pos.x += speed;
+	transform_t* char_transform = get_transform(main_char.transform_handle);
+	assert(char_transform);
+	float normalized_player_pos_x = char_transform->position.x - pos.x;
+	// glm::vec3 normalized_player_pos =  - pos;
+	const float left_boundary = WINDOW_WIDTH * 1.f / 6.f;
+	const float right_boundary = WINDOW_WIDTH * 5.f / 6.f;
+	if (normalized_player_pos_x > right_boundary) {
+		float amount_over = normalized_player_pos_x - right_boundary;
+		pos.x += amount_over;
 	}
-	else if (user_input.a_down) {
-		pos.x -= speed;
+	else if (normalized_player_pos_x < left_boundary) {
+		float amount_under = left_boundary - normalized_player_pos_x;
+		pos.x -= amount_under;
 	}
 }
