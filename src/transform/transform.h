@@ -8,6 +8,8 @@ struct transform_t {
 	glm::vec3 scale = glm::vec3(1);
 	float rotation_deg = 0;
     int handle = -1;
+	glm::mat4 model_matrix;
+	bool dirty_model_matrix = false;
 
 	float last_delta_x = 0;
 	float last_delta_y = 0;
@@ -27,7 +29,7 @@ int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg);
 /// </summary>
 /// <param name="transform">The world transform</param>
 /// <returns>A 4x4 model (local to world) matrix</returns>
-glm::mat4 get_model_matrix(const transform_t& transform);
+glm::mat4 get_model_matrix(transform_t& transform);
 
 /// <summary>
 /// Get the transform given the transform's handle
