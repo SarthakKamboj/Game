@@ -102,7 +102,7 @@ void init_quad_data() {
 	unbind_ebo();
 
     // load in shader for these rectangle quads because the game is 2D, so everything is basically a solid color or a texture
-	data.shader = create_shader((SHADERS_PATH + "\\rectangle.vert").c_str(), (SHADERS_PATH + "\\rectangle.frag").c_str());
+	data.shader = create_shader("C:/Sarthak/projects/game/resources/shaders/rectangle.vert", "C:/Sarthak/projects/game/resources/shaders/rectangle.frag");
     // set projection matrix in the shader
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
