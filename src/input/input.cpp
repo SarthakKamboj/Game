@@ -14,6 +14,7 @@ namespace input {
 		user_input.a_pressed = false;
 		user_input.s_pressed = false;
 		user_input.d_pressed = false;
+		user_input.p_pressed = false;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -34,6 +35,10 @@ namespace input {
 						}
 						case SDLK_d: {
 							user_input.d_down = false;
+							break;
+						}
+						case SDLK_p: {
+							user_input.p_down = false;
 							break;
 						}
 						default: break;
@@ -64,6 +69,11 @@ namespace input {
 						}
 						case SDLK_SPACE: {
 							user_input.space_pressed = true;
+							break;
+						}
+						case SDLK_p: {
+							user_input.p_pressed = true;
+							user_input.p_down = true;
 							break;
 						}
 						default:
