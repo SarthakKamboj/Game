@@ -15,6 +15,9 @@ struct main_character_t {
 	glm::vec3 color;
 	glm::vec2 dims;
 
+	bool grounded = false;
+	int num_jumps_since_grounded = 0;
+
 	void update(input::user_input_t& user_input);
 };
 
