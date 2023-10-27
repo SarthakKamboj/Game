@@ -43,36 +43,14 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 	return rigidbody.handle;
 }
 
-void handle_position(rigidbody_t& kinematic_rb, rigidbody_t& non_kinematic_rb, PHYSICS_COLLISION_DIR col_dir) {
-    // already verified at this pt that kin_transform and non_kin_transform both exist
-	transform_t& kin_transform = *get_transform(kinematic_rb.transform_handle);
-	transform_t& non_kin_transform = *get_transform(non_kinematic_rb.transform_handle);
-
-	const float offset = 0;
-	if (col_dir == PHYSICS_COLLISION_DIR::HORIZONTAL) {
-		if (kin_transform.position.x > non_kin_transform.position.x) {
-			non_kin_transform.position.x = kin_transform.position.x - kinematic_rb.aabb_collider.width/2 - non_kinematic_rb.aabb_collider.width/2 + offset;
-		}
-		else {
-			non_kin_transform.position.x = kin_transform.position.x + kinematic_rb.aabb_collider.width/2 + non_kinematic_rb.aabb_collider.width/2 - offset;
-		}
-	}
-	else if (col_dir == PHYSICS_COLLISION_DIR::VERTICAL) {
-		if (kin_transform.position.y > non_kin_transform.position.y) {
-			non_kin_transform.position.y = kin_transform.position.y - kinematic_rb.aabb_collider.height/2 - non_kinematic_rb.aabb_collider.height/2 + offset;
-		}
-		else {
-			non_kin_transform.position.y = kin_transform.position.y + kinematic_rb.aabb_collider.height/2 + non_kinematic_rb.aabb_collider.height/2 - offset;
-		}
-	}
-}
-
 void rigidbody_t::get_corners(glm::vec2 corners[4]) {
 	glm::vec2& top_left = corners[0];
 	glm::vec2& top_right = corners[1];
 	glm::vec2& bottom_right = corners[2];
 	glm::vec2& bottom_left = corners[3];
+	
 	glm::vec2 pos(aabb_collider.x, aabb_collider.y);
+
 	float x_extent = abs(aabb_collider.width / 2);
 	float y_extent = abs(aabb_collider.height / 2);
 	top_left = glm::vec2(pos.x - x_extent, pos.y + y_extent);
@@ -81,17 +59,37 @@ void rigidbody_t::get_corners(glm::vec2 corners[4]) {
 	bottom_right = glm::vec2(pos.x + x_extent, pos.y - y_extent);
 }
 
+/**
+ * @brief Get the normal vector to a line segment with two corners
+ * @param corner1 The first corner of the line segment
+ * @param corner2 The second corner of the line segment
+*/
 glm::vec2 get_normal(glm::vec2& corner1, glm::vec2& corner2) {
 	glm::vec2 dir = corner2 - corner1;
 	if (dir.y == 0) return glm::vec2(0, 1);
 	return glm::vec2(1, -dir.x / dir.y);
 }
 
+/**
+ * @brief Returns whether given the mins and maxs of projected polygons being compared for SAT collision detection, 
+ * there is a overlap in these projections
+ * @param min1 Minimum projection of the first polygon
+ * @param max1 Maximum projection of the first polygon
+ * @param min2 Minimum projection of the second polygon
+ * @param max2 Maximum projection of the second polygon
+ * @return Whether there was overlap
+*/
 bool sat_overlap(float min1, float max1, float min2, float max2) {
 	bool no_overlap = (min1 > max2) || (min2 > max1);
 	return !no_overlap;
 }
 
+/**
+ * @brief Determines whether there is a collision being two rigidbodies using SAT
+ * @param rb1 Rigidbody 1 for collision detection
+ * @param rb2 Rigidbody 2 for collision detection
+ * @return Whether there is a collision
+*/
 bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
 	transform_t transform1_obj;
 	transform1_obj.position.x = rb1.aabb_collider.x;
@@ -145,7 +143,16 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
 	return true;
 }
 
-bool diag_pos_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_info_t& col_info) {
+/**
+ * @brief Given a kinematic and non-kinematic rigidbody, determines the collision statuses of the 4 diagnals of the
+ * non-kinematic rigidbody with the kinematic rigidbody and updates the col_info struct for a particular diagnal
+ * if it has a collision closer to the center than what has already been calculated or defaulted
+ * @param kin_rb Kinematic rb
+ * @param non_kin_rb Non kinematic rb (such as the player)
+ * @param col_info Running collision info of the 4 diagnals with this non kinematic rb
+ * @return Whether there was any sort of collision in this collision resolving
+*/
+bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_info_t& col_info) {
 	glm::vec2 kin_corners[4];
 	glm::vec2 non_kin_corners[4];
 
@@ -213,9 +220,18 @@ bool diag_pos_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_in
 	return detected_col;
 }
 
+/**
+ * @brief Iterates over every non kinematic rb and performs collision detection with every kinematic rb.
+ * Optimizes collision detection to ensure two items are in the same grid to avoid unnecessary collision
+ * calculations. Also will do continuous collision detection in the form of splitting delta time into smaller
+ * chunks for more granular testing but this will most likely be removed and unnecessary at this point. The
+ * collision detection is done separately per diagnal per non-kinematic rb where each diagnal stores its highest
+ * penetrating collision. After iterating over all kinematic rbs, the diagnals' collision detection information
+ * is looked through to calculate the highest x and y displacement to resolve the position and the position is
+ * displaced accordingly.
+*/
 void update_rigidbodies() {	
 
-	// SIMULATE THE WORLD
 	for (rigidbody_t& non_kin_rb_orig : non_kin_rigidbodies) {
 
 		transform_t* ptr = get_transform(non_kin_rb_orig.transform_handle);
@@ -259,7 +275,7 @@ void update_rigidbodies() {
 
 				if (!sat_detect_collision(non_kin_rb, kin_rb)) continue;
 
-				bool detected_col = diag_pos_resolve(kin_rb, non_kin_rb, total_col_info);
+				bool detected_col = diagnals_method_col_resolve(kin_rb, non_kin_rb, total_col_info);
 
 				if (detected_col) {
 					earliest_cont_percent_i = cont_percent_i;
@@ -304,6 +320,11 @@ void update_rigidbodies() {
 	}
 }
 
+/**
+ * @brief Get a rigidbody given a handle
+ * @param rb_handle The handle of the rigidbody
+ * @return Rigidbody with that handle
+*/
 rigidbody_t* get_rigidbody(int rb_handle) {
     for (rigidbody_t& rb : kin_rigidbodies) {
         if (rb.handle == rb_handle) {
