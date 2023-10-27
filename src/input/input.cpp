@@ -11,6 +11,7 @@ namespace input {
 		user_input.s_pressed = false;
 		user_input.d_pressed = false;
 		user_input.p_pressed = false;
+		user_input.space_pressed = false;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
