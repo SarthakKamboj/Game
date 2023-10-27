@@ -10,6 +10,15 @@ namespace io {
 		file.seekg(0, file.beg);
 		std::ios_base::iostate state = file.rdstate();
 		if (state != std::ios_base::goodbit) {
+			if (state == std::ios_base::badbit) {
+				throw std::runtime_error("stream error");
+			}
+			if (state == std::ios_base::failbit) {
+				throw std::runtime_error("formatting or extraction error");
+			}
+			if (state == std::ios_base::eofbit) {
+				throw std::runtime_error("reached end of file");
+			}
 			throw std::runtime_error("error opening file: " + std::string(path));
 		}
 		while (!file.eof()) {
