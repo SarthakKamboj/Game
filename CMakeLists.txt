@@ -37,43 +37,26 @@ function(configure_test_cases)
     add_subdirectory(external/Catch2)
     add_subdirectory(external/glad)
     add_subdirectory(external/stb_image)
-    # add_subdirectory(external/shared)
-    # add_subdirectory(../shared external/shared)
-    add_subdirectory(external/enet)
 
     add_executable(${PROJECT_NAME} 
-        src/tests/test.cpp
-
-        src/app.cpp
-        src/update.cpp
-        src/utils/time.cpp
-        src/utils/math.cpp
-        # src/input/input.mocked.cpp
-        src/transform/transform.cpp
+        # test files go here
     )
 
     target_include_directories(${PROJECT_NAME} 
         PUBLIC src
 
-        # PUBLIC external/shared
         PUBLIC ../shared
         PUBLIC external/SDL2_x64/include/SDL2
         PUBLIC external/glad/include
         PUBLIC external/glm
         PUBLIC external/stb_image
         PUBLIC external/Catch2/src
-        PUBLIC external/enet/include
     )
 
     target_link_directories(${PROJECT_NAME} 
         PUBLIC external/SDL2_x64
     )
 
-    # target_link_libraries(${PROJECT_NAME} glad)
-    # target_link_libraries(${PROJECT_NAME} stb_image)
-    # target_link_libraries(${PROJECT_NAME} enet)
-    # target_link_libraries(${PROJECT_NAME} shared)
-    # target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
     target_link_libraries(${PROJECT_NAME} Catch2::Catch2WithMain)
 
 endfunction()
@@ -90,22 +73,16 @@ function(configure_game)
         ${EXTRA_FILES}
     )
 
-    # add_subdirectory(external/enet)
     add_subdirectory(external/glad)
     add_subdirectory(external/stb_image)
-    # add_subdirectory(../shared external/shared)
-    # add_subdirectory(external/shared)
 
     target_include_directories(${PROJECT_NAME} 
         PUBLIC src
 
-        # PUBLIC ../shared
-        # PUBLIC external/shared
         PUBLIC external/SDL2_x64/include/SDL2
         PUBLIC external/glad/include
         PUBLIC external/glm
         PUBLIC external/stb_image
-        # PUBLIC external/enet/include
     )
 
     target_link_directories(${PROJECT_NAME} 
@@ -114,9 +91,7 @@ function(configure_game)
 
     target_link_libraries(${PROJECT_NAME} glad)
     target_link_libraries(${PROJECT_NAME} stb_image)
-    # target_link_libraries(${PROJECT_NAME} shared)
     target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
-    # target_link_libraries(${PROJECT_NAME} enet)
 
 endfunction()
 

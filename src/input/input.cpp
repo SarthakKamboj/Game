@@ -2,14 +2,10 @@
 #include "constants.h"
 #include "SDL.h"
 #include "utils/time.h"
-// #include "shared/networking/networking.h"
-// #include "networking/networking.h"
 
 namespace input {
 
 	void process_input(user_input_t& user_input) {
-
-		// memset(&user_input, 0, sizeof(user_input));
 		user_input.w_pressed = false;
 		user_input.a_pressed = false;
 		user_input.s_pressed = false;
