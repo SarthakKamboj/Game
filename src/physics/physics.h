@@ -1,6 +1,14 @@
 #pragma once
 
 #include "renderer/basic/shape_renders.h"
+#include <vector>
+
+enum class PHYSICS_RB_TYPE {
+	NONE,
+	PLAYER,
+	GROUND,
+	BRICK
+};
 
 /**
  * @brief AABB collider
@@ -18,6 +26,7 @@ struct aabb_collider_t {
 struct rigidbody_t {
     int handle = -1;
 
+	PHYSICS_RB_TYPE rb_type = PHYSICS_RB_TYPE::NONE;
 	aabb_collider_t aabb_collider;
 	glm::vec2 vel = glm::vec2(0.f, 0.f);
 	int transform_handle = -1;
@@ -39,6 +48,14 @@ enum PHYSICS_COLLISION_DIR: uint8_t {
 	NONE,
 	VERTICAL,
 	HORIZONTAL
+};
+
+enum class PHYSICS_RELATIVE_DIR {
+	NONE,
+	RIGHT,
+	LEFT,
+	TOP,
+	BOTTOM
 };
 
 /**
@@ -72,10 +89,21 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
  * @param collider_width Width of the AABB collider
  * @param collider_height Height of the AABB collider
  * @param is_kinematic Whether it is kinematic (stationary) or not
+ * @param rb_type What category this rigidbody is associated with
  * @return The handle to the newly created rigidbody
 */
-int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic);
+int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type);
 
+/**
+ * @brief Iterates over every non kinematic rb and performs collision detection with every kinematic rb.
+ * Optimizes collision detection to ensure two items are in the same grid to avoid unnecessary collision
+ * calculations. Also will do continuous collision detection in the form of splitting delta time into smaller
+ * chunks for more granular testing but this will most likely be removed and unnecessary at this point. The
+ * collision detection is done separately per diagnal per non-kinematic rb where each diagnal stores its highest
+ * penetrating collision. After iterating over all kinematic rbs, the diagnals' collision detection information
+ * is looked through to calculate the highest x and y displacement to resolve the position and the position is
+ * displaced accordingly.
+*/
 void update_rigidbodies();
 
 /**
@@ -83,3 +111,14 @@ void update_rigidbodies();
  * @param rb_handle The rigidbody's handle
 */
 rigidbody_t* get_rigidbody(int rb_handle);
+
+struct general_collision_info_t {
+	PHYSICS_RB_TYPE non_kin_type = PHYSICS_RB_TYPE::NONE;
+	PHYSICS_RB_TYPE kin_type = PHYSICS_RB_TYPE::NONE;
+	PHYSICS_COLLISION_DIR dir = PHYSICS_COLLISION_DIR::NONE;
+	PHYSICS_RELATIVE_DIR rel_dir = PHYSICS_RELATIVE_DIR::NONE;
+
+	general_collision_info_t(PHYSICS_RB_TYPE non_kin_type, PHYSICS_RB_TYPE kin_type, PHYSICS_COLLISION_DIR dir, PHYSICS_RELATIVE_DIR rel_dir);
+};
+
+std::vector<general_collision_info_t> get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE non_kin_type);
