@@ -151,7 +151,9 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
  * if it has a collision closer to the center than what has already been calculated or defaulted
  * @param kin_rb Kinematic rb
  * @param non_kin_rb Non kinematic rb (such as the player)
- * @param col_info Running collision info of the 4 diagnals with this non kinematic rb
+ * @param total_col_info Running collision info of the 4 diagnals with this non kinematic rb
+ * @param col_info Set collision info for this particular resolving, different from total_col_info because total_col_info is
+ * a running record of collision for a non_kin rb with all kin_rbs, this is just for this particular non_kin and kin rb resolving
  * @return Whether there was any sort of collision in this collision resolving
 */
 bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_info_t& total_col_info, collision_info_t& cur_col_info) {

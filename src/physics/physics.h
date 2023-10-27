@@ -3,6 +3,9 @@
 #include "renderer/basic/shape_renders.h"
 #include <vector>
 
+/**
+ * @brief The type of rigidbody this will be, these are more game specific
+*/
 enum class PHYSICS_RB_TYPE {
 	NONE,
 	PLAYER,
@@ -102,7 +105,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
  * collision detection is done separately per diagnal per non-kinematic rb where each diagnal stores its highest
  * penetrating collision. After iterating over all kinematic rbs, the diagnals' collision detection information
  * is looked through to calculate the highest x and y displacement to resolve the position and the position is
- * displaced accordingly.
+ * displaced accordingly. Also stores per frame information about collisions that occurred.
 */
 void update_rigidbodies();
 
@@ -112,6 +115,10 @@ void update_rigidbodies();
 */
 rigidbody_t* get_rigidbody(int rb_handle);
 
+/**
+ * @brief General collision information about non kin rb type, kin rb type, relative direction of kin rb relative to
+ * non_kin rb, and dir of collision
+*/
 struct general_collision_info_t {
 	PHYSICS_RB_TYPE non_kin_type = PHYSICS_RB_TYPE::NONE;
 	PHYSICS_RB_TYPE kin_type = PHYSICS_RB_TYPE::NONE;
@@ -121,4 +128,10 @@ struct general_collision_info_t {
 	general_collision_info_t(PHYSICS_RB_TYPE non_kin_type, PHYSICS_RB_TYPE kin_type, PHYSICS_COLLISION_DIR dir, PHYSICS_RELATIVE_DIR rel_dir);
 };
 
+/**
+ * @brief Get the general collision information for all collisions for a particular non_kin rb type this frame
+ * @param non_kin_type The type of the non_kin
+ * @return All collisions for a particular non_kin rb type this frame (note this will be separate for different diagnals so if a
+ * non_kin rb and kin rb have 2 collisions on 2 different diagnals, it records them both...this can be changed later if need be)
+*/
 std::vector<general_collision_info_t> get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE non_kin_type);
