@@ -24,7 +24,6 @@ struct rigidbody_t {
 	bool is_kinematic:1;
 	bool debug:1;
 
-	// rigidbody_t();
 	void get_corners(glm::vec2 corners[4]);
 };
 
@@ -41,13 +40,8 @@ struct diag_col_info_t {
 };
 
 struct collision_info_t {
-	// PHYSICS_COLLISION_DIR dir = PHYSICS_COLLISION_DIR::NONE;
-	bool is_colliding = false;
 	// top left, top right, bottom right, bottom left
 	diag_col_info_t diag_cols[4];
-	// float ratio_from_center = 0.f;
-	// glm::vec2 displacement = glm::vec2(0.f);
-	// collision_info_t();
 };
 
 bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
