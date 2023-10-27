@@ -34,10 +34,19 @@ enum PHYSICS_COLLISION_DIR: uint8_t {
 	HORIZONTAL
 };
 
-struct collision_info_t {
+struct diag_col_info_t {
+	float ratio_from_center = 1.f;
+	glm::vec2 displacement = glm::vec2(0.f);
 	PHYSICS_COLLISION_DIR dir = PHYSICS_COLLISION_DIR::NONE;
-	bool is_colliding = false;
+};
 
+struct collision_info_t {
+	// PHYSICS_COLLISION_DIR dir = PHYSICS_COLLISION_DIR::NONE;
+	bool is_colliding = false;
+	// top left, top right, bottom right, bottom left
+	diag_col_info_t diag_cols[4];
+	// float ratio_from_center = 0.f;
+	// glm::vec2 displacement = glm::vec2(0.f);
 	// collision_info_t();
 };
 
