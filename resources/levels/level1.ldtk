@@ -356,18 +356,18 @@
 					"entityInstances": [
 						{
 							"__identifier": "PlayerStart",
-							"__grid": [9,1],
+							"__grid": [7,2],
 							"__pivot": [0,0],
 							"__tags": [],
 							"__tile": null,
 							"__smartColor": "#63C74D",
-							"__worldX": 9,
-							"__worldY": 1,
+							"__worldX": 7,
+							"__worldY": 2,
 							"iid": "807647e0-6280-11ee-bb3e-cfc6c3f98185",
 							"width": 1,
 							"height": 1,
 							"defUid": 7,
-							"px": [9,1],
+							"px": [7,2],
 							"fieldInstances": []
 						}
 					]
