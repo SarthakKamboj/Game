@@ -58,7 +58,7 @@ namespace math {
         cur_vel = damp_factor * diff * platformer::time_t::delta_time;
         float smooth_val = current + (cur_vel * platformer::time_t::delta_time);
         if (abs(target - smooth_val) > abs(target - current)) {
-            std::cout << "here" << std::endl;
+            // std::cout << "here" << std::endl;
         }
         finished = false;
         if (abs(target - smooth_val) <= 0.05f) {
@@ -67,5 +67,11 @@ namespace math {
             finished = true;
         }
         return smooth_val;
+    }
+
+    float round(float val, int num_decimal_places) {
+        val *= 10 * num_decimal_places;
+        int val_int = static_cast<int>(val + 0.5f);
+        return static_cast<float>(val_int / (10 * num_decimal_places));
     }
 }

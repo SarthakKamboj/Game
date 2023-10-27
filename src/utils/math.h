@@ -16,4 +16,5 @@ namespace math {
     // need to find a way to replicate this smooth damping on the server for acknowledgement and verification
     float smooth_damp(float current, float target, smooth_damp_info_t& damp_info);
     float smooth_damp(float current, float target, float speed, bool& finished);
+    float round(float val, int num_decimal_places);
 }
