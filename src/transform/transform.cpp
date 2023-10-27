@@ -10,8 +10,6 @@ int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg) {
 	transform.scale = scale;
 	transform.rotation_deg = rot_deg;
     transform.handle = running_count;
-    transform.model_matrix = get_model_matrix(transform);
-    transform.dirty_model_matrix = false;
 	transforms.push_back(transform);
     running_count++;
 	return transform.handle;
@@ -28,8 +26,6 @@ glm::mat4 get_model_matrix(transform_t& transform) {
 	model = glm::rotate(model, glm::radians(transform.rotation_deg), glm::vec3(0.f, 0.f, 1.0f));
 	const glm::vec3& scale = transform.scale;
 	model = glm::scale(model, glm::vec3(scale.x, scale.y, 1.0f));
-    transform.model_matrix = model;
-    transform.dirty_model_matrix = false;
 	return model;
 }
 
