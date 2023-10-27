@@ -50,12 +50,7 @@ void draw_quad_render(const quad_render_t& quad) {
 
 	glm::mat4 model_matrix = get_model_matrix(cur_transform);
     // get model matrix and color and set them in the shader
-	if (!cur_transform.dirty_model_matrix) {
-		shader_set_mat4(quad_render_t::obj_data.shader, "model", cur_transform.model_matrix);
-	}
-	else {
-		shader_set_mat4(quad_render_t::obj_data.shader, "model", model_matrix);
-	}
+	shader_set_mat4(quad_render_t::obj_data.shader, "model", model_matrix);
 	shader_set_vec3(quad_render_t::obj_data.shader, "color", quad.color);
 	shader_set_float(quad_render_t::obj_data.shader, "tex_influence", quad.tex_influence);
     bind_texture(quad.tex_handle);
