@@ -362,7 +362,6 @@ void read_entities(FILE* file) {
 		clean_line(line);
 
 		if (strcmp(line, "}") == 0) {
-			std::cout << "closed section";
 			break;
 		}
 
@@ -397,9 +396,6 @@ void recursive_section_traverse(FILE* file) {
 		key_val_t key_val = separate_key_val(line);
 		if (key_val.key == NULL) {
 			key_val_t key_val = separate_key_val(line);
-		}
-		if (key_val.key && strcmp(key_val.key, "identifier") == 0) {
-			std::cout << key_val.key << " " << key_val.val << std::endl;
 		}
 		if (key_val.key && strcmp(key_val.key, "customFields") == 0) {
 			assert(*key_val.val == '{');
