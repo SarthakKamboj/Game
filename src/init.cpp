@@ -14,6 +14,8 @@
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
 
+const int LEVEL_MAP_GRID_SIZE = 16;
+
 /// <summary>
 /// This function initalizes SDL to OpenGL Version 4.1, 24-bit depth buffer, height of WINDOW_HEIGHT, 
 /// width of WINDOW_WIDTH, blending enabled, and mirrored texture wrapping.
@@ -347,10 +349,10 @@ void read_player_start(FILE* file) {
 
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "x") == 0) {
-			x_pos = static_cast<int>(strtol(key_val.val, NULL, 10));
+			x_pos = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
 		}
 		if (strcmp(key_val.key, "y") == 0) {
-			y_pos = static_cast<int>(strtol(key_val.val, NULL, 10));
+			y_pos = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
 		}
 	}	
 }
@@ -429,17 +431,21 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	}
 	fclose(file);
 
-	int level_file_width, level_file_height, num_channels;
+	int img_file_width, img_file_height, num_channels;
 	// data organized left to right row by row
-	unsigned char* level_img_data = stbi_load(level_img, &level_file_width, &level_file_height, &num_channels, 0);
+	unsigned char* level_img_data = stbi_load(level_img, &img_file_width, &img_file_height, &num_channels, 0);
 	if (level_img_data == NULL) return;
 
 	assert(num_channels == 3 || num_channels == 4);
 
-	for (int top_y = 0; top_y < level_file_height; top_y++) {
-		for (int left_x = 0; left_x < level_file_width; left_x++) {
+	const int LEVEL_MAP_ROWS = floor(img_file_height / LEVEL_MAP_GRID_SIZE);
+	const int LEVEL_MAP_COLS = floor(img_file_width / LEVEL_MAP_GRID_SIZE);
+	for (int top_y = 0; top_y < LEVEL_MAP_ROWS; top_y++) {
+		for (int left_x = 0; left_x < LEVEL_MAP_COLS; left_x++) {
 			unsigned char r, g, b;
-			unsigned char* pixel_ptr = level_img_data + ((top_y * level_file_width) + left_x) * num_channels;
+			int img_file_row = top_y * LEVEL_MAP_GRID_SIZE;
+			int img_file_col = left_x * LEVEL_MAP_GRID_SIZE;
+			unsigned char* pixel_ptr = level_img_data + ((img_file_row * img_file_width) + img_file_col) * num_channels;
 			r = *pixel_ptr;
 			g = *(pixel_ptr+1);
 			b = *(pixel_ptr+2);
@@ -447,20 +453,28 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 			color_t level_pixel_color(r, g, b);
 			for (int i = 0; i < color_conversions.size(); i++) {
 				if (level_pixel_color == color_conversions[i].color) {
-					int level_row = level_file_height - 1 - top_y;
+					int level_row = LEVEL_MAP_ROWS - 1 - top_y;
 					int level_col = left_x;
 
 					// int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
 					// create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
 					// create_rigidbody(obj, false, 40, 40, true);
-					create_ground_block(glm::vec3(level_col * 40, level_row * 40, 0), glm::vec3(1), 0);
+					if (strcmp(color_conversions[i].m_item_name, "Ground") == 0) {
+						create_ground_block(glm::vec3(level_col * 40, level_row * 40, 0), glm::vec3(1), 0);
+					} else if (strcmp(color_conversions[i].m_item_name, "Goomba") == 0) {
+						// goomba_t goomba(glm::vec3(level_col * 40, level_row * 40, 0));
+						create_goomba(glm::vec3(level_col * 40, level_row * 40, 0));
+					}
+					else if (strcmp(color_conversions[i].m_item_name, "GoombaTurnAround") == 0) {
+						add_goomba_turn_point(glm::vec3(level_col * 40, level_row * 40, 0));
+					}
 				}
 			}
 		}
 	}
 	stbi_image_free(level_img_data);
 
-	int level_row = level_file_height - 1 - y_pos;
+	int level_row = LEVEL_MAP_ROWS - 1 - y_pos;
 	int level_col = x_pos;
 	// object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
 
