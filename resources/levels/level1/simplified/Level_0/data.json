@@ -3,15 +3,14 @@
 	"uniqueIdentifer": "504e0c60-6280-11ee-9b3a-bd257fff7a18",
 	"x": 0,
 	"y": 0,
-	"width": 256,
-	"height": 16,
+	"width": 2000,
+	"height": 256,
 	"bgColor": "#232EDC",
 	"neighbourLevels": [],
 	"customFields": {
-		"Brick": "#E14B32",
-		"LightedBrick": "#DC6E55",
-		"FinishFlag": "#E2E2E2",
-		"Ground": "#3CA9EE"
+		"Goomba": "#E2E2E2",
+		"Ground": "#3CA9EE",
+		"GoombaTurnAround": "#DFA693"
 	},
 	"layers": [
 		"Colors.png"
@@ -20,12 +19,12 @@
 		"PlayerStart": [
 			{
 				"id": "PlayerStart",
-				"iid": "807647e0-6280-11ee-bb3e-cfc6c3f98185",
+				"iid": "9bca20b0-6280-11ee-87e8-6b70c9794d3f",
 				"layer": "Player_Entities",
-				"x": 7,
-				"y": 2,
-				"width": 1,
-				"height": 1,
+				"x": 48,
+				"y": 64,
+				"width": 16,
+				"height": 16,
 				"color": 6539085,
 				"customFields" : {}
 			}
