@@ -20,6 +20,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 	rigidbody.is_kinematic = is_kinematic;
     rigidbody.handle = running_count;
 	rigidbody.rb_type = rb_type;
+	rigidbody.detect_col = true;
     running_count++;
 	transform_t& transform = *get_transform(transform_handle);
 
@@ -240,11 +241,52 @@ void update_rigidbodies() {
 
 	general_frame_col_infos.clear();
 
+	for (int i = 0; i < kin_rigidbodies.size(); i++) {
+		rigidbody_t& rb = kin_rigidbodies[i];
+		if (rb.rb_type == PHYSICS_RB_TYPE::GOOMBA) {
+			time_count_t delta_time = platformer::time_t::delta_time;
+
+			transform_t* t = get_transform(rb.transform_handle);
+			assert(t);
+			transform_t& transform = *t;
+
+			rb.aabb_collider.x = transform.position.x;
+			rb.aabb_collider.y = transform.position.y;
+
+			if (rb.debug) {
+				transform_t* debug_t = get_transform(rb.aabb_collider.collider_debug_transform_handle);
+				assert(debug_t);
+				transform_t& debug_transform = *debug_t;
+				debug_transform.position.x = rb.aabb_collider.x;
+				debug_transform.position.y = rb.aabb_collider.y;
+			}
+		}
+	}
+
 	for (rigidbody_t& non_kin_rb_orig : non_kin_rigidbodies) {
 
 		transform_t* ptr = get_transform(non_kin_rb_orig.transform_handle);
 		assert(ptr != NULL);
 		transform_t& transform_orig = *ptr;
+
+		if (!non_kin_rb_orig.detect_col) {
+			time_count_t delta_time = platformer::time_t::delta_time;
+			non_kin_rb_orig.vel.y -= GRAVITY * delta_time;
+			transform_orig.position.y += non_kin_rb_orig.vel.y * delta_time;
+			transform_orig.position.x += non_kin_rb_orig.vel.x * delta_time;
+
+			non_kin_rb_orig.aabb_collider.x = transform_orig.position.x;
+			non_kin_rb_orig.aabb_collider.y = transform_orig.position.y;
+
+			if (non_kin_rb_orig.debug) {
+				transform_t* debug_t = get_transform(non_kin_rb_orig.aabb_collider.collider_debug_transform_handle);
+				assert(debug_t);
+				transform_t& debug_transform = *debug_t;
+				debug_transform.position.x = non_kin_rb_orig.aabb_collider.x;
+				debug_transform.position.y = non_kin_rb_orig.aabb_collider.y;
+			}
+			continue;
+		}
 
 		// glm::vec2 total_displacement(0);
 		int num_displacements_x = 0;
@@ -306,7 +348,7 @@ void update_rigidbodies() {
 									rel_dir = PHYSICS_RELATIVE_DIR::BOTTOM;
 								}
 							} 
-							general_collision_info_t general_col_info(non_kin_rb.rb_type, kin_rb.rb_type, dir, rel_dir);
+							general_collision_info_t general_col_info(non_kin_rb.rb_type, kin_rb.rb_type, dir, rel_dir, kin_rb.handle);
 							general_frame_col_infos.push_back(general_col_info);
 							break;
 						}
@@ -371,12 +413,28 @@ rigidbody_t* get_rigidbody(int rb_handle) {
     return NULL;
 }
 
+void delete_kin_rigidbody(int rb_handle) {
+	int i_to_remove = -1;
+	for (int i = 0; i < kin_rigidbodies.size(); i++) {
+		if (kin_rigidbodies[i].handle == rb_handle) {
+			i_to_remove = i;
+			break;
+		}
+	}
+	if (i_to_remove == -1) return;
+	if (kin_rigidbodies[i_to_remove].debug) {
+		delete_quad_render(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_render_handle);
+		delete_transform(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_transform_handle);
+	}
+	kin_rigidbodies.erase(kin_rigidbodies.begin() + i_to_remove);
+}
 
-general_collision_info_t::general_collision_info_t(PHYSICS_RB_TYPE _non_kin_type, PHYSICS_RB_TYPE _kin_type, PHYSICS_COLLISION_DIR _dir, PHYSICS_RELATIVE_DIR _rel_dir) {
+general_collision_info_t::general_collision_info_t(PHYSICS_RB_TYPE _non_kin_type, PHYSICS_RB_TYPE _kin_type, PHYSICS_COLLISION_DIR _dir, PHYSICS_RELATIVE_DIR _rel_dir, int _kin_handle) {
 	non_kin_type = _non_kin_type;
 	kin_type = _kin_type;
 	dir = _dir;
 	rel_dir = _rel_dir;
+	kin_handle = _kin_handle;
 }
 
 std::vector<general_collision_info_t> get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE non_kin_type) {

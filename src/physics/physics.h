@@ -10,6 +10,7 @@ enum class PHYSICS_RB_TYPE {
 	NONE,
 	PLAYER,
 	GROUND,
+	GOOMBA,
 	BRICK
 };
 
@@ -36,6 +37,7 @@ struct rigidbody_t {
 	bool use_gravity:1;
 	bool is_kinematic:1;
 	bool debug:1;
+	bool detect_col = true;
 
 	/**
 	 * @brief Get the corners for this particular rigidbody
@@ -86,7 +88,8 @@ struct collision_info_t {
 bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
 
 /**
- * @brief Creates a rigidbody for the physics simulation and an AABB box for it as well
+ * @brief Creates a rigidbody for the physics simulation and an AABB box for it as well. Collision detection is enabled
+ * by default.
  * @param transform_handle The transform associated with the gameobject this rigidbody will be attaching to
  * @param use_gravity Whether it uses gravity or not
  * @param collider_width Width of the AABB collider
@@ -115,6 +118,8 @@ void update_rigidbodies();
 */
 rigidbody_t* get_rigidbody(int rb_handle);
 
+void delete_kin_rigidbody(int rb_handle);
+
 /**
  * @brief General collision information about non kin rb type, kin rb type, relative direction of kin rb relative to
  * non_kin rb, and dir of collision
@@ -124,8 +129,9 @@ struct general_collision_info_t {
 	PHYSICS_RB_TYPE kin_type = PHYSICS_RB_TYPE::NONE;
 	PHYSICS_COLLISION_DIR dir = PHYSICS_COLLISION_DIR::NONE;
 	PHYSICS_RELATIVE_DIR rel_dir = PHYSICS_RELATIVE_DIR::NONE;
+	int kin_handle = -1;
 
-	general_collision_info_t(PHYSICS_RB_TYPE non_kin_type, PHYSICS_RB_TYPE kin_type, PHYSICS_COLLISION_DIR dir, PHYSICS_RELATIVE_DIR rel_dir);
+	general_collision_info_t(PHYSICS_RB_TYPE non_kin_type, PHYSICS_RB_TYPE kin_type, PHYSICS_COLLISION_DIR dir, PHYSICS_RELATIVE_DIR rel_dir, int kin_handle);
 };
 
 /**
