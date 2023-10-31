@@ -10,7 +10,8 @@
 	"customFields": {
 		"Goomba": "#E2E2E2",
 		"Ground": "#3CA9EE",
-		"GoombaTurnAround": "#DFA693"
+		"GoombaTurnAround": "#DFA693",
+		"Pipe": "#DC6E55"
 	},
 	"layers": [
 		"Colors.png"
