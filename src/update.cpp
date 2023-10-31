@@ -5,6 +5,7 @@
 #include "input/input.h"
 #include <cassert>
 #include "physics/physics.h"
+#include "gameobjects/gos.h"
 
 #include "test_config.h"
 
@@ -19,7 +20,7 @@ namespace world {
 
         // update_player(app.main_character);
         app.main_character.update(input_state);
-
+        gos_update();
         app.camera.update(input_state, app.main_character);
     }
 }
