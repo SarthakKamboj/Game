@@ -459,14 +459,18 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					// int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
 					// create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
 					// create_rigidbody(obj, false, 40, 40, true);
+					glm::vec3 world_pos(level_col * 40, level_row * 40, 0);
 					if (strcmp(color_conversions[i].m_item_name, "Ground") == 0) {
-						create_ground_block(glm::vec3(level_col * 40, level_row * 40, 0), glm::vec3(1), 0);
+						create_ground_block(world_pos, glm::vec3(1), 0);
 					} else if (strcmp(color_conversions[i].m_item_name, "Goomba") == 0) {
 						// goomba_t goomba(glm::vec3(level_col * 40, level_row * 40, 0));
-						create_goomba(glm::vec3(level_col * 40, level_row * 40, 0));
+						create_goomba(world_pos);
 					}
 					else if (strcmp(color_conversions[i].m_item_name, "GoombaTurnAround") == 0) {
-						add_goomba_turn_point(glm::vec3(level_col * 40, level_row * 40, 0));
+						add_goomba_turn_point(world_pos);
+					}
+					else if (strcmp(color_conversions[i].m_item_name, "Pipe") == 0) {
+						create_pipe(world_pos);
 					}
 				}
 			}

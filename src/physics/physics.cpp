@@ -113,7 +113,7 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
 	float grid2_x = floor(transform2->position.x / 40);
 	float grid2_y = floor(transform2->position.y / 40);
 
-	if (abs(grid2_x - grid1_x) >= 2 || abs(grid2_y - grid1_y) >= 2) return false;
+	if (abs(grid2_x - grid1_x) >= 4 || abs(grid2_y - grid1_y) >= 4) return false;
 
 	glm::vec2 rb1_corners[4];
 	glm::vec2 rb2_corners[4];

@@ -85,3 +85,16 @@ void add_goomba_turn_point(glm::vec3 pos);
  * @param kin_handle Rigidbody handle of the goomba
 */
 void delete_goomba_by_kin_handle(int kin_handle);
+
+struct pipe_t {
+	// create transform first
+	int transform_handle = -1;
+	int rec_render_handle = -1;
+	int rigidbody_handle = -1;
+	glm::vec3 color;
+	static const int WIDTH = 40;
+	static const int HEIGHT = 80;
+	static const glm::vec3 PIPE_COLOR;
+};
+
+void create_pipe(glm::vec3 bottom_pos);

@@ -138,10 +138,19 @@ void add_goomba_turn_point(glm::vec3 pos) {
 	goomba_turn_pts.push_back(pos);
 }
 
+const glm::vec3 pipe_t::PIPE_COLOR = glm::vec3(0.1f, 0.95f, 0.3f);
+void create_pipe(glm::vec3 bottom_pos) {
+	pipe_t pipe;
+	bottom_pos.y -= 20.f;
+	bottom_pos.y += pipe_t::HEIGHT / 2.f;
+	pipe.transform_handle = create_transform(bottom_pos, glm::vec3(1), 0.f);
+	glm::vec3 color = pipe_t::PIPE_COLOR;
+	pipe.rec_render_handle = create_quad_render(pipe.transform_handle, color, pipe_t::WIDTH, pipe_t::HEIGHT, false, 0.f, -1);
+	pipe.rigidbody_handle = create_rigidbody(pipe.transform_handle, false, pipe_t::WIDTH, pipe_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND);
+}
+
 void gos_update() {
 	for (goomba_t& goomba : goombas) {
 		update_goomba(goomba);
 	}
 }
-
-
