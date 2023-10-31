@@ -63,3 +63,17 @@ void draw_quad_render(const quad_render_t& quad) {
     // draw the rectangle render after setting all shader parameters
 	draw_obj(quad_render_t::obj_data);
 }
+
+void delete_quad_render(int quad_handle) {
+	int i_to_remove = -1;
+	for (int i = 0; i < quads.size(); i++) {
+		quad_render_t& quad = quads[i];
+		if (quad.handle == quad_handle) {
+			i_to_remove = i;
+			break;
+		}
+	}
+	if (i_to_remove != -1) {
+		quads.erase(quads.begin() + i_to_remove);
+	}
+}

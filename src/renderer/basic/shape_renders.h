@@ -49,3 +49,9 @@ struct application_t;
 /// Draw all quads in the game
 /// </summary>
 void draw_quad_renders(application_t& app);
+
+/**
+ * @brief Delete a quad render
+ * @param quad_handle 
+*/
+void delete_quad_render(int quad_handle);
