@@ -86,6 +86,9 @@ void add_goomba_turn_point(glm::vec3 pos);
 */
 void delete_goomba_by_kin_handle(int kin_handle);
 
+/**
+ * @brief Pipe
+*/
 struct pipe_t {
 	// create transform first
 	int transform_handle = -1;
@@ -97,4 +100,9 @@ struct pipe_t {
 	static const glm::vec3 PIPE_COLOR;
 };
 
+/**
+ * @brief Create a pipe with the relative point the bottom of the pipe
+ * @param bottom_pos The position of the very bottom of the pipe, not the center. Usually for other
+ * gameobjects we specify the center but here we specify the bottom of the pipe since pipes are not squares
+*/
 void create_pipe(glm::vec3 bottom_pos);
