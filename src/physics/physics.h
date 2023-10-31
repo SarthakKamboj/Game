@@ -89,7 +89,7 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
 
 /**
  * @brief Creates a rigidbody for the physics simulation and an AABB box for it as well. Collision detection is enabled
- * by default.
+ * by default. Debug view on by default.
  * @param transform_handle The transform associated with the gameobject this rigidbody will be attaching to
  * @param use_gravity Whether it uses gravity or not
  * @param collider_width Width of the AABB collider

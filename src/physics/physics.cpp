@@ -20,6 +20,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 	rigidbody.is_kinematic = is_kinematic;
     rigidbody.handle = running_count;
 	rigidbody.rb_type = rb_type;
+	rigidbody.debug = true;
 	rigidbody.detect_col = true;
     running_count++;
 	transform_t& transform = *get_transform(transform_handle);
