@@ -37,3 +37,17 @@ transform_t* get_transform(int transform_handle) {
     }
     return NULL;
 }
+
+void delete_transform(int handle) {
+    int i_to_remove = -1;
+    for (int i = 0; i < transforms.size(); i++) {
+        transform_t& transform = transforms[i];
+        if (transform.handle == handle) {
+            i_to_remove = i;
+            break;
+        }
+    }
+    if (i_to_remove != -1) {
+        transforms.erase(transforms.begin() + i_to_remove);
+    }
+}

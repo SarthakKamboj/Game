@@ -35,3 +35,9 @@ glm::mat4 get_model_matrix(transform_t& transform);
 /// <param name="transform_handle"></param>
 /// <returns>A pointer to the transform for that handle, NULL if it doesn't exist</returns>
 transform_t* get_transform(int transform_handle);
+
+/**
+ * @brief Delete a transform by handle
+ * @param handle 
+*/
+void delete_transform(int handle);
