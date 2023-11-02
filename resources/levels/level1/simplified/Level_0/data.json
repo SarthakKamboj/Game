@@ -11,10 +11,12 @@
 		"Goomba": "#E2E2E2",
 		"Ground": "#3CA9EE",
 		"GoombaTurnAround": "#DFA693",
-		"Pipe": "#DC6E55"
+		"Pipe": "#DC6E55",
+		"Brick": "#ED553B"
 	},
 	"layers": [
-		"Colors.png"
+		"Colors.png",
+		"More_Colors.png"
 	],
 	"entities": {
 		"PlayerStart": [
