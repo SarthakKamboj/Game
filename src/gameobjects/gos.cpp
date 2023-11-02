@@ -9,6 +9,7 @@
 */
 std::vector<goomba_t> goombas;
 std::vector<goomba_turn_pt_t> goomba_turn_pts;
+std::vector<brick_t> bricks;
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
@@ -22,28 +23,29 @@ void main_character_t::update(input::user_input_t& user_input) {
 
 	bool prev_dead = dead;
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER);
+
+    // get rigidbody and make sure its valid
+    rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
+    assert(rb_ptr != NULL);
+	rigidbody_t& rb = *rb_ptr;
+
 	for (general_collision_info_t& col_info : col_infos) {
-		if (col_info.kin_type == PHYSICS_RB_TYPE::GROUND && col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
+		bool hit_groundable_object = col_info.kin_type == PHYSICS_RB_TYPE::GROUND || col_info.kin_type == PHYSICS_RB_TYPE::BRICK;
+		bool hit_obj_from_above = col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM;
+		if (hit_groundable_object && hit_obj_from_above) {
 			grounded = true;
 			num_jumps_since_grounded = 0;
 		}
 		if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
 			if (col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
 				delete_goomba_by_kin_handle(col_info.kin_handle);
-				// goombas.clear();
-				// rigidbody_t* kin_rb = get_rigidbody(col_info.kin_handle);
-				// assert(kin_rb);
+				rb.vel.y = WINDOW_HEIGHT / 3.f;
 			}
 			else {
 				dead = true;
 			}
 		}
 	}
-
-    // get rigidbody and make sure its valid
-    rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
-    assert(rb_ptr != NULL);
-	rigidbody_t& rb = *rb_ptr;
 
 	if (!prev_dead && dead) {
 		// static float time_elapsed = 0;
@@ -149,8 +151,50 @@ void create_pipe(glm::vec3 bottom_pos) {
 	pipe.rigidbody_handle = create_rigidbody(pipe.transform_handle, false, pipe_t::WIDTH, pipe_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND);
 }
 
+const glm::vec3 brick_t::BRICK_COLOR = glm::vec3(149.f, 52.f, 28.f) / 255.f;
+void create_brick(glm::vec3 pos) {
+	static int i = 0;
+	brick_t brick;
+	brick.handle = i;
+	i++;
+	brick.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
+	glm::vec3 color = brick_t::BRICK_COLOR;
+	brick.rec_render_handle = create_quad_render(brick.transform_handle, color, brick_t::WIDTH, brick_t::HEIGHT, false, 0.f, -1);
+	brick.rigidbody_handle = create_rigidbody(brick.transform_handle, false, brick_t::WIDTH, brick_t::HEIGHT, true, PHYSICS_RB_TYPE::BRICK);
+	bricks.push_back(brick);
+}
+
+void update_brick(brick_t& brick, bool& already_broken) {
+	std::vector<general_collision_info_t>& cols = get_general_cols_for_kin(brick.rigidbody_handle, PHYSICS_RB_TYPE::BRICK);
+	for (general_collision_info_t& col : cols) {
+		if (col.non_kin_type == PHYSICS_RB_TYPE::PLAYER && col.rel_dir == PHYSICS_RELATIVE_DIR::TOP) {
+			if (!already_broken) {
+				delete_brick(brick);
+				already_broken = true;
+			}
+		}
+	}
+}
+
+void delete_brick(brick_t& brick) {
+	delete_quad_render(brick.rec_render_handle);
+	delete_kin_rigidbody(brick.rigidbody_handle);
+	delete_transform(brick.transform_handle);
+	for (int i = 0; i < bricks.size(); i++) {
+		if (bricks[i].handle == brick.handle) {
+			bricks.erase(bricks.begin() + i);
+			return;
+		}
+	}
+}
+
 void gos_update() {
 	for (goomba_t& goomba : goombas) {
 		update_goomba(goomba);
+	}
+
+	bool broken = false;
+	for (brick_t& brick : bricks) {
+		update_brick(brick, broken);
 	}
 }

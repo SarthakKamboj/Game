@@ -106,3 +106,18 @@ struct pipe_t {
  * gameobjects we specify the center but here we specify the bottom of the pipe since pipes are not squares
 */
 void create_pipe(glm::vec3 bottom_pos);
+
+struct brick_t {
+	int handle = -1;
+	int transform_handle = -1;
+	int rec_render_handle = -1;
+	int rigidbody_handle = -1;
+	glm::vec3 color;
+	static const int WIDTH = 40;
+	static const int HEIGHT = 40;
+	static const glm::vec3 BRICK_COLOR;
+};
+
+void create_brick(glm::vec3 pos);
+void update_brick(brick_t& brick, bool& already_broken);
+void delete_brick(brick_t& brick);

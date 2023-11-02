@@ -463,7 +463,6 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					if (strcmp(color_conversions[i].m_item_name, "Ground") == 0) {
 						create_ground_block(world_pos, glm::vec3(1), 0);
 					} else if (strcmp(color_conversions[i].m_item_name, "Goomba") == 0) {
-						// goomba_t goomba(glm::vec3(level_col * 40, level_row * 40, 0));
 						create_goomba(world_pos);
 					}
 					else if (strcmp(color_conversions[i].m_item_name, "GoombaTurnAround") == 0) {
@@ -471,6 +470,8 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					}
 					else if (strcmp(color_conversions[i].m_item_name, "Pipe") == 0) {
 						create_pipe(world_pos);
+					} else if (strcmp(color_conversions[i].m_item_name, "Brick") == 0) {
+						create_brick(world_pos);
 					}
 				}
 			}
