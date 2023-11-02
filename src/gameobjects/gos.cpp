@@ -10,6 +10,8 @@
 std::vector<goomba_t> goombas;
 std::vector<goomba_turn_pt_t> goomba_turn_pts;
 std::vector<brick_t> bricks;
+std::vector<coin_t> coins;
+std::vector<ice_power_up_t> ice_power_ups;
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
@@ -36,7 +38,7 @@ void main_character_t::update(input::user_input_t& user_input) {
 			grounded = true;
 			num_jumps_since_grounded = 0;
 		}
-		if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
+		else if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
 			if (col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
 				delete_goomba_by_kin_handle(col_info.kin_handle);
 				rb.vel.y = WINDOW_HEIGHT / 3.f;
@@ -44,6 +46,10 @@ void main_character_t::update(input::user_input_t& user_input) {
 			else {
 				dead = true;
 			}
+		}
+		else if (col_info.kin_type == PHYSICS_RB_TYPE::ICE_POWERUP) {
+			color = glm::vec3(0.2f, 0.2f, 1.0f);
+			delete_ice_powerup_by_kin_handle(col_info.kin_handle);
 		}
 	}
 
@@ -169,7 +175,11 @@ void update_brick(brick_t& brick, bool& already_broken) {
 	for (general_collision_info_t& col : cols) {
 		if (col.non_kin_type == PHYSICS_RB_TYPE::PLAYER && col.rel_dir == PHYSICS_RELATIVE_DIR::TOP) {
 			if (!already_broken) {
-				delete_brick(brick);
+				transform_t* t = get_transform(brick.transform_handle);
+				assert(t);
+				// create_coin(t->position);
+				create_ice_powerup(t->position);
+				// delete_brick(brick);
 				already_broken = true;
 			}
 		}
@@ -188,6 +198,88 @@ void delete_brick(brick_t& brick) {
 	}
 }
 
+const glm::vec3 coin_t::COIN_COLOR = glm::vec3(255.f, 169.f, 8.f) / 255.f;
+void create_coin(glm::vec3 pos) {
+	static int i = 0;
+	coin_t coin;
+	coin.handle = i;
+	i++;
+	coin.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
+	coin.start_pos = pos;
+	coin.creation_time = platformer::time_t::cur_time;
+	glm::vec3 color = coin_t::COIN_COLOR;
+	coin.rec_render_handle = create_quad_render(coin.transform_handle, color, coin_t::WIDTH, coin_t::HEIGHT, false, 0.f, -1);
+	coins.push_back(coin);
+}
+
+const float coin_t::MOVE_VERT_ANIM = 40.f;
+const float coin_t::ANIM_TIME = 0.15f;
+void update_coin(coin_t& coin) {
+	transform_t* t = get_transform(coin.transform_handle);
+	assert(t);
+	float time_elapsed = platformer::time_t::cur_time - coin.creation_time;
+	t->position.y = coin.start_pos.y + (time_elapsed / coin_t::ANIM_TIME * coin_t::MOVE_VERT_ANIM);
+	if (time_elapsed >= coin_t::ANIM_TIME) {
+		delete_coin(coin);
+	}
+}
+
+void delete_coin(coin_t& coin) {
+	for (int i = 0; i < coins.size(); i++) {
+		if (coins[i].handle == coin.handle) {
+			delete_quad_render(coin.rec_render_handle);
+			delete_transform(coin.transform_handle);
+			coins.erase(coins.begin() + i);
+		}
+	}
+}
+
+const glm::vec3 ice_power_up_t::ICE_POWERUP_COLOR = glm::vec3(0, 0, 1);
+void create_ice_powerup(glm::vec3 pos) {
+	static int i = 0;
+	ice_power_up_t ice;
+	ice.handle = i;
+	i++;
+	ice.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
+	ice.start_y_pos = pos.y;
+	glm::vec3 color = ice_power_up_t::ICE_POWERUP_COLOR;
+	ice.rec_render_handle = create_quad_render(ice.transform_handle, color, ice_power_up_t::WIDTH, ice_power_up_t::HEIGHT, false, 0.f, -1);
+	ice.rigidbody_handle = create_rigidbody(ice.transform_handle, false, ice_power_up_t::WIDTH, ice_power_up_t::HEIGHT, true, PHYSICS_RB_TYPE::ICE_POWERUP);
+	ice.creation_time = platformer::time_t::cur_time;
+	ice_power_ups.push_back(ice);
+}
+
+void update_ice_powerup(ice_power_up_t& power_up) {
+	float time_since_created = platformer::time_t::cur_time - power_up.creation_time;
+	transform_t* t = get_transform(power_up.transform_handle);
+	assert(t);
+	if (time_since_created < 1.f) {
+		const float TOTAL_MOVE_Y = (brick_t::HEIGHT / 2) + (ice_power_up_t::HEIGHT / 2);
+		t->position.y = power_up.start_y_pos + (TOTAL_MOVE_Y * time_since_created);
+		return;
+	}
+	// if (time_since_created == 1.f) {
+		rigidbody_t* rb = get_rigidbody(power_up.rigidbody_handle);
+		assert(rb);
+		rb->use_gravity = true;
+	// }
+	const float move_speed = 100.f;
+	t->position.x += move_speed * platformer::time_t::delta_time;
+}
+
+// void delete_ice_powerup(ice_power_up_t& power_up) {
+void delete_ice_powerup_by_kin_handle(int kin_handle) {
+	for (int i = 0; i < ice_power_ups.size(); i++) {
+		if (ice_power_ups[i].rigidbody_handle == kin_handle) {
+			ice_power_up_t& power_up = ice_power_ups[i];
+			delete_quad_render(power_up.rec_render_handle);
+			delete_kin_rigidbody(power_up.rigidbody_handle);
+			delete_transform(power_up.transform_handle);
+			ice_power_ups.erase(ice_power_ups.begin() + i);
+		}
+	}
+}
+
 void gos_update() {
 	for (goomba_t& goomba : goombas) {
 		update_goomba(goomba);
@@ -197,4 +289,13 @@ void gos_update() {
 	for (brick_t& brick : bricks) {
 		update_brick(brick, broken);
 	}
+
+	for (coin_t& coin : coins) {
+		update_coin(coin);
+	}
+
+	for (ice_power_up_t& power_up : ice_power_ups) {
+		update_ice_powerup(power_up);
+	}
 }
+

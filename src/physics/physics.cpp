@@ -244,12 +244,17 @@ void update_rigidbodies() {
 
 	for (int i = 0; i < kin_rigidbodies.size(); i++) {
 		rigidbody_t& rb = kin_rigidbodies[i];
-		if (rb.rb_type == PHYSICS_RB_TYPE::GOOMBA) {
+		if (rb.rb_type == PHYSICS_RB_TYPE::GOOMBA || rb.rb_type == PHYSICS_RB_TYPE::ICE_POWERUP) {
 			time_count_t delta_time = platformer::time_t::delta_time;
 
 			transform_t* t = get_transform(rb.transform_handle);
 			assert(t);
 			transform_t& transform = *t;
+
+			if (rb.use_gravity) {
+				rb.vel.y -= GRAVITY * delta_time;
+				transform.position.y += rb.vel.y * delta_time;
+			}
 
 			rb.aabb_collider.x = transform.position.x;
 			rb.aabb_collider.y = transform.position.y;

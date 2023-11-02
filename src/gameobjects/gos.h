@@ -5,6 +5,7 @@
 #include "input/input.h"
 #include "physics/physics.h"
 #include "glm/glm.hpp"
+#include "utils/time.h"
 
 /**
  * @brief Update all gameobjects
@@ -107,6 +108,24 @@ struct pipe_t {
 */
 void create_pipe(glm::vec3 bottom_pos);
 
+struct coin_t {
+	int handle = -1;
+	int transform_handle = -1;
+	int rec_render_handle = -1;
+	// int rigidbody_handle = -1;
+	glm::vec3 color;
+	glm::vec3 start_pos;
+	time_count_t creation_time;
+	static const int WIDTH = 10;
+	static const int HEIGHT = 10;
+	static const glm::vec3 COIN_COLOR;
+	static const float MOVE_VERT_ANIM;
+	static const float ANIM_TIME;
+};
+void create_coin(glm::vec3 pos);
+void update_coin(coin_t& coin);
+void delete_coin(coin_t& coin);
+
 struct brick_t {
 	int handle = -1;
 	int transform_handle = -1;
@@ -121,3 +140,19 @@ struct brick_t {
 void create_brick(glm::vec3 pos);
 void update_brick(brick_t& brick, bool& already_broken);
 void delete_brick(brick_t& brick);
+
+struct ice_power_up_t {
+	int handle = -1;
+	int transform_handle = -1;
+	int rec_render_handle = -1;
+	int rigidbody_handle = -1;
+	float start_y_pos;
+	glm::vec3 color;
+	static const int WIDTH = 20;
+	static const int HEIGHT = 20;
+	static const glm::vec3 ICE_POWERUP_COLOR;
+	time_count_t creation_time;
+};
+void create_ice_powerup(glm::vec3 pos);
+void update_ice_powerup(ice_power_up_t& power_up);
+void delete_ice_powerup_by_kin_handle(int kin_handle);

@@ -11,7 +11,8 @@ enum class PHYSICS_RB_TYPE {
 	PLAYER,
 	GROUND,
 	GOOMBA,
-	BRICK
+	BRICK,
+	ICE_POWERUP
 };
 
 /**
