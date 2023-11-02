@@ -447,3 +447,13 @@ std::vector<general_collision_info_t> get_general_cols_for_non_kin_type(PHYSICS_
 	}
 	return col_infos;
 }
+
+std::vector<general_collision_info_t> get_general_cols_for_kin(int kin_handle, PHYSICS_RB_TYPE kin_type) {
+	std::vector<general_collision_info_t> col_infos;
+	for (general_collision_info_t& col_info : general_frame_col_infos) {
+		if (col_info.kin_type == kin_type && col_info.kin_handle == kin_handle) {
+			col_infos.push_back(col_info);
+		}
+	}
+	return col_infos;
+}

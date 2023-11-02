@@ -145,3 +145,5 @@ struct general_collision_info_t {
  * non_kin rb and kin rb have 2 collisions on 2 different diagnals, it records them both...this can be changed later if need be)
 */
 std::vector<general_collision_info_t> get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE non_kin_type);
+
+std::vector<general_collision_info_t> get_general_cols_for_kin(int kin_handle, PHYSICS_RB_TYPE kin_type);
