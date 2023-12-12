@@ -11,7 +11,7 @@ std::vector<rigidbody_t> non_kin_rigidbodies;
 std::vector<rigidbody_t> kin_rigidbodies;
 std::vector<general_collision_info_t> general_frame_col_infos;
 
-int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type) {
+int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col) {
     static int running_count = 0; 
 
 	rigidbody_t rigidbody;
@@ -21,7 +21,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
     rigidbody.handle = running_count;
 	rigidbody.rb_type = rb_type;
 	rigidbody.debug = true;
-	rigidbody.detect_col = true;
+	rigidbody.detect_col = detect_col;
     running_count++;
 	transform_t& transform = *get_transform(transform_handle);
 

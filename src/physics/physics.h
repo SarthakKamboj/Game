@@ -12,7 +12,8 @@ enum class PHYSICS_RB_TYPE {
 	GROUND,
 	GOOMBA,
 	BRICK,
-	ICE_POWERUP
+	ICE_POWERUP,
+	FINAL_FLAG
 };
 
 /**
@@ -97,9 +98,10 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
  * @param collider_height Height of the AABB collider
  * @param is_kinematic Whether it is kinematic (stationary) or not
  * @param rb_type What category this rigidbody is associated with
+ * @param detect_col Whether this rb should start off detecting collision
  * @return The handle to the newly created rigidbody
 */
-int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type);
+int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col = true);
 
 /**
  * @brief Iterates over every non kinematic rb and performs collision detection with every kinematic rb.

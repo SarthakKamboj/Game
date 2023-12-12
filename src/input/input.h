@@ -20,6 +20,8 @@ namespace input {
         bool s_down = false;
         bool d_down = false;
 		bool p_down = false;
+
+        bool quit = false;
     };
 
 	/// <summary>

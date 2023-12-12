@@ -451,6 +451,9 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 			b = *(pixel_ptr+2);
 
 			color_t level_pixel_color(r, g, b);
+			if (r == 246 && g == 213 && b == 92) {
+				std::cout << "here" << std::endl;
+			}
 			for (int i = 0; i < color_conversions.size(); i++) {
 				if (level_pixel_color == color_conversions[i].color) {
 					int level_row = LEVEL_MAP_ROWS - 1 - top_y;
@@ -462,7 +465,8 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					glm::vec3 world_pos(level_col * 40, level_row * 40, 0);
 					if (strcmp(color_conversions[i].m_item_name, "Ground") == 0) {
 						create_ground_block(world_pos, glm::vec3(1), 0);
-					} else if (strcmp(color_conversions[i].m_item_name, "Goomba") == 0) {
+					} 
+					else if (strcmp(color_conversions[i].m_item_name, "Goomba") == 0) {
 						create_goomba(world_pos);
 					}
 					else if (strcmp(color_conversions[i].m_item_name, "GoombaTurnAround") == 0) {
@@ -470,8 +474,12 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					}
 					else if (strcmp(color_conversions[i].m_item_name, "Pipe") == 0) {
 						create_pipe(world_pos);
-					} else if (strcmp(color_conversions[i].m_item_name, "Brick") == 0) {
+					} 
+					else if (strcmp(color_conversions[i].m_item_name, "Brick") == 0) {
 						create_brick(world_pos);
+					}
+					else if (strcmp(color_conversions[i].m_item_name, "FinalFlag") == 0) {
+						create_final_flag(world_pos);
 					}
 				}
 			}

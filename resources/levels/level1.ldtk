@@ -11,7 +11,7 @@
 	"iid": "504d9730-6280-11ee-9b3a-bbbe4e938cf8",
 	"jsonVersion": "1.4.1",
 	"appBuildId": 471015,
-	"nextUid": 16,
+	"nextUid": 17,
 	"identifierStyle": "Capitalize",
 	"toc": [],
 	"worldLayout": "Free",
@@ -389,6 +389,41 @@
 			"allowedRefsEntityUid": null,
 			"allowedRefTags": [],
 			"tilesetUid": null
+		},
+		{
+			"identifier": "FinalFlag",
+			"doc": null,
+			"__type": "Color",
+			"uid": 16,
+			"type": "F_Color",
+			"isArray": false,
+			"canBeNull": false,
+			"arrayMinLength": null,
+			"arrayMaxLength": null,
+			"editorDisplayMode": "Hidden",
+			"editorDisplayScale": 1,
+			"editorDisplayPos": "Above",
+			"editorLinkStyle": "StraightArrow",
+			"editorDisplayColor": null,
+			"editorAlwaysShow": false,
+			"editorShowInWorld": true,
+			"editorCutLongValues": true,
+			"editorTextSuffix": null,
+			"editorTextPrefix": null,
+			"useForSmartColor": true,
+			"min": null,
+			"max": null,
+			"regex": null,
+			"acceptFileTypes": null,
+			"defaultOverride": null,
+			"textLanguageMode": null,
+			"symmetricalRef": false,
+			"autoChainRef": true,
+			"allowOutOfLevelRef": true,
+			"allowedRefs": "OnlySame",
+			"allowedRefsEntityUid": null,
+			"allowedRefTags": [],
+			"tilesetUid": null
 		}
 	] },
 	"levels": [
@@ -416,7 +451,8 @@
 				{ "__identifier": "Ground", "__type": "Color", "__value": "#3CA9EE", "__tile": null, "defUid": 10, "realEditorValues": [{ "id": "V_Int", "params": [3975662] }] },
 				{ "__identifier": "GoombaTurnAround", "__type": "Color", "__value": "#DFA693", "__tile": null, "defUid": 11, "realEditorValues": [{ "id": "V_Int", "params": [14657171] }] },
 				{ "__identifier": "Pipe", "__type": "Color", "__value": "#DC6E55", "__tile": null, "defUid": 12, "realEditorValues": [{ "id": "V_Int", "params": [14446165] }] },
-				{ "__identifier": "Brick", "__type": "Color", "__value": "#ED553B", "__tile": null, "defUid": 15, "realEditorValues": [{ "id": "V_Int", "params": [15553851] }] }
+				{ "__identifier": "Brick", "__type": "Color", "__value": "#ED553B", "__tile": null, "defUid": 15, "realEditorValues": [{ "id": "V_Int", "params": [15553851] }] },
+				{ "__identifier": "FinalFlag", "__type": "Color", "__value": "#F6D55C", "__tile": null, "defUid": 16, "realEditorValues": [{ "id": "V_Int", "params": [16176476] }] }
 			],
 			"layerInstances": [
 				{
@@ -446,7 +482,8 @@
 						{ "px": [592,176], "src": [1312,272], "f": 0, "t": 1663, "d": [1412], "a": 1 },
 						{ "px": [608,176], "src": [1312,272], "f": 0, "t": 1663, "d": [1413], "a": 1 },
 						{ "px": [736,176], "src": [1312,272], "f": 0, "t": 1663, "d": [1421], "a": 1 },
-						{ "px": [752,176], "src": [1312,272], "f": 0, "t": 1663, "d": [1422], "a": 1 }
+						{ "px": [752,176], "src": [1312,272], "f": 0, "t": 1663, "d": [1422], "a": 1 },
+						{ "px": [864,208], "src": [1040,224], "f": 0, "t": 1367, "d": [1679], "a": 1 }
 					],
 					"entityInstances": []
 				},
@@ -522,7 +559,6 @@
 						{ "px": [448,192], "src": [128,64], "f": 0, "t": 208, "d": [1528], "a": 1 },
 						{ "px": [464,192], "src": [128,64], "f": 0, "t": 208, "d": [1529], "a": 1 },
 						{ "px": [480,192], "src": [128,64], "f": 0, "t": 208, "d": [1530], "a": 1 },
-						{ "px": [1072,192], "src": [128,64], "f": 0, "t": 208, "d": [1567], "a": 1 },
 						{ "px": [0,208], "src": [464,64], "f": 0, "t": 229, "d": [1625], "a": 1 },
 						{ "px": [192,208], "src": [464,64], "f": 0, "t": 229, "d": [1637], "a": 1 },
 						{ "px": [208,208], "src": [128,64], "f": 0, "t": 208, "d": [1638], "a": 1 },
@@ -537,7 +573,6 @@
 						{ "px": [496,208], "src": [464,64], "f": 0, "t": 229, "d": [1656], "a": 1 },
 						{ "px": [512,208], "src": [368,128], "f": 0, "t": 423, "d": [1657], "a": 1 },
 						{ "px": [544,208], "src": [464,64], "f": 0, "t": 229, "d": [1659], "a": 1 },
-						{ "px": [1072,208], "src": [128,64], "f": 0, "t": 208, "d": [1692], "a": 1 },
 						{ "px": [0,224], "src": [128,64], "f": 0, "t": 208, "d": [1750], "a": 1 },
 						{ "px": [16,224], "src": [128,64], "f": 0, "t": 208, "d": [1751], "a": 1 },
 						{ "px": [32,224], "src": [128,64], "f": 0, "t": 208, "d": [1752], "a": 1 },

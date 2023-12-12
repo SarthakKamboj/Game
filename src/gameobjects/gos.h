@@ -135,6 +135,7 @@ struct brick_t {
 	static const int WIDTH = 40;
 	static const int HEIGHT = 40;
 	static const glm::vec3 BRICK_COLOR;
+	bool created_powerup = false;
 };
 
 void create_brick(glm::vec3 pos);
@@ -156,3 +157,14 @@ struct ice_power_up_t {
 void create_ice_powerup(glm::vec3 pos);
 void update_ice_powerup(ice_power_up_t& power_up);
 void delete_ice_powerup_by_kin_handle(int kin_handle);
+
+struct final_flag_t {
+	int transform_handle = -1;
+	int rec_render_handle = -1;
+	int rigidbody_handle = -1;
+	glm::vec3 color;
+	static const int WIDTH = 40;
+	static const int HEIGHT = 500;
+	static glm::vec3 FINAL_FLAG_COLOR;
+};
+void create_final_flag(glm::vec3 pos);

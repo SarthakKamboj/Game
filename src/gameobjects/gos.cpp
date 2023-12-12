@@ -12,6 +12,7 @@ std::vector<goomba_turn_pt_t> goomba_turn_pts;
 std::vector<brick_t> bricks;
 std::vector<coin_t> coins;
 std::vector<ice_power_up_t> ice_power_ups;
+final_flag_t final_flag;
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
@@ -32,6 +33,12 @@ void main_character_t::update(input::user_input_t& user_input) {
 	rigidbody_t& rb = *rb_ptr;
 
 	for (general_collision_info_t& col_info : col_infos) {
+
+		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
+			std::cout << "game over" << std::endl;
+			continue;
+		}
+
 		bool hit_groundable_object = col_info.kin_type == PHYSICS_RB_TYPE::GROUND || col_info.kin_type == PHYSICS_RB_TYPE::BRICK;
 		bool hit_obj_from_above = col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM;
 		if (hit_groundable_object && hit_obj_from_above) {
@@ -170,17 +177,17 @@ void create_brick(glm::vec3 pos) {
 	bricks.push_back(brick);
 }
 
-void update_brick(brick_t& brick, bool& already_broken) {
+void update_brick(brick_t& brick) {
 	std::vector<general_collision_info_t>& cols = get_general_cols_for_kin(brick.rigidbody_handle, PHYSICS_RB_TYPE::BRICK);
 	for (general_collision_info_t& col : cols) {
 		if (col.non_kin_type == PHYSICS_RB_TYPE::PLAYER && col.rel_dir == PHYSICS_RELATIVE_DIR::TOP) {
-			if (!already_broken) {
+			if (!brick.created_powerup) {
 				transform_t* t = get_transform(brick.transform_handle);
 				assert(t);
 				// create_coin(t->position);
 				create_ice_powerup(t->position);
 				// delete_brick(brick);
-				already_broken = true;
+				brick.created_powerup = true;
 			}
 		}
 	}
@@ -244,7 +251,7 @@ void create_ice_powerup(glm::vec3 pos) {
 	ice.start_y_pos = pos.y;
 	glm::vec3 color = ice_power_up_t::ICE_POWERUP_COLOR;
 	ice.rec_render_handle = create_quad_render(ice.transform_handle, color, ice_power_up_t::WIDTH, ice_power_up_t::HEIGHT, false, 0.f, -1);
-	ice.rigidbody_handle = create_rigidbody(ice.transform_handle, false, ice_power_up_t::WIDTH, ice_power_up_t::HEIGHT, true, PHYSICS_RB_TYPE::ICE_POWERUP);
+	ice.rigidbody_handle = create_rigidbody(ice.transform_handle, false, ice_power_up_t::WIDTH, ice_power_up_t::HEIGHT, false, PHYSICS_RB_TYPE::ICE_POWERUP, false);
 	ice.creation_time = platformer::time_t::cur_time;
 	ice_power_ups.push_back(ice);
 }
@@ -254,15 +261,16 @@ void update_ice_powerup(ice_power_up_t& power_up) {
 	transform_t* t = get_transform(power_up.transform_handle);
 	assert(t);
 	if (time_since_created < 1.f) {
-		const float TOTAL_MOVE_Y = (brick_t::HEIGHT / 2) + (ice_power_up_t::HEIGHT / 2);
+		const float TOTAL_MOVE_Y = ((brick_t::HEIGHT / 2) + (ice_power_up_t::HEIGHT / 2)) * 1.2f;
 		t->position.y = power_up.start_y_pos + (TOTAL_MOVE_Y * time_since_created);
 		return;
 	}
-	// if (time_since_created == 1.f) {
-		rigidbody_t* rb = get_rigidbody(power_up.rigidbody_handle);
-		assert(rb);
-		rb->use_gravity = true;
-	// }
+
+	rigidbody_t* rb = get_rigidbody(power_up.rigidbody_handle);
+	assert(rb);
+	rb->use_gravity = true;
+	rb->detect_col = true;
+
 	const float move_speed = 100.f;
 	t->position.x += move_speed * platformer::time_t::delta_time;
 }
@@ -280,14 +288,21 @@ void delete_ice_powerup_by_kin_handle(int kin_handle) {
 	}
 }
 
+glm::vec3 final_flag_t::FINAL_FLAG_COLOR = glm::vec3(1, 1, 0);
+void create_final_flag(glm::vec3 pos) {
+	memset(&final_flag, 0, sizeof(final_flag));
+	final_flag.transform_handle = create_transform(pos + glm::vec3(0, -20 + (final_flag_t::HEIGHT/2),0), glm::vec3(1), 0.f);
+	final_flag.rec_render_handle = create_quad_render(final_flag.transform_handle, final_flag_t::FINAL_FLAG_COLOR, final_flag_t::WIDTH, final_flag_t::HEIGHT, false, 0.f, -1);
+	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true);
+}
+
 void gos_update() {
 	for (goomba_t& goomba : goombas) {
 		update_goomba(goomba);
 	}
 
-	bool broken = false;
 	for (brick_t& brick : bricks) {
-		update_brick(brick, broken);
+		update_brick(brick);
 	}
 
 	for (coin_t& coin : coins) {

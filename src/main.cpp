@@ -17,7 +17,7 @@ int main(int argc, char *argv[])
 
 	bool paused = false;
 
-	while (true)
+	while (!input_state.quit)
     {
 		utils::game_timer_t frame_timer;
 		utils::start_timer(frame_timer);

@@ -12,10 +12,15 @@ namespace input {
 		user_input.d_pressed = false;
 		user_input.p_pressed = false;
 		user_input.space_pressed = false;
+		user_input.quit = false;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
+				case SDL_QUIT: {
+					user_input.quit = true;
+					break;
+				}
 				case SDL_KEYUP: {
 					switch (event.key.keysym.sym) {
 						case SDLK_w: {
