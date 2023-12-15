@@ -22,6 +22,8 @@ struct application_t {
 /// <param name="app">The application info struct to be populated</param>
 void init(application_t& app);
 
+void load_level0(application_t& app);
+
 #else
 
 #include "SDL.h"

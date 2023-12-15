@@ -122,10 +122,10 @@ void update_rigidbodies();
 rigidbody_t* get_rigidbody(int rb_handle);
 
 /**
- * @brief Delete a kinematic rigidbody
+ * @brief Delete a rigidbody
  * @param rb_handle 
 */
-void delete_kin_rigidbody(int rb_handle);
+void delete_rigidbody(int rb_handle);
 
 /**
  * @brief General collision information about non kin rb type, kin rb type, relative direction of kin rb relative to

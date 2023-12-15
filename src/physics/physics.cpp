@@ -113,7 +113,7 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
 	float grid2_x = floor(transform2->position.x / 40);
 	float grid2_y = floor(transform2->position.y / 40);
 
-	if (abs(grid2_x - grid1_x) >= 4 || abs(grid2_y - grid1_y) >= 4) return false;
+	if (abs(grid2_x - grid1_x) >= 4 || abs(grid2_y - grid1_y) >= 8) return false;
 
 	glm::vec2 rb1_corners[4];
 	glm::vec2 rb2_corners[4];
@@ -419,7 +419,7 @@ rigidbody_t* get_rigidbody(int rb_handle) {
     return NULL;
 }
 
-void delete_kin_rigidbody(int rb_handle) {
+void delete_rigidbody(int rb_handle) {
 	int i_to_remove = -1;
 	for (int i = 0; i < kin_rigidbodies.size(); i++) {
 		if (kin_rigidbodies[i].handle == rb_handle) {
@@ -427,12 +427,28 @@ void delete_kin_rigidbody(int rb_handle) {
 			break;
 		}
 	}
-	if (i_to_remove == -1) return;
-	if (kin_rigidbodies[i_to_remove].debug) {
-		delete_quad_render(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_render_handle);
-		delete_transform(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_transform_handle);
+	if (i_to_remove != -1) {
+		if (kin_rigidbodies[i_to_remove].debug) {
+			delete_quad_render(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_render_handle);
+			delete_transform(kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_transform_handle);
+		}
+		kin_rigidbodies.erase(kin_rigidbodies.begin() + i_to_remove);
+		return;
 	}
-	kin_rigidbodies.erase(kin_rigidbodies.begin() + i_to_remove);
+
+	for (int i = 0; i < non_kin_rigidbodies.size(); i++) {
+		if (non_kin_rigidbodies[i].handle == rb_handle) {
+			i_to_remove = i;
+			break;
+		}
+	}
+
+	if (i_to_remove == -1) return;
+	if (non_kin_rigidbodies[i_to_remove].debug) {
+		delete_quad_render(non_kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_render_handle);
+		delete_transform(non_kin_rigidbodies[i_to_remove].aabb_collider.collider_debug_transform_handle);
+	}
+	non_kin_rigidbodies.erase(non_kin_rigidbodies.begin() + i_to_remove);
 }
 
 general_collision_info_t::general_collision_info_t(PHYSICS_RB_TYPE _non_kin_type, PHYSICS_RB_TYPE _kin_type, PHYSICS_COLLISION_DIR _dir, PHYSICS_RELATIVE_DIR _rel_dir, int _kin_handle) {

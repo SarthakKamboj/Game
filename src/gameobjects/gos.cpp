@@ -14,6 +14,20 @@ std::vector<coin_t> coins;
 std::vector<ice_power_up_t> ice_power_ups;
 final_flag_t final_flag;
 
+void unload_level() {
+	for (goomba_t& goomba : goombas) delete_goomba_by_kin_handle(goomba.rigidbody_handle);
+	goombas.clear();
+	goomba_turn_pts.clear();
+	for (coin_t& coin : coins) delete_coin(coin);
+	coins.clear();
+	for (brick_t& brick : bricks) delete_brick(brick);
+	bricks.clear();
+	for (ice_power_up_t& ipu : ice_power_ups) delete_ice_powerup_by_kin_handle(ipu.rigidbody_handle);
+	ice_power_ups.clear();
+	delete_final_flag();
+	memset(&final_flag, 0, sizeof(final_flag));
+}
+
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
@@ -22,6 +36,13 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	return mc;
 }
 
+void delete_mc(main_character_t& mc) {
+	delete_transform(mc.transform_handle);
+	delete_quad_render(mc.rec_render_handle);
+	delete_rigidbody(mc.rigidbody_handle);
+}
+
+extern bool level_finished;
 void main_character_t::update(input::user_input_t& user_input) {
 
 	bool prev_dead = dead;
@@ -36,6 +57,7 @@ void main_character_t::update(input::user_input_t& user_input) {
 
 		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
 			std::cout << "game over" << std::endl;
+			level_finished = true;
 			continue;
 		}
 
@@ -67,7 +89,13 @@ void main_character_t::update(input::user_input_t& user_input) {
 		return;
 	}
 
-	if (dead) return;
+	if (dead) {
+		transform_t* t = get_transform(rb.transform_handle);
+		if (t->position.y <= -750.f) {
+			level_finished = true;
+		}
+		return;
+	}
 
     // get velocity
 	const float vel = WINDOW_WIDTH / 4.f;
@@ -140,7 +168,7 @@ void delete_goomba_by_kin_handle(int kin_handle) {
 	for (goomba_t& goomba : goombas) {
 		i_to_remove++;
 		if (goomba.rigidbody_handle == kin_handle) {
-			delete_kin_rigidbody(kin_handle);
+			delete_rigidbody(kin_handle);
 			delete_quad_render(goomba.rec_render_handle);
 			delete_transform(goomba.transform_handle);
 			goombas.erase(goombas.begin() + i_to_remove);
@@ -195,7 +223,7 @@ void update_brick(brick_t& brick) {
 
 void delete_brick(brick_t& brick) {
 	delete_quad_render(brick.rec_render_handle);
-	delete_kin_rigidbody(brick.rigidbody_handle);
+	delete_rigidbody(brick.rigidbody_handle);
 	delete_transform(brick.transform_handle);
 	for (int i = 0; i < bricks.size(); i++) {
 		if (bricks[i].handle == brick.handle) {
@@ -281,7 +309,7 @@ void delete_ice_powerup_by_kin_handle(int kin_handle) {
 		if (ice_power_ups[i].rigidbody_handle == kin_handle) {
 			ice_power_up_t& power_up = ice_power_ups[i];
 			delete_quad_render(power_up.rec_render_handle);
-			delete_kin_rigidbody(power_up.rigidbody_handle);
+			delete_rigidbody(power_up.rigidbody_handle);
 			delete_transform(power_up.transform_handle);
 			ice_power_ups.erase(ice_power_ups.begin() + i);
 		}
@@ -291,9 +319,19 @@ void delete_ice_powerup_by_kin_handle(int kin_handle) {
 glm::vec3 final_flag_t::FINAL_FLAG_COLOR = glm::vec3(1, 1, 0);
 void create_final_flag(glm::vec3 pos) {
 	memset(&final_flag, 0, sizeof(final_flag));
-	final_flag.transform_handle = create_transform(pos + glm::vec3(0, -20 + (final_flag_t::HEIGHT/2),0), glm::vec3(1), 0.f);
+	glm::vec3 center_origin = pos + glm::vec3(0, -20 + final_flag_t::HEIGHT/2, 0);
+	glm::vec3 x = center_origin;
+	x.x += 40;
+	create_brick(x);
+	final_flag.transform_handle = create_transform(center_origin, glm::vec3(1), 0.f);
 	final_flag.rec_render_handle = create_quad_render(final_flag.transform_handle, final_flag_t::FINAL_FLAG_COLOR, final_flag_t::WIDTH, final_flag_t::HEIGHT, false, 0.f, -1);
 	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true);
+}
+
+void delete_final_flag() {
+	delete_transform(final_flag.transform_handle);
+	delete_quad_render(final_flag.rec_render_handle);
+	delete_rigidbody(final_flag.rigidbody_handle);
 }
 
 void gos_update() {

@@ -451,9 +451,6 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 			b = *(pixel_ptr+2);
 
 			color_t level_pixel_color(r, g, b);
-			if (r == 246 && g == 213 && b == 92) {
-				std::cout << "here" << std::endl;
-			}
 			for (int i = 0; i < color_conversions.size(); i++) {
 				if (level_pixel_color == color_conversions[i].color) {
 					int level_row = LEVEL_MAP_ROWS - 1 - top_y;
@@ -487,6 +484,8 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	}
 	stbi_image_free(level_img_data);
 
+	color_conversions.clear();
+
 	int level_row = LEVEL_MAP_ROWS - 1 - y_pos;
 	int level_col = x_pos;
 	// object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
@@ -496,12 +495,15 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	// create_rigidbody(object_transform_handle, true, 40, 40, false);
 }
 
+void load_level0(application_t& app) {
+	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
+	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
+    load_level(app, json_file, img_file);
+}
+
 void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
-	init_quad_data();
-	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
-	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/red.png";
-	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
-    load_level(app, json_file, img_file);
+	init_quad_data();	
+	load_level0(app);
 }

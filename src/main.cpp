@@ -10,6 +10,8 @@
 
 input::user_input_t input_state;
 
+bool level_finished = false;
+
 int main(int argc, char *argv[])
 {	 
 	application_t app;
@@ -30,6 +32,14 @@ int main(int argc, char *argv[])
 
 		world::update(app);
 		render(app);
+
+		if (level_finished) {
+			level_finished = false;
+			unload_level();
+			clear_debug_pts();
+			delete_mc(app.main_character);
+			load_level0(app);
+		}
 
 		utils::end_timer(frame_timer);
 		if (!paused) {

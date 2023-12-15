@@ -35,6 +35,7 @@ transform_t* get_transform(int transform_handle) {
             return &transform;
         }
     }
+    assert("transform doesn't exist");
     return NULL;
 }
 

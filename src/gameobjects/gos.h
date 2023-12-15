@@ -30,6 +30,7 @@ struct main_character_t {
 };
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims);
+void delete_mc(main_character_t& mc);
 
 struct ground_block_t {
 	// create transform first
@@ -168,3 +169,6 @@ struct final_flag_t {
 	static glm::vec3 FINAL_FLAG_COLOR;
 };
 void create_final_flag(glm::vec3 pos);
+void delete_final_flag();
+
+void unload_level();

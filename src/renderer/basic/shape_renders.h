@@ -43,6 +43,10 @@ int create_quad_render(int transform_handle, glm::vec3& color, float width, floa
 /// <param name="quad">Quad/recntagle to draw</param>
 void draw_quad_render(const quad_render_t& quad);
 
+void add_debug_pt(glm::vec3& pt);
+void draw_debug_pt(glm::vec3 pos);
+void clear_debug_pts();
+
 struct application_t;
 
 /// <summary>

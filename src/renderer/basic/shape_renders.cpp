@@ -5,6 +5,7 @@
 #include <vector>
 
 opengl_object_data quad_render_t::obj_data{};
+std::vector<glm::vec3> debug_pts;
 
 static std::vector<quad_render_t> quads;
 
@@ -33,6 +34,33 @@ void draw_quad_renders(application_t& app) {
         const quad_render_t& quad = quads[i];
 		draw_quad_render(quad);
 	}
+	for (glm::vec3& dp : debug_pts) {
+		draw_debug_pt(dp);
+	}
+}
+
+
+void add_debug_pt(glm::vec3& pt) {
+	debug_pts.push_back(pt);
+}
+
+void clear_debug_pts() {
+	debug_pts.clear();
+}
+
+void draw_debug_pt(glm::vec3 pos) {
+	transform_t cur_transform; 
+	cur_transform.position = pos;
+	cur_transform.scale *= 5.f;
+
+	glm::mat4 model_matrix = get_model_matrix(cur_transform);
+    // get model matrix and color and set them in the shader
+	shader_set_mat4(quad_render_t::obj_data.shader, "model", model_matrix);
+	shader_set_vec3(quad_render_t::obj_data.shader, "color", glm::vec3(1,0,0));
+	shader_set_float(quad_render_t::obj_data.shader, "tex_influence", 0);
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // draw the rectangle render after setting all shader parameters
+	draw_obj(quad_render_t::obj_data);	
 }
 
 void draw_quad_render(const quad_render_t& quad) {
