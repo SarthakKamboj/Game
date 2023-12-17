@@ -14,8 +14,6 @@
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
 
-const int LEVEL_MAP_GRID_SIZE = 16;
-
 /// <summary>
 /// This function initalizes SDL to OpenGL Version 4.1, 24-bit depth buffer, height of WINDOW_HEIGHT, 
 /// width of WINDOW_WIDTH, blending enabled, and mirrored texture wrapping.
@@ -334,8 +332,8 @@ void read_color_map_info(FILE* file) {
 }
 
 // int object_transform_handle = -1;
-int x_pos = 0, y_pos = 0;
-void read_player_start(FILE* file) {
+glm::vec2 read_entity_data(FILE* file) {
+	glm::vec2 pos(0);
 	while (!feof(file)) {
 		char line[128]{};
 		fgets(line, sizeof(line), file);
@@ -349,14 +347,17 @@ void read_player_start(FILE* file) {
 
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "x") == 0) {
-			x_pos = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
+			pos.x = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
 		}
 		if (strcmp(key_val.key, "y") == 0) {
-			y_pos = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
+			pos.y = static_cast<int>(strtol(key_val.val, NULL, 10)) / LEVEL_MAP_GRID_SIZE;
 		}
 	}	
+	return pos;
 }
 
+// int x_pos = 0, y_pos = 0;
+glm::vec2 player_pos, final_flag_pos;
 void read_entities(FILE* file) {
 	while (!feof(file)) {
 		char line[128]{};
@@ -370,7 +371,15 @@ void read_entities(FILE* file) {
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "PlayerStart") == 0) {
 			assert(*key_val.val == '[');
-			read_player_start(file);
+			glm::vec2 player_pos = read_entity_data(file);
+			// x_pos = player_pos.x / LEVEL_MAP_GRID_SIZE;
+			// y_pos = player_pos.y / LEVEL_MAP_GRID_SIZE;
+		}
+		if (strcmp(key_val.key, "FinalFlag") == 0) {
+			assert(*key_val.val == '[');
+			final_flag_pos = read_entity_data(file);
+			// glm::vec3 final_flag_pos(flag_pos.x / LEVEL_MAP_GRID_SIZE, flag_pos.y / LEVEL_MAP_GRID_SIZE, 0);
+			// create_final_flag(final_flag_pos);
 		}
 	}	
 }
@@ -396,9 +405,9 @@ void recursive_section_traverse(FILE* file) {
 		if (strcmp(line, "]") == 0) continue;
 
 		key_val_t key_val = separate_key_val(line);
-		if (key_val.key == NULL) {
-			key_val_t key_val = separate_key_val(line);
-		}
+		// if (key_val.key == NULL) {
+		// 	key_val_t key_val = separate_key_val(line);
+		// }
 		if (key_val.key && strcmp(key_val.key, "customFields") == 0) {
 			assert(*key_val.val == '{');
 			read_color_map_info(file);
@@ -433,6 +442,7 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 
 	int img_file_width, img_file_height, num_channels;
 	// data organized left to right row by row
+	stbi_set_flip_vertically_on_load(false);
 	unsigned char* level_img_data = stbi_load(level_img, &img_file_width, &img_file_height, &num_channels, 0);
 	if (level_img_data == NULL) return;
 
@@ -456,10 +466,7 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					int level_row = LEVEL_MAP_ROWS - 1 - top_y;
 					int level_col = left_x;
 
-					// int obj = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
-					// create_quad_render(obj, glm::vec3(0,1,1), 40, 40, false, 0, -1);
-					// create_rigidbody(obj, false, 40, 40, true);
-					glm::vec3 world_pos(level_col * 40, level_row * 40, 0);
+					glm::vec3 world_pos(level_col * GAME_GRID_SIZE, level_row * GAME_GRID_SIZE, 0);
 					if (strcmp(color_conversions[i].m_item_name, "Ground") == 0) {
 						create_ground_block(world_pos, glm::vec3(1), 0);
 					} 
@@ -475,9 +482,9 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					else if (strcmp(color_conversions[i].m_item_name, "Brick") == 0) {
 						create_brick(world_pos);
 					}
-					else if (strcmp(color_conversions[i].m_item_name, "FinalFlag") == 0) {
-						create_final_flag(world_pos);
-					}
+					// else if (strcmp(color_conversions[i].m_item_name, "FinalFlag") == 0) {
+					// 	create_final_flag(world_pos);
+					// }
 				}
 			}
 		}
@@ -486,18 +493,20 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 
 	color_conversions.clear();
 
-	int level_row = LEVEL_MAP_ROWS - 1 - y_pos;
-	int level_col = x_pos;
-	// object_transform_handle = create_transform(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0);
+	int level_row = LEVEL_MAP_ROWS - 1 - player_pos.y;
+	int level_col = player_pos.x;
+	app.main_character = create_main_character(glm::vec3(level_col*GAME_GRID_SIZE, level_row*GAME_GRID_SIZE, 0), glm::vec3(1), 0, glm::vec3(1,1,0), glm::vec2(GAME_GRID_SIZE, GAME_GRID_SIZE));
 
-	app.main_character = create_main_character(glm::vec3(level_col*40, level_row*40, 0), glm::vec3(1), 0, glm::vec3(1,1,0), glm::vec2(40, 40));
-	// create_quad_render(object_transform_handle, glm::vec3(1,0,0), 40, 40, false, 0, -1);
-	// create_rigidbody(object_transform_handle, true, 40, 40, false);
+	int flag_level_row = LEVEL_MAP_ROWS - 1 - final_flag_pos.y;
+	int flag_level_col = final_flag_pos.x;
+	create_final_flag(glm::vec3(flag_level_col*GAME_GRID_SIZE, flag_level_row*GAME_GRID_SIZE, 0));
 }
 
 void load_level0(application_t& app) {
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
+	// const char* json_file = "C:/Sarthak/projects/game/resources/levels/level2/simplified/Level_0/data.json";
+	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level2/simplified/Level_0/_composite.png";
     load_level(app, json_file, img_file);
 }
 
@@ -505,5 +514,8 @@ void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
 	init_quad_data();	
+	init_final_flag_data();
+	init_goomba_data();
+	init_ground_block_data();
 	load_level0(app);
 }

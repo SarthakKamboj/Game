@@ -1,5 +1,6 @@
 #pragma once
 
+#include "constants.h"
 #include "renderer/basic/shape_renders.h"
 #include "transform/transform.h"
 #include "input/input.h"
@@ -39,13 +40,17 @@ struct ground_block_t {
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
 	glm::vec3 color;
-	static const int WIDTH = 40;
-	static const int HEIGHT = 40;
+	static const int WIDTH = GAME_GRID_SIZE;
+	static const int HEIGHT = GAME_GRID_SIZE;
 	static const glm::vec3 BLOCK_COLOR;
 
-    static int tex_handle;
+    static int top_layer_tex_handle;
+    static int bottom_layer_tex_handle;
+    static int left_corner_tex_handle;
+    static int left_tex_handle;
 };
 
+void init_ground_block_data();
 ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot);
 
 typedef glm::vec3 goomba_turn_pt_t;
@@ -57,11 +62,14 @@ struct goomba_t {
 	int transform_handle = -1;
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
-	static const int WIDTH = 40;
-	static const int HEIGHT = 40;	
+	static const int WIDTH = GAME_GRID_SIZE;
+	static const int HEIGHT = GAME_GRID_SIZE;	
 	static const glm::vec3 GOOMBA_COLOR;
 	float move_speed = -50.f;
+	static int tex_handle;
 };
+
+void init_goomba_data();
 
 /**
  * @brief Create a goomba at a particular position
@@ -97,8 +105,8 @@ struct pipe_t {
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
 	glm::vec3 color;
-	static const int WIDTH = 40;
-	static const int HEIGHT = 80;
+	static const int WIDTH = GAME_GRID_SIZE;
+	static const int HEIGHT = GAME_GRID_SIZE * 2;
 	static const glm::vec3 PIPE_COLOR;
 };
 
@@ -133,8 +141,8 @@ struct brick_t {
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
 	glm::vec3 color;
-	static const int WIDTH = 40;
-	static const int HEIGHT = 40;
+	static const int WIDTH = GAME_GRID_SIZE;
+	static const int HEIGHT = GAME_GRID_SIZE;
 	static const glm::vec3 BRICK_COLOR;
 	bool created_powerup = false;
 };
@@ -163,11 +171,16 @@ struct final_flag_t {
 	int transform_handle = -1;
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
+	static int tex_handle;
 	glm::vec3 color;
-	static const int WIDTH = 40;
+	static const int WIDTH = GAME_GRID_SIZE;
 	static const int HEIGHT = 500;
+	static const int RENDER_WIDTH = 30;
+	static const int RENDER_HEIGHT = RENDER_WIDTH * 2;
 	static glm::vec3 FINAL_FLAG_COLOR;
 };
+
+void init_final_flag_data();
 void create_final_flag(glm::vec3 pos);
 void delete_final_flag();
 

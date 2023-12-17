@@ -20,12 +20,25 @@
 		"More_Colors.png"
 	],
 	"entities": {
+		"FinalFlag": [
+			{
+				"id": "FinalFlag",
+				"iid": "4632d8f0-8990-11ee-8b94-9b3873929ae9",
+				"layer": "Player_Entities",
+				"x": 848,
+				"y": 208,
+				"width": 16,
+				"height": 16,
+				"color": 12470831,
+				"customFields" : {}
+			}
+		],
 		"PlayerStart": [
 			{
 				"id": "PlayerStart",
 				"iid": "9bca20b0-6280-11ee-87e8-6b70c9794d3f",
 				"layer": "Player_Entities",
-				"x": 48,
+				"x": 80,
 				"y": 64,
 				"width": 16,
 				"height": 16,

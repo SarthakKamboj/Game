@@ -99,9 +99,10 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2);
  * @param is_kinematic Whether it is kinematic (stationary) or not
  * @param rb_type What category this rigidbody is associated with
  * @param detect_col Whether this rb should start off detecting collision
+ * @param debug Whether you want to see the debug wireframe of the collider
  * @return The handle to the newly created rigidbody
 */
-int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col = true);
+int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col = true, bool debug = true);
 
 /**
  * @brief Iterates over every non kinematic rb and performs collision detection with every kinematic rb.

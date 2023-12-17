@@ -3,6 +3,7 @@
 #include <iostream>
 #include "utils/time.h"
 #include <vector>
+#include <unordered_set>
 
 /**
  * @brief Store all the goombas in the world and all the turning points
@@ -127,25 +128,62 @@ void main_character_t::update(input::user_input_t& user_input) {
 }
 
 const glm::vec3 ground_block_t::BLOCK_COLOR = glm::vec3(1.f, 0.29f, 0.f);
-int ground_block_t::tex_handle = -1;
+int ground_block_t::top_layer_tex_handle = -1;
+int ground_block_t::bottom_layer_tex_handle = -1;
+int ground_block_t::left_corner_tex_handle = -1;
+int ground_block_t::left_tex_handle = -1;
 
+void init_ground_block_data() {
+	ground_block_t::top_layer_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_02.png", 0);
+	ground_block_t::bottom_layer_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_12.png", 0);
+	ground_block_t::left_corner_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_01.png", 0);
+	ground_block_t::left_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_11.png", 0);
+}
+
+struct pair_hash {
+    inline std::size_t operator()(const std::pair<int,int> & v) const {
+        return v.first*31+v.second;
+    }
+};
+
+static std::unordered_set<std::pair<int, int>, pair_hash> created_positions;
 ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot) {
 	ground_block_t block;
 	block.transform_handle = create_transform(pos, scale, rot);
 	glm::vec3 color = ground_block_t::BLOCK_COLOR;
-	// block.rec_render_handle = create_rectangle_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::tex_handle);
-	block.rec_render_handle = create_quad_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 0.f, ground_block_t::tex_handle);
-	block.rigidbody_handle = create_rigidbody(block.transform_handle, false, ground_block_t::WIDTH, ground_block_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND);
+	bool block_above = created_positions.find(std::pair<int, int>(pos.x / GAME_GRID_SIZE, (pos.y / GAME_GRID_SIZE) + 1)) != created_positions.end();
+	bool block_left = created_positions.find(std::pair<int, int>((pos.x / GAME_GRID_SIZE) - 1, pos.y / GAME_GRID_SIZE)) != created_positions.end();
+	if (block_above) {
+		if (!block_left) {
+			block.rec_render_handle = create_quad_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::left_tex_handle);
+		} else {
+			block.rec_render_handle = create_quad_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::bottom_layer_tex_handle);
+		}
+	} else if (!block_above && !block_left) {
+		block.rec_render_handle = create_quad_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::left_corner_tex_handle);
+	}
+	else {
+		block.rec_render_handle = create_quad_render(block.transform_handle, color, ground_block_t::WIDTH, ground_block_t::HEIGHT, false, 1.f, ground_block_t::top_layer_tex_handle);
+	}
+	created_positions.insert(std::pair<int, int>(pos.x / GAME_GRID_SIZE, pos.y / GAME_GRID_SIZE));
+
+	block.rigidbody_handle = create_rigidbody(block.transform_handle, false, ground_block_t::WIDTH, ground_block_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND, true, false);
 	return block;
 }
 
 const glm::vec3 goomba_t::GOOMBA_COLOR = glm::vec3(0.588f, 0.294f, 0.f);
+int goomba_t::tex_handle = -1;
+
+void init_goomba_data() {
+	goomba_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\Monster_Creatures_Fantasy(Version 1.3)\\Monster_Creatures_Fantasy(Version 1.3)\\Goblin\\goblin.png", 0);
+}
+
 void create_goomba(const glm::vec3& pos) {
 	goomba_t goomba;
 	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
-	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT, false, 0.f, -1);
-	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA);
+	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT, false, 1.f, goomba_t::tex_handle);
+	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
 	goombas.push_back(goomba);
 }
 
@@ -316,16 +354,21 @@ void delete_ice_powerup_by_kin_handle(int kin_handle) {
 	}
 }
 
+int final_flag_t::tex_handle = -1;
 glm::vec3 final_flag_t::FINAL_FLAG_COLOR = glm::vec3(1, 1, 0);
+
+void init_final_flag_data() {
+	final_flag_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\3 Objects\\Pointers\\8.png", 0);
+}
+
 void create_final_flag(glm::vec3 pos) {
 	memset(&final_flag, 0, sizeof(final_flag));
 	glm::vec3 center_origin = pos + glm::vec3(0, -20 + final_flag_t::HEIGHT/2, 0);
 	glm::vec3 x = center_origin;
-	x.x += 40;
-	create_brick(x);
 	final_flag.transform_handle = create_transform(center_origin, glm::vec3(1), 0.f);
-	final_flag.rec_render_handle = create_quad_render(final_flag.transform_handle, final_flag_t::FINAL_FLAG_COLOR, final_flag_t::WIDTH, final_flag_t::HEIGHT, false, 0.f, -1);
-	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true);
+	int render_transform = create_transform(pos + glm::vec3(-20 + (final_flag_t::RENDER_WIDTH/2), -20 + (final_flag_t::RENDER_HEIGHT/2), 0), glm::vec3(1), 0.f); 
+	final_flag.rec_render_handle = create_quad_render(render_transform, final_flag_t::FINAL_FLAG_COLOR, final_flag_t::RENDER_WIDTH, final_flag_t::RENDER_HEIGHT, false, 1.f, final_flag_t::tex_handle);
+	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true, false);
 }
 
 void delete_final_flag() {

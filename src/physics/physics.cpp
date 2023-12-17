@@ -11,7 +11,7 @@ std::vector<rigidbody_t> non_kin_rigidbodies;
 std::vector<rigidbody_t> kin_rigidbodies;
 std::vector<general_collision_info_t> general_frame_col_infos;
 
-int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col) {
+int create_rigidbody(int transform_handle, bool use_gravity, float collider_width, float collider_height, bool is_kinematic, PHYSICS_RB_TYPE rb_type, bool detect_col, bool debug) {
     static int running_count = 0; 
 
 	rigidbody_t rigidbody;
@@ -20,7 +20,7 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 	rigidbody.is_kinematic = is_kinematic;
     rigidbody.handle = running_count;
 	rigidbody.rb_type = rb_type;
-	rigidbody.debug = true;
+	rigidbody.debug = debug;
 	rigidbody.detect_col = detect_col;
     running_count++;
 	transform_t& transform = *get_transform(transform_handle);
@@ -33,8 +33,12 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 
 	// debug stuff
 	aabb_collider.collider_debug_transform_handle = create_transform(glm::vec3(aabb_collider.x, aabb_collider.y, 0.f), glm::vec3(1.f), 0.f);
-	glm::vec3 collider_color(0.f, 1.f, 0.f);
-	aabb_collider.collider_debug_render_handle = create_quad_render(aabb_collider.collider_debug_transform_handle, collider_color, collider_width, collider_height, true, 0, -1);
+	aabb_collider.collider_debug_render_handle = -1;
+	
+	if (debug) {
+		glm::vec3 collider_color(0.f, 1.f, 0.f);
+		aabb_collider.collider_debug_render_handle = create_quad_render(aabb_collider.collider_debug_transform_handle, collider_color, collider_width, collider_height, true, 0, -1);
+	}
 
 	rigidbody.aabb_collider = aabb_collider;
 
