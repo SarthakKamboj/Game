@@ -6,6 +6,7 @@
 #include <cassert>
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
+#include "animation/animation.h"
 
 #include "test_config.h"
 
@@ -17,6 +18,8 @@ namespace world {
 
     void update(application_t& app) {
         update_rigidbodies();
+
+        update_image_anim_players();
 
         // update_player(app.main_character);
         app.main_character.update(input_state);

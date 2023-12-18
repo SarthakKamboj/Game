@@ -495,7 +495,7 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 
 	int level_row = LEVEL_MAP_ROWS - 1 - player_pos.y;
 	int level_col = player_pos.x;
-	app.main_character = create_main_character(glm::vec3(level_col*GAME_GRID_SIZE, level_row*GAME_GRID_SIZE, 0), glm::vec3(1), 0, glm::vec3(1,1,0), glm::vec2(GAME_GRID_SIZE, GAME_GRID_SIZE));
+	app.main_character = create_main_character(glm::vec3(level_col*GAME_GRID_SIZE, level_row*GAME_GRID_SIZE, 0), glm::vec3(1), 0, glm::vec3(1,1,0));
 
 	int flag_level_row = LEVEL_MAP_ROWS - 1 - final_flag_pos.y;
 	int flag_level_col = final_flag_pos.x;
@@ -505,8 +505,6 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 void load_level0(application_t& app) {
 	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
 	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
-	// const char* json_file = "C:/Sarthak/projects/game/resources/levels/level2/simplified/Level_0/data.json";
-	// const char* img_file = "C:/Sarthak/projects/game/resources/levels/level2/simplified/Level_0/_composite.png";
     load_level(app, json_file, img_file);
 }
 
@@ -514,6 +512,8 @@ void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
 	init_quad_data();	
+	init_brick_data();
+	init_mc_data();
 	init_final_flag_data();
 	init_goomba_data();
 	init_ground_block_data();

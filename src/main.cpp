@@ -7,6 +7,7 @@
 #include "update.h"
 #include "input/input.h"
 #include "physics/physics.h"
+#include "animation/animation.h"
 
 input::user_input_t input_state;
 
@@ -15,6 +16,7 @@ bool level_finished = false;
 int main(int argc, char *argv[])
 {	 
 	application_t app;
+
 	init(app);	
 
 	bool paused = false;
@@ -35,9 +37,8 @@ int main(int argc, char *argv[])
 
 		if (level_finished) {
 			level_finished = false;
-			unload_level();
+			unload_level(app);
 			clear_debug_pts();
-			delete_mc(app.main_character);
 			load_level0(app);
 		}
 

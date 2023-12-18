@@ -23,6 +23,9 @@ struct main_character_t {
 	glm::vec3 color;
 	glm::vec2 dims;
 
+	static int tex_handle;
+	static int mc_statemachine_handle;
+
 	bool grounded = false;
 	int num_jumps_since_grounded = 0;
 	bool dead = false;
@@ -30,7 +33,8 @@ struct main_character_t {
 	void update(input::user_input_t& user_input);
 };
 
-main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims);
+void init_mc_data();
+main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color);
 void delete_mc(main_character_t& mc);
 
 struct ground_block_t {
@@ -51,7 +55,7 @@ struct ground_block_t {
 };
 
 void init_ground_block_data();
-ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot);
+void create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot);
 
 typedef glm::vec3 goomba_turn_pt_t;
 
@@ -59,8 +63,10 @@ typedef glm::vec3 goomba_turn_pt_t;
  * @brief Represents a Goomba
 */
 struct goomba_t {
+	int handle = -1;
 	int transform_handle = -1;
 	int rec_render_handle = -1;
+	int statemachine_handle = -1;
 	int rigidbody_handle = -1;
 	static const int WIDTH = GAME_GRID_SIZE;
 	static const int HEIGHT = GAME_GRID_SIZE;	
@@ -137,6 +143,8 @@ void delete_coin(coin_t& coin);
 
 struct brick_t {
 	int handle = -1;
+	static int unbroken_tex_handle;
+	static int broken_tex_handle;
 	int transform_handle = -1;
 	int rec_render_handle = -1;
 	int rigidbody_handle = -1;
@@ -147,6 +155,7 @@ struct brick_t {
 	bool created_powerup = false;
 };
 
+void init_brick_data();
 void create_brick(glm::vec3 pos);
 void update_brick(brick_t& brick, bool& already_broken);
 void delete_brick(brick_t& brick);
@@ -184,4 +193,5 @@ void init_final_flag_data();
 void create_final_flag(glm::vec3 pos);
 void delete_final_flag();
 
-void unload_level();
+struct application_t;
+void unload_level(application_t& app);

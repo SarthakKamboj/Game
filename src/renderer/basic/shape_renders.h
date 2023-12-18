@@ -37,6 +37,8 @@ struct quad_render_t {
 /// <returns>The quad to be rendered</returns>
 int create_quad_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle);
 
+void set_quad_texture(int quad_handle, int tex_handle);
+
 /// <summary>
 /// Draw a particular quad
 /// </summary>

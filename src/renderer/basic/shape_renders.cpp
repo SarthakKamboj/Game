@@ -27,6 +27,16 @@ int create_quad_render(int transform_handle, glm::vec3& color, float width, floa
 	return quad.handle;
 }
 
+void set_quad_texture(int quad_handle, int tex_handle) {
+	for (int i = 0; i < quads.size(); i++) {
+        quad_render_t& quad = quads[i];
+		if (quad.handle == quad_handle) {
+			quad.tex_handle = tex_handle;
+			return;
+		}
+	}	
+}
+
 void draw_quad_renders(application_t& app) {
 	glm::mat4 view_mat = app.camera.get_view_matrix();
 	shader_set_mat4(quad_render_t::obj_data.shader, "view", view_mat);

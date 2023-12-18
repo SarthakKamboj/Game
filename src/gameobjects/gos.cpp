@@ -4,6 +4,15 @@
 #include "utils/time.h"
 #include <vector>
 #include <unordered_set>
+#include "app.h"
+#include "animation/animation.h"
+#include "renderer/opengl/resources.h"
+
+struct pair_hash {
+    inline std::size_t operator()(const std::pair<int,int> & v) const {
+        return v.first*31+v.second;
+    }
+};
 
 /**
  * @brief Store all the goombas in the world and all the turning points
@@ -13,9 +22,11 @@ std::vector<goomba_turn_pt_t> goomba_turn_pts;
 std::vector<brick_t> bricks;
 std::vector<coin_t> coins;
 std::vector<ice_power_up_t> ice_power_ups;
+std::vector<ground_block_t> ground_blocks;
 final_flag_t final_flag;
+static std::unordered_set<std::pair<int, int>, pair_hash> created_positions;
 
-void unload_level() {
+void unload_level(application_t& app) {
 	for (goomba_t& goomba : goombas) delete_goomba_by_kin_handle(goomba.rigidbody_handle);
 	goombas.clear();
 	goomba_turn_pts.clear();
@@ -27,13 +38,31 @@ void unload_level() {
 	ice_power_ups.clear();
 	delete_final_flag();
 	memset(&final_flag, 0, sizeof(final_flag));
+
+	for (int i = 0; i < ground_blocks.size(); i++) {
+		delete_quad_render(ground_blocks[i].rec_render_handle);
+		delete_transform(ground_blocks[i].transform_handle);
+		delete_rigidbody(ground_blocks[i].rigidbody_handle);
+	}
+	ground_blocks.clear();
+	created_positions.clear();
+
+	delete_mc(app.main_character);
 }
 
-main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color, const glm::vec2& dims) {
+int main_character_t::tex_handle = -1;
+int main_character_t::mc_statemachine_handle = -1;
+
+void init_mc_data() {
+	main_character_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-3-character-sprite-sheets-pixel-art\\3 SteamMan\\main.png", 0);
+	main_character_t::mc_statemachine_handle = create_state_machine("C:\\Sarthak\\projects\\game\\resources\\art\\character", "mc", "character_running");
+}
+
+main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color) {
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
-	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, dims.x, dims.y, false, 0, -1);
-	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, dims.x, dims.y, false, PHYSICS_RB_TYPE::PLAYER);
+	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE * 1.5, false, 1, main_character_t::tex_handle);
+	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8, GAME_GRID_SIZE * 1.6, false, PHYSICS_RB_TYPE::PLAYER, true, false);
 	return mc;
 }
 
@@ -45,6 +74,8 @@ void delete_mc(main_character_t& mc) {
 
 extern bool level_finished;
 void main_character_t::update(input::user_input_t& user_input) {
+
+	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));
 
 	bool prev_dead = dead;
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER);
@@ -103,7 +134,7 @@ void main_character_t::update(input::user_input_t& user_input) {
 
     // jump
     bool jump_btn_pressed = user_input.w_pressed;
-    bool character_falling = rb.vel.y <= 0;
+
 	if (jump_btn_pressed) {
 		if (grounded || num_jumps_since_grounded <= 1) {
 			rb.vel.y = 2 * vel;
@@ -117,12 +148,21 @@ void main_character_t::update(input::user_input_t& user_input) {
 
 	if (left_move_pressed) {
 		rb.vel.x = -vel;
+		set_state_machine_anim(mc_statemachine_handle, "character_running");
 	}
 	else if (right_move_pressed) {
 		rb.vel.x = vel;
+		set_state_machine_anim(mc_statemachine_handle, "character_running");
 	}
 	else {
 		rb.vel.x = 0;
+		set_state_machine_anim(mc_statemachine_handle, "character_idle");
+	}
+
+	if (rb.vel.y > 0) {
+		set_state_machine_anim(mc_statemachine_handle, "character_jump_up");
+	} else if (rb.vel.y < 0) {
+		set_state_machine_anim(mc_statemachine_handle, "character_jump_down");
 	}
 
 }
@@ -140,14 +180,7 @@ void init_ground_block_data() {
 	ground_block_t::left_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_11.png", 0);
 }
 
-struct pair_hash {
-    inline std::size_t operator()(const std::pair<int,int> & v) const {
-        return v.first*31+v.second;
-    }
-};
-
-static std::unordered_set<std::pair<int, int>, pair_hash> created_positions;
-ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot) {
+void create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot) {
 	ground_block_t block;
 	block.transform_handle = create_transform(pos, scale, rot);
 	glm::vec3 color = ground_block_t::BLOCK_COLOR;
@@ -168,7 +201,8 @@ ground_block_t create_ground_block(const glm::vec3& pos, const glm::vec3& scale,
 	created_positions.insert(std::pair<int, int>(pos.x / GAME_GRID_SIZE, pos.y / GAME_GRID_SIZE));
 
 	block.rigidbody_handle = create_rigidbody(block.transform_handle, false, ground_block_t::WIDTH, ground_block_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND, true, false);
-	return block;
+	ground_blocks.push_back(block);
+	// return block;
 }
 
 const glm::vec3 goomba_t::GOOMBA_COLOR = glm::vec3(0.588f, 0.294f, 0.f);
@@ -180,14 +214,23 @@ void init_goomba_data() {
 
 void create_goomba(const glm::vec3& pos) {
 	goomba_t goomba;
+	static int running_cnt = 0;
+	goomba.handle = running_cnt;
+	running_cnt++;
 	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
-	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT, false, 1.f, goomba_t::tex_handle);
+	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT / 2.f, false, 1.f, goomba_t::tex_handle);
 	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
+	char sm_name[64]{};
+	sprintf(sm_name, "goomba_%i", goomba.handle);
+	goomba.statemachine_handle = create_state_machine("C:\\Sarthak\\projects\\game\\resources\\art\\enemy1", sm_name, "enemy1_idle");
 	goombas.push_back(goomba);
 }
 
 void update_goomba(goomba_t& goomba) {
+
+	set_quad_texture(goomba.rec_render_handle, get_tex_handle_for_statemachine(goomba.statemachine_handle));
+
 	transform_t* transform_ptr = get_transform(goomba.transform_handle);
 	assert(transform_ptr);
 
@@ -230,6 +273,14 @@ void create_pipe(glm::vec3 bottom_pos) {
 	pipe.rigidbody_handle = create_rigidbody(pipe.transform_handle, false, pipe_t::WIDTH, pipe_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND);
 }
 
+int brick_t::unbroken_tex_handle = -1;
+int brick_t::broken_tex_handle = -1;
+
+void init_brick_data() {
+	brick_t::unbroken_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\brick\\unbroken.png", 0);
+	brick_t::broken_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\brick\\broken.png", 0);
+}
+
 const glm::vec3 brick_t::BRICK_COLOR = glm::vec3(149.f, 52.f, 28.f) / 255.f;
 void create_brick(glm::vec3 pos) {
 	static int i = 0;
@@ -238,8 +289,8 @@ void create_brick(glm::vec3 pos) {
 	i++;
 	brick.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
 	glm::vec3 color = brick_t::BRICK_COLOR;
-	brick.rec_render_handle = create_quad_render(brick.transform_handle, color, brick_t::WIDTH, brick_t::HEIGHT, false, 0.f, -1);
-	brick.rigidbody_handle = create_rigidbody(brick.transform_handle, false, brick_t::WIDTH, brick_t::HEIGHT, true, PHYSICS_RB_TYPE::BRICK);
+	brick.rec_render_handle = create_quad_render(brick.transform_handle, color, brick_t::WIDTH, brick_t::HEIGHT, false, 1.f, brick_t::unbroken_tex_handle);
+	brick.rigidbody_handle = create_rigidbody(brick.transform_handle, false, brick_t::WIDTH, brick_t::HEIGHT, true, PHYSICS_RB_TYPE::BRICK, true, false);
 	bricks.push_back(brick);
 }
 
@@ -254,6 +305,7 @@ void update_brick(brick_t& brick) {
 				create_ice_powerup(t->position);
 				// delete_brick(brick);
 				brick.created_powerup = true;
+				set_quad_texture(brick.rec_render_handle, brick_t::broken_tex_handle);
 			}
 		}
 	}
