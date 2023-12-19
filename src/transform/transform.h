@@ -7,6 +7,7 @@ struct transform_t {
 	glm::vec3 position = glm::vec3(0);
 	glm::vec3 scale = glm::vec3(1);
 	float rotation_deg = 0;
+	float y_deg = 0;
     int handle = -1;
 
 	float last_delta_x = 0;

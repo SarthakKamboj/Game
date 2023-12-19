@@ -13,6 +13,7 @@
 */
 void gos_update();
 
+struct application_t;
 struct main_character_t {
 	// create transform first
 	int transform_handle = -1;
@@ -30,7 +31,7 @@ struct main_character_t {
 	int num_jumps_since_grounded = 0;
 	bool dead = false;
 
-	void update(input::user_input_t& user_input);
+	void update(application_t& app, input::user_input_t& user_input);
 };
 
 void init_mc_data();

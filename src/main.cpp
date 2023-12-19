@@ -35,11 +35,12 @@ int main(int argc, char *argv[])
 		world::update(app);
 		render(app);
 
-		if (level_finished) {
-			level_finished = false;
+		if (app.scene_manager.queue_level_load) {
+			app.scene_manager.queue_level_load = false;
 			unload_level(app);
 			clear_debug_pts();
-			load_level0(app);
+			load_level(app, app.scene_manager.level_to_load);
+			app.scene_manager.level_to_load = -1;
 		}
 
 		utils::end_timer(frame_timer);

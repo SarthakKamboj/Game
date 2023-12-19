@@ -22,7 +22,7 @@ namespace world {
         update_image_anim_players();
 
         // update_player(app.main_character);
-        app.main_character.update(input_state);
+        app.main_character.update(app, input_state);
         gos_update();
         app.camera.update(input_state, app.main_character);
     }

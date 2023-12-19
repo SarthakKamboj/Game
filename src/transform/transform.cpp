@@ -24,6 +24,8 @@ glm::mat4 get_model_matrix(transform_t& transform) {
     */
 	model = glm::translate(model, transform.position);
 	model = glm::rotate(model, glm::radians(transform.rotation_deg), glm::vec3(0.f, 0.f, 1.0f));
+	model = glm::rotate(model, glm::radians(transform.y_deg), glm::vec3(0.f, 1.f, .0f));
+	// model = glm::rotate(model, glm::radians(180.f), glm::vec3(0.f, 1.f, .0f));
 	const glm::vec3& scale = transform.scale;
 	model = glm::scale(model, glm::vec3(scale.x, scale.y, 1.0f));
 	return model;

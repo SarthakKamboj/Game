@@ -371,17 +371,40 @@ void read_entities(FILE* file) {
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "PlayerStart") == 0) {
 			assert(*key_val.val == '[');
-			glm::vec2 player_pos = read_entity_data(file);
-			// x_pos = player_pos.x / LEVEL_MAP_GRID_SIZE;
-			// y_pos = player_pos.y / LEVEL_MAP_GRID_SIZE;
+			player_pos = read_entity_data(file);
 		}
 		if (strcmp(key_val.key, "FinalFlag") == 0) {
 			assert(*key_val.val == '[');
 			final_flag_pos = read_entity_data(file);
-			// glm::vec3 final_flag_pos(flag_pos.x / LEVEL_MAP_GRID_SIZE, flag_pos.y / LEVEL_MAP_GRID_SIZE, 0);
-			// create_final_flag(final_flag_pos);
 		}
 	}	
+}
+
+void skip_over_section(FILE* file) {
+	int opened_braces = 1;
+	while (!feof(file)) {
+		char line[128]{};
+		fgets(line, sizeof(line), file);
+		clean_line(line);		
+
+		if (strstr(line, "{") != NULL) {
+			opened_braces++;
+		}
+		if (strstr(line, "}") != NULL) {
+			opened_braces--;
+		}
+
+		if (strstr(line, "[") != NULL) {
+			opened_braces++;
+		}
+		if (strstr(line, "]") != NULL) {
+			opened_braces--;
+		}
+
+		if (opened_braces == 0) {
+			return;
+		}
+	}
 }
 
 /// <summary>
@@ -408,13 +431,15 @@ void recursive_section_traverse(FILE* file) {
 		// if (key_val.key == NULL) {
 		// 	key_val_t key_val = separate_key_val(line);
 		// }
-		if (key_val.key && strcmp(key_val.key, "customFields") == 0) {
+		if (strcmp(key_val.val, "{}") == 0 ||  strcmp(key_val.val, "[]") == 0) continue;
+		if (key_val.key && strcmp(key_val.key, "customFields") == 0 && strcmp(key_val.val, "{}") != 0) {
 			assert(*key_val.val == '{');
 			read_color_map_info(file);
-		}
-		if (key_val.key && strcmp(key_val.key, "entities") == 0) {
+		} else if (key_val.key && strcmp(key_val.key, "entities") == 0) {
 			assert(*key_val.val == '{');
 			read_entities(file);
+		} else if (strcmp(key_val.val, "{") == 0 || strcmp(key_val.val, "[") == 0) {
+			skip_over_section(file);
 		}
 	}
 }
@@ -482,9 +507,6 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 					else if (strcmp(color_conversions[i].m_item_name, "Brick") == 0) {
 						create_brick(world_pos);
 					}
-					// else if (strcmp(color_conversions[i].m_item_name, "FinalFlag") == 0) {
-					// 	create_final_flag(world_pos);
-					// }
 				}
 			}
 		}
@@ -502,10 +524,15 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	create_final_flag(glm::vec3(flag_level_col*GAME_GRID_SIZE, flag_level_row*GAME_GRID_SIZE, 0));
 }
 
-void load_level0(application_t& app) {
-	const char* json_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/data.json";
-	const char* img_file = "C:/Sarthak/projects/game/resources/levels/level1/simplified/Level_0/_composite.png";
+void load_level(application_t& app, int level_num) {
+	assert(level_num > 0);
+	level_num = std::min(std::max(1, level_num), 4);
+	char json_file[512]{};
+	char img_file[512]{};
+	sprintf(json_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/data.json", level_num);
+	sprintf(img_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/_composite.png", level_num);
     load_level(app, json_file, img_file);
+	app.scene_manager.cur_level = level_num;
 }
 
 void init(application_t& app) {
@@ -517,5 +544,5 @@ void init(application_t& app) {
 	init_final_flag_data();
 	init_goomba_data();
 	init_ground_block_data();
-	load_level0(app);
+	load_level(app, 1);
 }

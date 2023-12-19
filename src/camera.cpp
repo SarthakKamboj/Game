@@ -21,7 +21,6 @@ void camera_t::update(input::user_input_t& user_input, main_character_t& main_ch
 	transform_t* char_transform = get_transform(main_char.transform_handle);
 	assert(char_transform);
 	float normalized_player_pos_x = char_transform->position.x - pos.x;
-	// glm::vec3 normalized_player_pos =  - pos;
 	const float left_boundary = WINDOW_WIDTH * 1.f / 4.f;
 	const float right_boundary = WINDOW_WIDTH * 3.f / 4.f;
 	if (normalized_player_pos_x > right_boundary) {

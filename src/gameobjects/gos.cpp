@@ -18,6 +18,7 @@ struct pair_hash {
  * @brief Store all the goombas in the world and all the turning points
 */
 std::vector<goomba_t> goombas;
+std::vector<pipe_t> pipes;
 std::vector<goomba_turn_pt_t> goomba_turn_pts;
 std::vector<brick_t> bricks;
 std::vector<coin_t> coins;
@@ -47,6 +48,13 @@ void unload_level(application_t& app) {
 	ground_blocks.clear();
 	created_positions.clear();
 
+	for (int i = 0; i < pipes.size(); i++) {
+		delete_quad_render(pipes[i].rec_render_handle);
+		delete_transform(pipes[i].transform_handle);
+		delete_rigidbody(pipes[i].rigidbody_handle);
+	}
+	pipes.clear();
+
 	delete_mc(app.main_character);
 }
 
@@ -73,7 +81,7 @@ void delete_mc(main_character_t& mc) {
 }
 
 extern bool level_finished;
-void main_character_t::update(input::user_input_t& user_input) {
+void main_character_t::update(application_t& app, input::user_input_t& user_input) {
 
 	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));
 
@@ -88,8 +96,8 @@ void main_character_t::update(input::user_input_t& user_input) {
 	for (general_collision_info_t& col_info : col_infos) {
 
 		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
-			std::cout << "game over" << std::endl;
-			level_finished = true;
+			app.scene_manager.queue_level_load = true;
+			app.scene_manager.level_to_load = app.scene_manager.cur_level + 1;
 			continue;
 		}
 
@@ -124,7 +132,9 @@ void main_character_t::update(input::user_input_t& user_input) {
 	if (dead) {
 		transform_t* t = get_transform(rb.transform_handle);
 		if (t->position.y <= -750.f) {
-			level_finished = true;
+			// level_finished = true;
+			app.scene_manager.level_to_load = app.scene_manager.cur_level;
+			app.scene_manager.queue_level_load = true;
 		}
 		return;
 	}
@@ -146,13 +156,16 @@ void main_character_t::update(input::user_input_t& user_input) {
     bool left_move_pressed = user_input.a_down;
     bool right_move_pressed = user_input.d_down;
 
+	transform_t* t = get_transform(rb.transform_handle);
 	if (left_move_pressed) {
 		rb.vel.x = -vel;
 		set_state_machine_anim(mc_statemachine_handle, "character_running");
+		t->y_deg = 180;
 	}
 	else if (right_move_pressed) {
 		rb.vel.x = vel;
 		set_state_machine_anim(mc_statemachine_handle, "character_running");
+		t->y_deg = 0;
 	}
 	else {
 		rb.vel.x = 0;
@@ -238,6 +251,11 @@ void update_goomba(goomba_t& goomba) {
 		glm::vec2 diff_vec = glm::vec2(turn_pt.x, turn_pt.y) - glm::vec2(transform_ptr->position.x, transform_ptr->position.y);
 		if (glm::dot(diff_vec, diff_vec) <= 1.f) {
 			goomba.move_speed *= -1.f;
+			if (goomba.move_speed > 0) {
+				transform_ptr->y_deg = 0;
+			} else {
+				transform_ptr->y_deg = 180.f;
+			}
 		}
 	}
 
@@ -271,6 +289,7 @@ void create_pipe(glm::vec3 bottom_pos) {
 	glm::vec3 color = pipe_t::PIPE_COLOR;
 	pipe.rec_render_handle = create_quad_render(pipe.transform_handle, color, pipe_t::WIDTH, pipe_t::HEIGHT, false, 0.f, -1);
 	pipe.rigidbody_handle = create_rigidbody(pipe.transform_handle, false, pipe_t::WIDTH, pipe_t::HEIGHT, true, PHYSICS_RB_TYPE::GROUND);
+	pipes.push_back(pipe);
 }
 
 int brick_t::unbroken_tex_handle = -1;
