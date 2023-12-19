@@ -21,7 +21,7 @@ struct transform_t {
 /// <param name="scale"></param>
 /// <param name="rot_deg">Rotation in degrees</param>
 /// <returns>The handle associated with the created transform</returns>
-int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg);
+int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg, float y_deg = 0.f);
 
 /// <summary>
 /// Creates the model matrix associated with a particular position, scale, and rotation

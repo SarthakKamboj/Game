@@ -10,6 +10,8 @@ struct scene_manager_t {
 	int level_to_load = -1;
 };
 
+void scene_manager_load_level(scene_manager_t& sm, int level_num);
+
 /// <summary>
 /// Holds application (global) level info
 /// </summary>

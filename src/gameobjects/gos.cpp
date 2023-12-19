@@ -96,8 +96,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	for (general_collision_info_t& col_info : col_infos) {
 
 		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
-			app.scene_manager.queue_level_load = true;
-			app.scene_manager.level_to_load = app.scene_manager.cur_level + 1;
+			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
 			continue;
 		}
 
@@ -132,9 +131,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	if (dead) {
 		transform_t* t = get_transform(rb.transform_handle);
 		if (t->position.y <= -750.f) {
-			// level_finished = true;
-			app.scene_manager.level_to_load = app.scene_manager.cur_level;
-			app.scene_manager.queue_level_load = true;
+			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level);
 		}
 		return;
 	}
@@ -230,7 +227,7 @@ void create_goomba(const glm::vec3& pos) {
 	static int running_cnt = 0;
 	goomba.handle = running_cnt;
 	running_cnt++;
-	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f);
+	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f, 180.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
 	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT / 2.f, false, 1.f, goomba_t::tex_handle);
 	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);

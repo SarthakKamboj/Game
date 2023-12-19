@@ -546,3 +546,8 @@ void init(application_t& app) {
 	init_ground_block_data();
 	load_level(app, 1);
 }
+
+void scene_manager_load_level(scene_manager_t& sm, int level_num) {
+	sm.queue_level_load = true;
+	sm.level_to_load = level_num;
+}

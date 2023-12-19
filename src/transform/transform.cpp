@@ -3,12 +3,13 @@
 
 static std::vector<transform_t> transforms;
 
-int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg) {
+int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg, float y_deg) {
     static int running_count = 0;
 	transform_t transform;
 	transform.position = position;
 	transform.scale = scale;
 	transform.rotation_deg = rot_deg;
+    transform.y_deg = y_deg;
     transform.handle = running_count;
 	transforms.push_back(transform);
     running_count++;
