@@ -14,6 +14,31 @@
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
 
+void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
+{
+    switch(debugErrorType)
+    {
+        case GL_DEBUG_TYPE_ERROR:
+        {
+            printf("GL Type error: %s\nGL error id: %i\n", message, errorID);
+        }break;
+
+        case GL_DEBUG_TYPE_DEPRECATED_BEHAVIOR:
+        {
+            printf("GL deprecated gl function usage error: %s\nGL error id: %i\n", message, errorID);
+        }break;
+
+        case GL_DEBUG_TYPE_UNDEFINED_BEHAVIOR:
+        {
+            printf("GL undefined behavior error: %s\nGL error id: %i\n", message, errorID);
+        }break;
+		default:
+		{
+			printf("opengl error");
+		}
+    };
+};
+
 /// <summary>
 /// This function initalizes SDL to OpenGL Version 4.1, 24-bit depth buffer, height of WINDOW_HEIGHT, 
 /// width of WINDOW_WIDTH, blending enabled, and mirrored texture wrapping.
@@ -58,6 +83,10 @@ SDL_Window* init_sdl() {
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+	// glEnable(GL_DEBUG_OUTPUT);
+	// glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+	// glDebugMessageCallback( MyOpenGLErrorCallbackFunc, 0 );
 
 	return window;
 }
@@ -539,6 +568,8 @@ void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
 	init_quad_data();	
+	// make sure this is first so that backgrond quads get created first and are always rendered in the back
+	init_parallax_bck_data();
 	init_brick_data();
 	init_mc_data();
 	init_final_flag_data();

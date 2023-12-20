@@ -194,5 +194,14 @@ void init_final_flag_data();
 void create_final_flag(glm::vec3 pos);
 void delete_final_flag();
 
+struct parallax_bck {
+	static int transform_handles[2];
+	static int rec_render_handles[2];
+	static int bck_texture;
+};
+void init_parallax_bck_data();
+struct camera_t;
+void update_parallax_bcks(camera_t& camera);
+
 struct application_t;
 void unload_level(application_t& app);

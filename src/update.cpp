@@ -7,6 +7,7 @@
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
 #include "animation/animation.h"
+#include <iostream>
 
 #include "test_config.h"
 
@@ -17,6 +18,9 @@ namespace world {
     
 
     void update(application_t& app) {
+
+        update_parallax_bcks(app.camera);
+
         update_rigidbodies();
 
         update_image_anim_players();

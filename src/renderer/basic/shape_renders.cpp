@@ -3,6 +3,7 @@
 #include "../renderer.h"
 #include "transform/transform.h"
 #include <vector>
+#include "constants.h"
 
 opengl_object_data quad_render_t::obj_data{};
 std::vector<glm::vec3> debug_pts;
@@ -90,8 +91,13 @@ void draw_quad_render(const quad_render_t& quad) {
     // get model matrix and color and set them in the shader
 	shader_set_mat4(quad_render_t::obj_data.shader, "model", model_matrix);
 	shader_set_vec3(quad_render_t::obj_data.shader, "color", quad.color);
+#if _TESTING	
+	shader_set_float(quad_render_t::obj_data.shader, "tex_influence", 0);
+    unbind_texture();
+#else
 	shader_set_float(quad_render_t::obj_data.shader, "tex_influence", quad.tex_influence);
     bind_texture(quad.tex_handle);
+#endif
 	if (quad.wireframe_mode) {
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 	}

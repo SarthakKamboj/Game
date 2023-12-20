@@ -4,11 +4,16 @@
 #include "utils/io.h"
 #include <vector>
 #include "glad/glad.h"
+#include "constants.h"
 
 static std::vector<texture_t> textures;
 
 // TEXTURE
 int create_texture(const char* path, int tex_slot) {
+#if _TESTING
+	return -1;
+#endif
+
     static int running_cnt = 0;
 
     for (int i = 0; i < textures.size(); i++) {

@@ -7,6 +7,7 @@
 #include "app.h"
 #include "animation/animation.h"
 #include "renderer/opengl/resources.h"
+#include "camera.h"
 
 struct pair_hash {
     inline std::size_t operator()(const std::pair<int,int> & v) const {
@@ -443,6 +444,38 @@ void delete_final_flag() {
 	delete_transform(final_flag.transform_handle);
 	delete_quad_render(final_flag.rec_render_handle);
 	delete_rigidbody(final_flag.rigidbody_handle);
+}
+
+int parallax_bck::bck_texture = -1;
+int parallax_bck::transform_handles[2] = {-1, -1};
+int parallax_bck::rec_render_handles[2] = {-1, -1};
+
+void init_parallax_bck_data() {
+	int ground_height = -10;
+	parallax_bck::transform_handles[0] = create_transform(glm::vec3(WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
+	parallax_bck::transform_handles[1] = create_transform(glm::vec3(WINDOW_WIDTH + WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
+	parallax_bck::bck_texture = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\background\\background.png", 0);
+	parallax_bck::rec_render_handles[0] = create_quad_render(parallax_bck::transform_handles[0], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
+	parallax_bck::rec_render_handles[1] = create_quad_render(parallax_bck::transform_handles[1], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
+}
+
+void update_parallax_bcks(camera_t& camera) {
+	int cam_x = camera.pos.x;
+	int window_width_offset = cam_x / WINDOW_WIDTH;
+
+	transform_t* even_bck = get_transform(parallax_bck::transform_handles[0]);
+	if (window_width_offset % 2 == 0) {
+		even_bck->position.x = (window_width_offset * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+	} else {
+		even_bck->position.x = ((window_width_offset + 1) * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+	}
+
+	transform_t* odd_bck = get_transform(parallax_bck::transform_handles[1]);
+	if (window_width_offset % 2 == 1) {
+		odd_bck->position.x = (window_width_offset * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+	} else {
+		odd_bck->position.x = ((window_width_offset + 1) * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+	}
 }
 
 void gos_update() {

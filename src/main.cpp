@@ -8,6 +8,7 @@
 #include "input/input.h"
 #include "physics/physics.h"
 #include "animation/animation.h"
+#include "SDL.h"
 
 input::user_input_t input_state;
 
@@ -19,43 +20,64 @@ int main(int argc, char *argv[])
 
 	init(app);	
 
+
 	bool paused = false;
 
 	while (!input_state.quit)
     {
-		utils::game_timer_t frame_timer;
-		utils::start_timer(frame_timer);
+		try {
+			utils::game_timer_t frame_timer;
+			utils::start_timer(frame_timer);
 
-		input::process_input(input_state);
+			input::process_input(input_state);
+			
+			// std::cout << "finished input" << std::endl;
 
-		if (input_state.p_pressed) {
-			paused = !paused;
-		}
-
-		world::update(app);
-		render(app);
-
-		if (app.scene_manager.queue_level_load) {
-			app.scene_manager.queue_level_load = false;
-			unload_level(app);
-			clear_debug_pts();
-			load_level(app, app.scene_manager.level_to_load);
-			app.scene_manager.level_to_load = -1;
-		}
-
-		utils::end_timer(frame_timer);
-		if (!paused) {
-			platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
-			static unsigned int i = 0;
-			i++;
-			if (i % 1000000) {
-				// std::cout << "fps: " << (1 / frame_timer.elapsed_time_sec) << std::endl;
+			if (input_state.p_pressed) {
+				paused = !paused;
 			}
-		}
-		else {
-			platformer::time_t::delta_time = 0;
-		}
-		platformer::time_t::cur_time += platformer::time_t::delta_time;	
+
+			world::update(app);
+			render(app);
+
+			if (app.scene_manager.queue_level_load) {
+				app.scene_manager.queue_level_load = false;
+				unload_level(app);
+				clear_debug_pts();
+				load_level(app, app.scene_manager.level_to_load);
+				app.scene_manager.level_to_load = -1;
+			}
+
+			utils::end_timer(frame_timer);
+			if (!paused) {
+				platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
+				static unsigned int i = 0;
+				i++;
+				if (i % 1000000) {
+#if 0
+					GLenum error = glGetError();
+					if (error != GL_NO_ERROR) {
+						// Log or print the OpenGL error
+						int a = 10;
+					}
+#endif
+				}
+			}
+			else {
+				platformer::time_t::delta_time = 0;
+			}
+			platformer::time_t::cur_time += platformer::time_t::delta_time;	
+
+			const char* sdlError = SDL_GetError();
+			if (sdlError && sdlError[0] != '\0') {
+				std::cerr << "SDL Error: " << sdlError << std::endl;
+			}	
+			// std::cout << "finished frame" << std::endl;
+		} catch (const std::exception& e) {
+            printf("error in world update");
+            std::cout << e.what();
+			exit(-1);
+        }
     }
 
 	return EXIT_SUCCESS;
