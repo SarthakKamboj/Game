@@ -11,21 +11,27 @@ void render(application_t& app) {
 
 	// main menu
 	if (app.scene_manager.cur_level == 0) {
-		int panel_handle = create_panel(WINDOW_WIDTH, WINDOW_HEIGHT);
 		style_t style;
 		style.center_x = true;
-		text_t t1 = create_text("Platformer Game", style);
+		style.center_y = true;
+		style.content_spacing = 20;
+		int panel_handle = create_panel(style);
 		style.center_x = false;
+		style.center_y = false;
+		style.text_size = TEXT_SIZE::TITLE;
+		text_t t1 = create_text("Platformer Game", style);
+		style.text_size = TEXT_SIZE::REGULAR;
+
 		text_t t2 = create_text("Play", style);
-		style.center_x = true;
-		text_t t3 = create_text("Quit", style);
+		text_t t3 = create_text("Settings", style);
+		text_t t4 = create_text("Quit", style);
+
 		add_text_to_panel(panel_handle, t1);
 		add_text_to_panel(panel_handle, t2);
 		add_text_to_panel(panel_handle, t3);
+		add_text_to_panel(panel_handle, t4);
+
 		render_ui();
-		// draw_text("Platformer Game", glm::vec2(250, (WINDOW_HEIGHT/2) + 150));
-		// draw_text("Play", glm::vec2(250, (WINDOW_HEIGHT/2) + 100));
-		// draw_text("Quit", glm::vec2(250, (WINDOW_HEIGHT/2) + 50));
 	} else {
 		// regular stuff
 		draw_quad_renders(app);

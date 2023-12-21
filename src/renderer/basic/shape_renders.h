@@ -61,23 +61,3 @@ void draw_quad_renders(application_t& app);
  * @param quad_handle 
 */
 void delete_quad_render(int quad_handle);
-
-struct font_char_t {
-	glm::vec2 bearing = glm::vec2(0);
-	float width = 0;
-	float height = 0;
-	char c = 0;
-	int texture_handle = -1;
-	float advance = -1;
-
-	static opengl_object_data ui_opengl_data;
-};
-void init_fonts();
-
-struct text_dim_t {
-	float width = 0;
-	float height = 0;
-	float height_below_baseline = 0;
-};
-text_dim_t get_text_dimensions(const char* text);
-void draw_text(const char* text, glm::vec2 starting_pos);

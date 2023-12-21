@@ -14,6 +14,7 @@
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
 #include "renderer/basic/shape_renders.h"
+#include "ui/ui.h"
 
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
