@@ -4,6 +4,7 @@
 #include "gameobjects/gos.h"
 #include "camera.h"
 
+// level 0 is the main menu
 struct scene_manager_t {
 	bool queue_level_load = false;
 	int cur_level = 0;

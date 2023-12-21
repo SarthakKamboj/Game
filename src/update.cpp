@@ -19,6 +19,8 @@ namespace world {
 
     void update(application_t& app) {
 
+        if (app.scene_manager.cur_level == 0) return;
+
         update_parallax_bcks(app.camera);
 
         update_rigidbodies();

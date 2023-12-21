@@ -556,7 +556,14 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 }
 
 void load_level(application_t& app, int level_num) {
-	assert(level_num > 0);
+	app.scene_manager.queue_level_load = false; 
+	app.scene_manager.level_to_load = -1;
+
+	if (level_num == 0) {
+		app.scene_manager.cur_level = 0;		
+		return;
+	}
+
 	level_num = std::min(std::max(1, level_num), 4);
 	char json_file[512]{};
 	char img_file[512]{};
@@ -579,7 +586,7 @@ void init(application_t& app) {
 	init_final_flag_data();
 	init_goomba_data();
 	init_ground_block_data();
-	load_level(app, 1);
+	load_level(app, 0);
 }
 
 void scene_manager_load_level(scene_manager_t& sm, int level_num) {

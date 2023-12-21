@@ -20,7 +20,6 @@ int main(int argc, char *argv[])
 
 	init(app);	
 
-
 	bool paused = false;
 
 	while (!input_state.quit)
@@ -41,11 +40,9 @@ int main(int argc, char *argv[])
 			render(app);
 
 			if (app.scene_manager.queue_level_load) {
-				app.scene_manager.queue_level_load = false;
 				unload_level(app);
 				clear_debug_pts();
 				load_level(app, app.scene_manager.level_to_load);
-				app.scene_manager.level_to_load = -1;
 			}
 
 			utils::end_timer(frame_timer);
@@ -53,15 +50,6 @@ int main(int argc, char *argv[])
 				platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
 				static unsigned int i = 0;
 				i++;
-				if (i % 1000000) {
-#if 0
-					GLenum error = glGetError();
-					if (error != GL_NO_ERROR) {
-						// Log or print the OpenGL error
-						int a = 10;
-					}
-#endif
-				}
 			}
 			else {
 				platformer::time_t::delta_time = 0;
