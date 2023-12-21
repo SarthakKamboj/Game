@@ -11,6 +11,11 @@ struct vertex_t {
 	glm::vec2 tex_coord = glm::vec2(0, 0);
 };
 
+struct vertex_pos_tex_t {
+	glm::vec3 position = glm::vec3(0, 0, 0);
+	glm::vec2 tex_coord = glm::vec2(0, 0);
+};
+
 /// <summary>
 /// Creates a vertex with position, color, and texture coordinate
 /// </summary>

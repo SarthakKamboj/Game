@@ -68,6 +68,8 @@ struct vbo_t {
 /// <returns>Create VBO</returns>
 vbo_t create_vbo(const float* vertices, const int data_size);
 
+vbo_t create_dyn_vbo(const int data_size);
+
 /// <summary>
 /// Bind a particular VBO to OpenGL state
 /// </summary>

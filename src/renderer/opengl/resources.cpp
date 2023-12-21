@@ -7,6 +7,7 @@
 #include "constants.h"
 
 static std::vector<texture_t> textures;
+static int tex_running_cnt = 0;
 
 // TEXTURE
 int create_texture(const char* path, int tex_slot) {
@@ -14,7 +15,6 @@ int create_texture(const char* path, int tex_slot) {
 	return -1;
 #endif
 
-    static int running_cnt = 0;
 
     for (int i = 0; i < textures.size(); i++) {
         if (strcmp(path, textures[i].path) == 0) {
@@ -42,10 +42,38 @@ int create_texture(const char* path, int tex_slot) {
 	glBindTexture(GL_TEXTURE_2D, 0);
 
 	stbi_image_free(data);
-    texture.handle = running_cnt;
-    running_cnt++;
+    texture.handle = tex_running_cnt;
+    tex_running_cnt++;
 
     textures.push_back(texture);
+
+	return texture.handle;
+}
+
+int create_texture(unsigned char* buffer, int width, int height, int tex_slot) {
+	texture_t texture;
+	texture.handle = tex_running_cnt;
+	tex_running_cnt++;
+
+	glGenTextures(1, &texture.id);
+	glBindTexture(GL_TEXTURE_2D, texture.id);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RED, width, height, 0, GL_RED, GL_UNSIGNED_BYTE, (void*)buffer);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glBindTexture(GL_TEXTURE_2D, 0);
+
+	texture.tex_slot = tex_slot;
+
+	GLenum error = glGetError();
+	if (error != GL_NO_ERROR) {
+		// Log or print the OpenGL error
+		std::cout << "ran into opengl error" << std::endl;
+	}
+
+	textures.push_back(texture);
 
 	return texture.handle;
 }
@@ -55,7 +83,7 @@ void bind_texture(const texture_t& texture) {
 	glBindTexture(GL_TEXTURE_2D, texture.id);
 }
 
-void bind_texture(int handle) {
+void bind_texture(int handle, bool required_bind) {
     for (int i = 0; i < textures.size(); i++) {
         if (textures[i].handle == handle) {
             glActiveTexture(GL_TEXTURE0 + textures[i].tex_slot);
@@ -63,6 +91,11 @@ void bind_texture(int handle) {
             return;
         }
     }
+
+	if (required_bind) {
+		assert("could not find texture even though required bind was asserted");
+	}
+
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 

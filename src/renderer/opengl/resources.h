@@ -88,6 +88,8 @@ struct texture_t {
 /// <returns>The handle of the texture</returns>
 int create_texture(const char* path, int tex_slot);
 
+int create_texture(unsigned char* buffer, int width, int height, int tex_slot);
+
 /// <summary>
 /// Get the texture given the handle
 /// </summary>
@@ -105,7 +107,7 @@ void bind_texture(const texture_t& texture);
 /// Bind a texture
 /// </summary>
 /// <param name="handle">Handle of texture to bind</param>
-void bind_texture(int handle);
+void bind_texture(int handle, bool required_bind = false);
 
 /// <summary>
 /// Unbind the texture on what texture slot is currently active

@@ -319,7 +319,7 @@ void update_brick(brick_t& brick) {
 				transform_t* t = get_transform(brick.transform_handle);
 				assert(t);
 				// create_coin(t->position);
-				create_ice_powerup(t->position);
+				// create_ice_powerup(t->position);
 				// delete_brick(brick);
 				brick.created_powerup = true;
 				set_quad_texture(brick.rec_render_handle, brick_t::broken_tex_handle);

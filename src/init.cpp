@@ -13,6 +13,8 @@
 #include "stb/stb_image.h"
 #include "physics/physics.h"
 #include "gameobjects/gos.h"
+#include "renderer/basic/shape_renders.h"
+
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -564,10 +566,12 @@ void load_level(application_t& app, int level_num) {
 	app.scene_manager.cur_level = level_num;
 }
 
+
 void init(application_t& app) {
 	app.window = init_sdl();
     // initialize opengl data for a rectangle
 	init_quad_data();	
+	init_fonts();
 	// make sure this is first so that backgrond quads get created first and are always rendered in the back
 	init_parallax_bck_data();
 	init_brick_data();
