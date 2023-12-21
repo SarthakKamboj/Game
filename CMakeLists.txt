@@ -32,6 +32,7 @@ list(APPEND BASE_FILES
     src/transform/transform.cpp
     src/gameobjects/gos.cpp
     src/animation/animation.cpp
+    src/ui/ui.cpp
 )
 
 function(configure_test_cases)

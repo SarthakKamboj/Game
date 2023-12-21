@@ -197,6 +197,18 @@ void init_fonts() {
 	shader_set_int(data.shader, "char", 0);
 }
 
+text_dim_t get_text_dimensions(const char* text) {
+	text_dim_t running_dim;
+	for (int i = 0; i < strlen(text); i++) {
+		unsigned char c = text[i];	
+		font_char_t& fc = chars[c];
+		running_dim.width += fc.advance;
+		running_dim.height = fmax(running_dim.height, fc.height);
+		running_dim.height_below_baseline = fmax(fc.height - fc.bearing.y, running_dim. height_below_baseline);
+	}
+	return running_dim;
+}
+
 void draw_text(const char* text, glm::vec2 starting_pos) {
 	glm::vec3 color = glm::vec3(240,216,195);
 	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", color / glm::vec3(255.f));
