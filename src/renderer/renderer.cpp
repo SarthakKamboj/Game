@@ -11,7 +11,7 @@ void render(application_t& app) {
 
 	// main menu
 	if (app.scene_manager.cur_level == 0) {
-		int panel_handle = create_panel();
+		int panel_handle = create_panel(WINDOW_WIDTH, WINDOW_HEIGHT);
 		style_t style;
 		style.center_x = true;
 		text_t t1 = create_text("Platformer Game", style);
