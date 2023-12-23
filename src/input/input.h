@@ -21,7 +21,13 @@ namespace input {
         bool d_down = false;
 		bool p_down = false;
 
+        bool right_clicked = false;
+        bool left_clicked = false;
+
         bool quit = false;
+
+        int x_pos;
+        int y_pos;
     };
 
 	/// <summary>

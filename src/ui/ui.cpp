@@ -9,8 +9,47 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H  
 
-const float panel_t::WIDTH = WINDOW_WIDTH;
-const float panel_t::HEIGHT = WINDOW_HEIGHT;
+#include "input/input.h"
+
+extern input::user_input_t input_state;
+
+static int cur_widget_count = 0;
+
+static std::vector<int> widget_stack;
+static std::vector<widget_t> cur_frame_widgets;
+
+static std::vector<style_t> styles_stack;
+
+void start_of_frame() {
+    styles_stack.clear();
+    style_t default_style;
+    styles_stack.push_back(default_style);
+
+    cur_frame_widgets.clear();
+    widget_stack.clear();
+    cur_widget_count = 0;
+
+}
+
+void push_style(style_t& style) {
+    styles_stack.push_back(style);
+}
+
+void pop_style() {
+    assert(styles_stack.size() > 1);
+    styles_stack.pop_back();
+}
+
+void push_widget(int widget_handle) {
+    widget_stack.push_back(widget_handle);
+}
+
+void pop_widget() {
+    widget_stack.pop_back();
+}
+
+// const float panel_t::WIDTH = WINDOW_WIDTH;
+// const float panel_t::HEIGHT = WINDOW_HEIGHT;
 
 static font_mode_t font_modes[2] = {
     font_mode_t {
@@ -23,9 +62,10 @@ static font_mode_t font_modes[2] = {
     }
 };
 
-std::vector<panel_t> panels;
-static int panel_handle = 0;
+// std::vector<panel_t> panels;
+// static int panel_handle = 0;
 
+#if 0
 int create_panel(style_t& style) {
     panel_t panel;
     panel.handle = panel_handle;
@@ -34,58 +74,136 @@ int create_panel(style_t& style) {
     panels.push_back(panel);
     return panel.handle;
 }
+#endif
 
-text_t create_text(const char* text, style_t& style) {
-    text_t t;
-    memcpy(t.text, text, fmin(sizeof(t.text), strlen(text)));
-    t.styling = style;
-    return t;
-}
-
-void add_text_to_panel(int panel_handle, text_t& text) {
-    for (panel_t& panel : panels) {
-        if (panel.handle == panel_handle) {
-            panel.texts.push_back(text);
-        }
+void register_widget(widget_t& widget, bool push_onto_stack) {
+    widget.handle = cur_widget_count++;
+    if (widget_stack.size() > 0) widget.parent_widget_handle = widget_stack[widget_stack.size() - 1];
+    else widget.parent_widget_handle = -1;
+    if (widget.parent_widget_handle != -1) {
+        cur_frame_widgets[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
+    }
+    widget.style = styles_stack[styles_stack.size() - 1];
+    cur_frame_widgets.push_back(widget);
+    if (push_onto_stack) {
+        widget_stack.push_back(widget.handle);
     }
 }
 
-container_t create_container(style_t& style) {
-    container_t container;
-    container.styling = style;
-    return container;
+void create_panel(const char* panel_name) {
+    widget_t panel;
+    memcpy(panel.key, panel_name, strlen(panel_name)); 
+    panel.height = WINDOW_HEIGHT;
+    panel.width = WINDOW_WIDTH;
+    panel.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    register_widget(panel, true);
+}
+
+void end_panel() {
+    pop_widget();
+}
+
+void create_text(const char* text, TEXT_SIZE text_size) {
+    widget_t widget;
+    widget.text_based = true;
+    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), strlen(text)));
+    widget.text_info.text_size = text_size;
+    register_widget(widget);
+}
+
+// void add_text_to_panel(int panel_handle, text_t& text) {
+//     for (panel_t& panel : panels) {
+//         if (panel.handle == panel_handle) {
+//             panel.texts.push_back(text);
+//         }
+//     }
+// }
+
+// container_t create_container(style_t& style) {
+//     container_t container;
+//     container.styling = style;
+//     return container;
+// }
+
+struct helper_info_t {
+    int content_width = 0;
+    int content_height = 0;
+};
+
+helper_info_t autolayout_hierarchy_helper(int widget_handle, int left_x_pos, int top_y_pos) {
+    widget_t& widget = cur_frame_widgets[widget_handle];
+    if (widget.text_based) {
+        text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
+        widget.render_x = left_x_pos;
+        widget.render_y = top_y_pos;
+        widget.render_width = text_dim.width;
+        widget.render_height = text_dim.height;
+
+        helper_info_t helper_info;
+        helper_info.content_width = text_dim.width;
+        helper_info.content_height = text_dim.height;
+        return helper_info;
+    }
+
+    helper_info_t helper_info;
+    helper_info.content_width = widget.width;
+    helper_info.content_height = widget.height;
+
+    glm::vec2 running_pos(left_x_pos, top_y_pos);
+    for (int child_widget_handle : widget.children_widget_handles) {
+        helper_info_t child_helper_info = autolayout_hierarchy_helper(child_widget_handle, running_pos.x, running_pos.y);
+        running_pos.y -= child_helper_info.content_height;
+    }
+
+    return helper_info;
+}
+
+void autolayout_hierarchy() {
+    assert(widget_stack.size() == 0);
+    for (int i = 0; i < cur_frame_widgets.size(); i++) {
+        widget_t& cur_widget = cur_frame_widgets[i];
+        if (cur_widget.parent_widget_handle != -1) continue;
+        autolayout_hierarchy_helper(cur_widget.handle, 0, WINDOW_HEIGHT);
+    }
 }
 
 void render_ui() {
-    for (panel_t& panel : panels) {
-        float content_height = 0;
-        for (text_t& text : panel.texts) {
-            text_dim_t dim = get_text_dimensions(text.text, text.styling.text_size);
-            content_height += dim.height + panel.styling.content_spacing;
-        }
-        content_height -= panel.styling.content_spacing;
-
-        glm::vec2 prev_anchor_point(0, panel_t::HEIGHT);
-        if (panel.styling.center_y) {
-            prev_anchor_point.y -= panel_t::HEIGHT / 2;
-            prev_anchor_point.y += content_height / 2;
-        }
-
-        for (text_t& text : panel.texts) {
-            text_dim_t text_dim = get_text_dimensions(text.text, text.styling.text_size);
-            glm::vec2 cur_render_origin = prev_anchor_point - glm::vec2(0, text_dim.height);
-            if (panel.styling.center_x) {
-                cur_render_origin.x = (panel_t::WIDTH / 2) - (text_dim.width / 2);
-            }
-            draw_text(text.text, cur_render_origin, text.styling.text_size);
-            prev_anchor_point.y -= (text_dim.height + panel.styling.content_spacing);
+    
+    for (widget_t& widget : cur_frame_widgets) {
+        if (widget.text_based) {
+            draw_text(widget.text_info.text, glm::vec2(widget.render_x, widget.render_y), widget.text_info.text_size);
         }
     }
+    
+    // for (panel_t& panel : panels) {
+    //     float content_height = 0;
+    //     for (text_t& text : panel.texts) {
+    //         text_dim_t dim = get_text_dimensions(text.text, text.styling.text_size);
+    //         content_height += dim.height + (text.styling.margins.y * 2) + panel.styling.content_spacing;
+    //     }
+    //     content_height -= panel.styling.content_spacing;
+
+    //     glm::vec2 prev_anchor_point(0, panel_t::HEIGHT);
+    //     if (panel.styling.center_y) {
+    //         prev_anchor_point.y -= panel_t::HEIGHT / 2;
+    //         prev_anchor_point.y += content_height / 2;
+    //     }
+
+    //     for (text_t& text : panel.texts) {
+    //         text_dim_t text_dim = get_text_dimensions(text.text, text.styling.text_size);
+    //         glm::vec2 cur_render_origin = prev_anchor_point - glm::vec2(0, text_dim.height + text.styling.margins.y);
+    //         if (panel.styling.center_x) {
+    //             cur_render_origin.x = (panel_t::WIDTH / 2) - (text_dim.width / 2);
+    //         }
+    //         draw_text(text.text, cur_render_origin, text.styling.text_size);
+    //         prev_anchor_point.y -= (text_dim.height + panel.styling.content_spacing + (text.styling.margins.y * 2));
+    //     }
+    // }
 }
 
 void clear_ui() {
-    panels.clear();
-    panel_handle = 0;    
+    // panels.clear();
+    // panel_handle = 0;    
 }
 
 opengl_object_data font_char_t::ui_opengl_data{};
@@ -179,7 +297,8 @@ void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
 	glm::vec3 color = glm::vec3(240,216,195);
 	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", color / glm::vec3(255.f));
 	vertex_t updated_vertices[4];
-	glm::vec2 origin = starting_pos;
+    text_dim_t text_dim = get_text_dimensions(text, text_size);
+	glm::vec2 origin = starting_pos - glm::vec2(0, text_dim.height);
     for (font_mode_t& font_mode : font_modes) {
         if (font_mode.text_size == text_size) {
             for (int i = 0; i < strlen(text); i++) {

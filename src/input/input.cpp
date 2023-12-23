@@ -6,6 +6,9 @@
 namespace input {
 
 	void process_input(user_input_t& user_input) {
+
+		SDL_GetMouseState(&user_input.x_pos, &user_input.y_pos);
+
 		user_input.w_pressed = false;
 		user_input.a_pressed = false;
 		user_input.s_pressed = false;
@@ -13,6 +16,8 @@ namespace input {
 		user_input.p_pressed = false;
 		user_input.space_pressed = false;
 		user_input.quit = false;
+		user_input.left_clicked = false;
+		user_input.right_clicked = false;
 
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
@@ -20,6 +25,10 @@ namespace input {
 				case SDL_QUIT: {
 					user_input.quit = true;
 					break;
+				}
+				case SDL_MOUSEBUTTONUP: {
+					user_input.right_clicked = (event.button.button == SDL_BUTTON_RIGHT);
+					user_input.left_clicked = (event.button.button == SDL_BUTTON_LEFT);
 				}
 				case SDL_KEYUP: {
 					switch (event.key.keysym.sym) {

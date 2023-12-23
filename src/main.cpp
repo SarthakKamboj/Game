@@ -56,6 +56,10 @@ int main(int argc, char *argv[])
 			}
 			platformer::time_t::cur_time += platformer::time_t::delta_time;	
 
+			if (platformer::time_t::cur_time > 5) {
+				app.clicked = true;
+			}
+
 			const char* sdlError = SDL_GetError();
 			if (sdlError && sdlError[0] != '\0') {
 				std::cerr << "SDL Error: " << sdlError << std::endl;

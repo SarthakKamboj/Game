@@ -22,6 +22,7 @@ struct application_t {
 	main_character_t main_character;
 	camera_t camera;
 	scene_manager_t scene_manager;
+	bool clicked = false;
 };
 
 /// <summary>
