@@ -24,7 +24,8 @@ enum class TEXT_SIZE {
     TITLE, REGULAR
 };
 
-enum UI_PROPERTIES {
+enum class UI_PROPERTIES {
+    NONE = 0,
     CLICKABLE = 1<<0,
     HOVERABLE = 1<<1
 };
@@ -72,6 +73,7 @@ struct text_t {
     TEXT_SIZE text_size = TEXT_SIZE::REGULAR;
 };
 void create_text(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
+bool create_button(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
 
 struct widget_t {
     int handle = -1;
@@ -79,7 +81,7 @@ struct widget_t {
     bool text_based = false;
     text_t text_info;
 
-    WIDGET_SIZE widget_size = WIDGET_SIZE::NONE;
+    WIDGET_SIZE widget_size = WIDGET_SIZE::PIXEL_BASED;
     float width = -1.f;
     float height = -1.f;
 
@@ -88,6 +90,7 @@ struct widget_t {
 
     char key[256]{};
 
+    UI_PROPERTIES properties = UI_PROPERTIES::NONE;
     style_t style;
 
     // all specified in pixels with (render_x, render_y) using top left as the pt
@@ -97,7 +100,7 @@ struct widget_t {
     float render_height = -1.f;
 };
 
-void start_of_frame();
+void start_of_frame(bool ui_will_update = false);
 
 void push_style(style_t& style);
 void pop_style();
@@ -123,12 +126,13 @@ void pop_widget();
 void create_panel(const char* panel_name);
 void end_panel();
 
-void create_container(float width, float height);
+// void create_container(float width, float height);
+void create_container(float width, float height, WIDGET_SIZE widget_size);
 void end_container();
 // void add_text_to_panel(int panel_handle, text_t& text);
 
 int fresh_widget_handle();
-void register_widget(widget_t& widget, bool push_onto_stack = false);
+int register_widget(widget_t& widget, bool push_onto_stack = false);
 
 struct button_t {
     text_t text;

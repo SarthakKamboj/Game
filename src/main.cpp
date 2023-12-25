@@ -22,15 +22,15 @@ int main(int argc, char *argv[])
 
 	bool paused = false;
 
-	while (!input_state.quit)
+	while (app.running)
     {
 		try {
 			utils::game_timer_t frame_timer;
 			utils::start_timer(frame_timer);
 
 			input::process_input(input_state);
-			
-			// std::cout << "finished input" << std::endl;
+
+			app.running = !input_state.quit;
 
 			if (input_state.p_pressed) {
 				paused = !paused;
@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
 			if (sdlError && sdlError[0] != '\0') {
 				std::cerr << "SDL Error: " << sdlError << std::endl;
 			}	
-			// std::cout << "finished frame" << std::endl;
+
 		} catch (const std::exception& e) {
             printf("error in world update");
             std::cout << e.what();

@@ -16,7 +16,7 @@ extern input::user_input_t input_state;
 static int cur_widget_count = 0;
 
 static std::vector<int> widget_stack;
-static std::vector<widget_t> cur_frame_widgets;
+static std::vector<widget_t> widgets_arr;
 
 static std::vector<style_t> styles_stack;
 
@@ -25,13 +25,18 @@ static std::vector<constraint_t> constraints;
 
 static int constraint_running_cnt = 0;
 
-void start_of_frame() {
+static bool ui_will_update = false;
+
+void start_of_frame(bool _ui_will_update) {
+    ui_will_update = _ui_will_update;
+
     styles_stack.clear();
     style_t default_style;
     styles_stack.push_back(default_style);
 
-    cur_frame_widgets.clear();
-    widget_stack.clear();
+    if (ui_will_update) {
+        widgets_arr.clear();
+    }
     cur_widget_count = 0;
 
     constraint_vars.clear();
@@ -53,13 +58,13 @@ void push_widget(int widget_handle) {
 }
 
 void pop_widget() {
-    widget_stack.pop_back();
+    if (widget_stack.size() > 0) widget_stack.pop_back();
 }
 
 static font_mode_t font_modes[2] = {
     font_mode_t {
         TEXT_SIZE::TITLE,
-        40
+        45
     },
     font_mode_t {
         TEXT_SIZE::REGULAR,
@@ -67,18 +72,20 @@ static font_mode_t font_modes[2] = {
     }
 };
 
-void register_widget(widget_t& widget, bool push_onto_stack) {
+int register_widget(widget_t& widget, bool push_onto_stack) {
     widget.handle = cur_widget_count++;
+    if (!ui_will_update) return widget.handle;
     if (widget_stack.size() > 0) widget.parent_widget_handle = widget_stack[widget_stack.size() - 1];
     else widget.parent_widget_handle = -1;
     if (widget.parent_widget_handle != -1) {
-        cur_frame_widgets[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
+        widgets_arr[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
     }
     widget.style = styles_stack[styles_stack.size() - 1];
-    cur_frame_widgets.push_back(widget);
+    widgets_arr.push_back(widget);
     if (push_onto_stack) {
         widget_stack.push_back(widget.handle);
     }
+    return widget.handle;
 }
 
 void create_panel(const char* panel_name) {
@@ -100,16 +107,13 @@ void end_panel() {
     pop_widget();
 }
 
-void create_container(float width, float height) {
+void create_container(float width, float height, WIDGET_SIZE widget_size) {
     widget_t container;
     const char* container_name = "container";
     memcpy(container.key, container_name, strlen(container_name));
     container.height = height;
     container.width = width;
-    container.widget_size = WIDGET_SIZE::PIXEL_BASED;
-
-    container.render_width = container.width;
-    container.render_height = container.height;
+    container.widget_size = widget_size;
 
     register_widget(container, true); 
 }
@@ -126,6 +130,7 @@ void create_text(const char* text, TEXT_SIZE text_size) {
 
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 
+    widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
     widget.width = text_dim.width;
     widget.height = text_dim.height;
 
@@ -133,6 +138,41 @@ void create_text(const char* text, TEXT_SIZE text_size) {
     widget.render_height = text_dim.height;
 
     register_widget(widget);
+}
+
+bool create_button(const char* text, TEXT_SIZE text_size) {
+    widget_t widget;
+    widget.text_based = true;
+    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), strlen(text)));
+    widget.text_info.text_size = text_size;
+
+    text_dim_t text_dim = get_text_dimensions(text, text_size);
+
+    widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    widget.width = text_dim.width;
+    widget.height = text_dim.height;
+
+    widget.render_width = text_dim.width;
+    widget.render_height = text_dim.height;
+
+    widget.properties = UI_PROPERTIES::CLICKABLE;
+
+    int widget_handle = register_widget(widget);
+
+    if (!ui_will_update) {
+        widget_t& cached_widget = widgets_arr[widget_handle];
+        // TODO: looking into pivoting to see why render_height has to be negated
+        if (input_state.x_pos >= cached_widget.render_x &&
+            input_state.x_pos <= (cached_widget.render_x + cached_widget.render_width) &&
+            input_state.y_pos <= cached_widget.render_y &&
+            input_state.y_pos >= (cached_widget.render_y - cached_widget.render_height)
+        ) {
+            return input_state.left_clicked;
+        }
+        return false;
+    }
+
+    return false;
 }
 
 struct helper_info_t {
@@ -144,8 +184,8 @@ struct helper_info_t {
     TODO: will eventually have to constraint var the width and height as well when parent based and content based sizing is added
 */
 
-helper_info_t autolayout_hierarchy_helper(int widget_handle, int parent_x_var_handle, int parent_y_var_handle) {
-    widget_t& widget = cur_frame_widgets[widget_handle];
+helper_info_t autolayout_hierarchy_helper(int widget_handle, int x_pos_handle, int y_pos_handle, int width_handle, int height_handle) {
+    widget_t& widget = widgets_arr[widget_handle];
     if (widget.text_based) {
         text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
         widget.render_width = text_dim.width;
@@ -157,46 +197,69 @@ helper_info_t autolayout_hierarchy_helper(int widget_handle, int parent_x_var_ha
         return helper_info;
     }
 
-    helper_info_t helper_info;
-    helper_info.content_width = widget.width;
-    helper_info.content_height = widget.height;
-
     int space_var = create_constraint_var("spacing", NULL);
     int start_offset = create_constraint_var("start offset", NULL);
 
     int idx = 1;
     glm::vec2 content_size(0);
     for (int child_widget_handle : widget.children_widget_handles) {
+
+        widget_t& child_widget = widgets_arr[child_widget_handle];
+
         std::vector<constraint_term_t> terms;
         terms.push_back(create_constraint_term(space_var, idx));
         terms.push_back(create_constraint_term(start_offset, 1));
 
-        int widget_x_pos_handle = create_constraint_var("widget_x", &cur_frame_widgets[child_widget_handle].render_x);
-        int widget_y_pos_handle = create_constraint_var("widget_y", &cur_frame_widgets[child_widget_handle].render_y);
+        int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.render_x);
+        int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.render_y);
+        int child_widget_width_handle = create_constraint_var("width", &child_widget.render_width);
+        int child_widget_height_handle = create_constraint_var("height", &child_widget.render_height);
+
+        if (child_widget.widget_size == WIDGET_SIZE::PIXEL_BASED) {
+            assert(child_widget.width >= 0.f);
+            assert(child_widget.height >= 0.f);
+
+            make_constraint_value_constant(child_widget_width_handle, child_widget.width);
+            make_constraint_value_constant(child_widget_height_handle, child_widget.height);
+        } else if (child_widget.widget_size == WIDGET_SIZE::PARENT_PERCENT_BASED) {
+            assert(child_widget.width <= 1.f);
+            assert(child_widget.width >= 0.f);
+            assert(child_widget.height <= 1.f);
+            assert(child_widget.height >= 0.f);
+
+            std::vector<constraint_term_t> width_terms;
+            width_terms.push_back(create_constraint_term(width_handle, child_widget.width));
+            create_constraint(child_widget_width_handle, width_terms, 0);
+            std::vector<constraint_term_t> height_terms;
+            height_terms.push_back(create_constraint_term(height_handle, child_widget.height));
+            create_constraint(child_widget_height_handle, height_terms, 0);
+        }
 
         if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
             float constant = content_size.x;
-            terms.push_back(create_constraint_term(parent_x_var_handle, 1));
-            create_constraint(widget_x_pos_handle, terms, constant);
+            terms.push_back(create_constraint_term(x_pos_handle, 1));
+            create_constraint(child_widget_x_pos_handle, terms, constant);
 
             std::vector<constraint_term_t> y_pos_terms;
-            y_pos_terms.push_back(create_constraint_term(parent_y_var_handle, 1));
-            create_constraint(widget_y_pos_handle, y_pos_terms, 0);
+            y_pos_terms.push_back(create_constraint_term(y_pos_handle, 1));
+            create_constraint(child_widget_y_pos_handle, y_pos_terms, 0);
         } else {
-            // float constant = widget.render_y - content_size.y;
             float constant = -content_size.y;
-            terms.push_back(create_constraint_term(parent_y_var_handle, 1));
-            create_constraint(widget_y_pos_handle, terms, constant);
+            terms.push_back(create_constraint_term(y_pos_handle, 1));
+            create_constraint(child_widget_y_pos_handle, terms, constant);
 
             std::vector<constraint_term_t> x_pos_terms;
-            x_pos_terms.push_back(create_constraint_term(parent_x_var_handle, 1));
-            create_constraint(widget_x_pos_handle, x_pos_terms, 0);
+            x_pos_terms.push_back(create_constraint_term(x_pos_handle, 1));
+            create_constraint(child_widget_x_pos_handle, x_pos_terms, 0);
         }
-        helper_info_t child_helper_info = autolayout_hierarchy_helper(child_widget_handle, widget_x_pos_handle, widget_y_pos_handle);
+
+        helper_info_t child_helper_info = autolayout_hierarchy_helper(child_widget_handle, child_widget_x_pos_handle, child_widget_y_pos_handle, child_widget_width_handle, child_widget_height_handle);
         content_size.x += child_helper_info.content_width;
         content_size.y += child_helper_info.content_height;
         idx++;
     }
+
+    resolve_constraints();
 
     if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
         switch (widget.style.float_val) {
@@ -261,20 +324,30 @@ helper_info_t autolayout_hierarchy_helper(int widget_handle, int parent_x_var_ha
         }
     }
 
+    helper_info_t helper_info;
+    helper_info.content_width = widget.render_width;
+    helper_info.content_height = widget.render_height;
+
     return helper_info;
 }
 
 void autolayout_hierarchy() {
+
+    if (!ui_will_update) return;
+
     assert(widget_stack.size() == 0);
-    for (int i = 0; i < cur_frame_widgets.size(); i++) {
-        widget_t& cur_widget = cur_frame_widgets[i];
+    for (int i = 0; i < widgets_arr.size(); i++) {
+        widget_t& cur_widget = widgets_arr[i];
         if (cur_widget.parent_widget_handle != -1) continue;
         int x_var = create_constraint_var_constant(cur_widget.render_x);
         int y_var = create_constraint_var_constant(cur_widget.render_y);
-        autolayout_hierarchy_helper(cur_widget.handle, x_var, y_var);
+        int width_var = create_constraint_var_constant(cur_widget.render_width);
+        int height_var = create_constraint_var_constant(cur_widget.render_height);
+        autolayout_hierarchy_helper(cur_widget.handle, x_var, y_var, width_var, height_var);
     }
 
     resolve_constraints();
+    ui_will_update = false;
 }
 
 int create_constraint_var(const char* var_name, float* val) {
@@ -349,9 +422,8 @@ void resolve_constraints() {
     } while (something_changed);
 }
 
-void render_ui() {
-    
-    for (widget_t& widget : cur_frame_widgets) {
+void render_ui() { 
+    for (widget_t& widget : widgets_arr) {
         if (widget.text_based) {
             draw_text(widget.text_info.text, glm::vec2(widget.render_x, widget.render_y), widget.text_info.text_size);
         }

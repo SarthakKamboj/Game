@@ -3,11 +3,14 @@
 #include "SDL.h"
 #include "utils/time.h"
 
+#include <iostream>
+
 namespace input {
 
 	void process_input(user_input_t& user_input) {
 
 		SDL_GetMouseState(&user_input.x_pos, &user_input.y_pos);
+		user_input.y_pos = WINDOW_HEIGHT - user_input.y_pos;
 
 		user_input.w_pressed = false;
 		user_input.a_pressed = false;
@@ -28,7 +31,7 @@ namespace input {
 				}
 				case SDL_MOUSEBUTTONUP: {
 					user_input.right_clicked = (event.button.button == SDL_BUTTON_RIGHT);
-					user_input.left_clicked = (event.button.button == SDL_BUTTON_LEFT);
+					user_input.left_clicked = (event.button.button == SDL_BUTTON_LEFT);	
 				}
 				case SDL_KEYUP: {
 					switch (event.key.keysym.sym) {
