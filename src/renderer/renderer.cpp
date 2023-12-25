@@ -13,19 +13,24 @@ void render(application_t& app) {
 
 	// main menu
 	if (app.scene_manager.cur_level == 0) {
-		// style_t style;
-		// style.center_x = true;
-		// style.center_y = true;
-		// style.content_spacing = 20;
+		
+		style_t panel_style;
+		panel_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+		panel_style.float_val = FLOAT::END;
+		panel_style.content_spacing = 20.f;
+		push_style(panel_style);
 		create_panel("main menu panel");
-		// style.center_x = false;
-		// style.center_y = false;
-		// style.text_size = TEXT_SIZE::TITLE;
-		// style.margins = glm::vec2(40);
-		create_text("Platformer Game");
+		pop_style();
 
-		// style.text_size = TEXT_SIZE::REGULAR;
-		// style.margins = glm::vec2(0);
+		style_t container_style;
+		container_style.display_dir = DISPLAY_DIR::VERTICAL;
+		container_style.float_val = FLOAT::CENTER;
+		container_style.content_spacing = 20.f;
+		push_style(container_style);
+		create_container(400, WINDOW_HEIGHT);
+		pop_style();
+		
+		create_text("Platformer Game", TEXT_SIZE::TITLE);
 
 		create_text("Play");
 		if (app.clicked) {
@@ -34,16 +39,13 @@ void render(application_t& app) {
 		create_text("Credits");
 		create_text("Quit");
 
+		end_container();
 		end_panel();
 
 		autolayout_hierarchy();
 
-		// add_text_to_panel(panel_handle, t1);
-		// add_text_to_panel(panel_handle, t2);
-		// add_text_to_panel(panel_handle, t3);
-		// add_text_to_panel(panel_handle, t4);
-
 		render_ui();
+
 	} else {
 		// regular stuff
 		draw_quad_renders(app);

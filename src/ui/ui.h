@@ -31,7 +31,8 @@ enum UI_PROPERTIES {
 
 enum class WIDGET_SIZE {
     NONE,
-    PIXEL_BASED
+    PIXEL_BASED,
+    PARENT_PERCENT_BASED
 };
 
 struct font_mode_t {
@@ -51,11 +52,19 @@ void init_fonts();
 text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size);
 void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size);
 
+enum class DISPLAY_DIR {
+    VERTICAL, HORIZONTAL
+};
+
+enum class FLOAT {
+    START, CENTER, END, SPACED_OUT
+};
+
 struct style_t {
-    bool center_x = false;
-    bool center_y = false;
-    float content_spacing = 0;
+    DISPLAY_DIR display_dir = DISPLAY_DIR::VERTICAL;
+    FLOAT float_val = FLOAT::START;
     glm::vec2 margins = glm::vec2(0);
+    float content_spacing = 0;
 };
 
 struct text_t {
@@ -71,8 +80,8 @@ struct widget_t {
     text_t text_info;
 
     WIDGET_SIZE widget_size = WIDGET_SIZE::NONE;
-    float width = 0.f;
-    float height = 0.f;
+    float width = -1.f;
+    float height = -1.f;
 
     std::vector<int> children_widget_handles;
     int parent_widget_handle = NULL;
@@ -82,10 +91,10 @@ struct widget_t {
     style_t style;
 
     // all specified in pixels with (render_x, render_y) using top left as the pt
-    float render_x = 0;
-    float render_y = 0;
-    float render_width = 0;
-    float render_height = 0;
+    float render_x = -1.f;
+    float render_y = -1.f;
+    float render_width = -1.f;
+    float render_height = -1.f;
 };
 
 void start_of_frame();
@@ -113,6 +122,9 @@ void pop_widget();
 
 void create_panel(const char* panel_name);
 void end_panel();
+
+void create_container(float width, float height);
+void end_container();
 // void add_text_to_panel(int panel_handle, text_t& text);
 
 int fresh_widget_handle();
@@ -124,9 +136,33 @@ struct button_t {
 };
 button_t create_button(text_t& text, style_t& style);
 
-// do research on how to do autolayout properly
 void autolayout_hierarchy();
-// void autolayout_hierarchy_helper(int widget_handle);
+
+struct constraint_var_t {
+    int handle = -1;
+    char name[256]{};
+    bool constant = false;
+    float* value = NULL;
+    float cur_val = 0;
+};
+
+struct constraint_term_t {
+    float coefficient = 0;
+    int var_handle = -1;
+};
+
+struct constraint_t {
+    int left_side_var_handle;
+    std::vector<constraint_term_t> right_side;
+    std::vector<int> constant_handles;
+};
+
+int create_constraint_var(const char* var_name, float* val);
+int create_constraint_var_constant(float value);
+constraint_term_t create_constraint_term(int var_handle, float coefficient);
+void make_constraint_value_constant(int constraint_handle, float value);
+
+void create_constraint(int constraint_var_handle, std::vector<constraint_term_t>& right_side_terms, float constant);
+void resolve_constraints();
 
 void render_ui();
-void clear_ui();
