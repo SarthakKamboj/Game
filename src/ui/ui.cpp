@@ -27,6 +27,10 @@ static int constraint_running_cnt = 0;
 
 static bool ui_will_update = false;
 
+glm::vec3 create_color(float r, float g, float b) {
+    return glm::vec3(r, g, b) / 255.f;
+}
+
 void start_of_frame(bool _ui_will_update) {
     ui_will_update = _ui_will_update;
 
@@ -161,9 +165,12 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
 
     if (!ui_will_update) {
         widget_t& cached_widget = widgets_arr[widget_handle];
-        // TODO: looking into pivoting to see why render_height has to be negated
         if (input_state.x_pos >= cached_widget.render_x &&
             input_state.x_pos <= (cached_widget.render_x + cached_widget.render_width) &&
+            // render x and render y specified as the top left pivot and y in ui is 0 on the
+            // bottom and WINDOW_HEIGHT on the top, so cached_widget.render_y is the top y of the 
+            // widget and cached_widget.render_y - cached_widget.render_height is the bottom y 
+            // of the widget
             input_state.y_pos <= cached_widget.render_y &&
             input_state.y_pos >= (cached_widget.render_y - cached_widget.render_height)
         ) {
@@ -180,20 +187,16 @@ struct helper_info_t {
     int content_height = 0;
 };
 
-/*
-    TODO: will eventually have to constraint var the width and height as well when parent based and content based sizing is added
-*/
-
-helper_info_t autolayout_hierarchy_helper(int widget_handle, int x_pos_handle, int y_pos_handle, int width_handle, int height_handle) {
+helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_handle) {
     widget_t& widget = widgets_arr[widget_handle];
     if (widget.text_based) {
-        text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
-        widget.render_width = text_dim.width;
-        widget.render_height = text_dim.height;
+        // text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
+        // widget.render_width = text_dim.width;
+        // widget.render_height = text_dim.height;
 
         helper_info_t helper_info;
-        helper_info.content_width = text_dim.width;
-        helper_info.content_height = text_dim.height;
+        helper_info.content_width = widget.render_width;
+        helper_info.content_height = widget.render_height;
         return helper_info;
     }
 
@@ -212,28 +215,6 @@ helper_info_t autolayout_hierarchy_helper(int widget_handle, int x_pos_handle, i
 
         int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.render_x);
         int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.render_y);
-        int child_widget_width_handle = create_constraint_var("width", &child_widget.render_width);
-        int child_widget_height_handle = create_constraint_var("height", &child_widget.render_height);
-
-        if (child_widget.widget_size == WIDGET_SIZE::PIXEL_BASED) {
-            assert(child_widget.width >= 0.f);
-            assert(child_widget.height >= 0.f);
-
-            make_constraint_value_constant(child_widget_width_handle, child_widget.width);
-            make_constraint_value_constant(child_widget_height_handle, child_widget.height);
-        } else if (child_widget.widget_size == WIDGET_SIZE::PARENT_PERCENT_BASED) {
-            assert(child_widget.width <= 1.f);
-            assert(child_widget.width >= 0.f);
-            assert(child_widget.height <= 1.f);
-            assert(child_widget.height >= 0.f);
-
-            std::vector<constraint_term_t> width_terms;
-            width_terms.push_back(create_constraint_term(width_handle, child_widget.width));
-            create_constraint(child_widget_width_handle, width_terms, 0);
-            std::vector<constraint_term_t> height_terms;
-            height_terms.push_back(create_constraint_term(height_handle, child_widget.height));
-            create_constraint(child_widget_height_handle, height_terms, 0);
-        }
 
         if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
             float constant = content_size.x;
@@ -253,7 +234,7 @@ helper_info_t autolayout_hierarchy_helper(int widget_handle, int x_pos_handle, i
             create_constraint(child_widget_x_pos_handle, x_pos_terms, 0);
         }
 
-        helper_info_t child_helper_info = autolayout_hierarchy_helper(child_widget_handle, child_widget_x_pos_handle, child_widget_y_pos_handle, child_widget_width_handle, child_widget_height_handle);
+        helper_info_t child_helper_info = resolve_positions(child_widget_handle, child_widget_x_pos_handle, child_widget_y_pos_handle);
         content_size.x += child_helper_info.content_width;
         content_size.y += child_helper_info.content_height;
         idx++;
@@ -331,19 +312,111 @@ helper_info_t autolayout_hierarchy_helper(int widget_handle, int x_pos_handle, i
     return helper_info;
 }
 
+helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle, int parent_height_handle) {
+    widget_t& widget = widgets_arr[cur_widget_handle];
+    if (widget.text_based) {
+        text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
+        widget.width = text_dim.width;
+        widget.height = text_dim.height;
+        widget.render_width = text_dim.width;
+        widget.render_height = text_dim.height;
+
+        helper_info_t helper_info;
+        helper_info.content_width = text_dim.width;
+        helper_info.content_height = text_dim.height;
+        return helper_info;
+    }
+
+    int widget_width_handle = create_constraint_var("width", &widget.render_width);
+    int widget_height_handle = create_constraint_var("height", &widget.render_height); 
+
+    glm::vec2 content_size(0);
+    for (int child_widget_handle : widget.children_widget_handles) {
+        widget_t& child_widget = widgets_arr[child_widget_handle]; 
+
+        helper_info_t child_helper_info = resolve_dimensions(child_widget_handle, widget_width_handle, widget_height_handle);
+    
+        if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+            content_size.x += child_helper_info.content_width;
+            content_size.y = fmax(content_size.y, child_helper_info.content_height);
+        } else {
+            content_size.y += child_helper_info.content_height;
+            content_size.x = fmax(content_size.x, child_helper_info.content_width); 
+        }
+    }
+
+    if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+        content_size.x += widget.style.content_spacing * (widget.children_widget_handles.size() + 1);
+    } else {
+        content_size.y += widget.style.content_spacing * (widget.children_widget_handles.size() + 1);
+    }
+
+    if (parent_width_handle == -1 || parent_height_handle == -1) {
+        // this is a parent widget and must be specified in pixels
+        assert(widget.widget_size == WIDGET_SIZE::PIXEL_BASED);
+        assert(widget.width >= 0.f);
+        assert(widget.height >= 0.f);
+
+        make_constraint_value_constant(widget_width_handle, widget.width);
+        make_constraint_value_constant(widget_height_handle, widget.height);
+    }
+    else {
+        assert(parent_width_handle != -1);
+        assert(parent_height_handle != -1);
+        if (widget.widget_size == WIDGET_SIZE::PIXEL_BASED) {
+            assert(widget.width >= 0.f);
+            assert(widget.height >= 0.f);
+
+            make_constraint_value_constant(widget_width_handle, widget.width);
+            make_constraint_value_constant(widget_height_handle, widget.height);
+        } else if (widget.widget_size == WIDGET_SIZE::PARENT_PERCENT_BASED) {
+            assert(widget.width <= 1.f);
+            assert(widget.width >= 0.f);
+            assert(widget.height <= 1.f);
+            assert(widget.height >= 0.f);
+
+            std::vector<constraint_term_t> width_terms;
+            width_terms.push_back(create_constraint_term(parent_width_handle, widget.width));
+            create_constraint(widget_width_handle, width_terms, 0);
+
+            std::vector<constraint_term_t> height_terms;
+            height_terms.push_back(create_constraint_term(parent_height_handle, widget.height));
+            create_constraint(widget_height_handle, height_terms, 0);
+        } else if (widget.widget_size == WIDGET_SIZE::FIT_CONTENT) {
+            make_constraint_value_constant(widget_width_handle, content_size.x);
+            make_constraint_value_constant(widget_height_handle, content_size.y);
+        }
+    }
+
+    resolve_constraints();
+
+    helper_info_t helper_info;
+    helper_info.content_width = widget.render_width;
+    helper_info.content_height = widget.render_height;
+
+    return helper_info;    
+}
+
 void autolayout_hierarchy() {
 
     if (!ui_will_update) return;
 
     assert(widget_stack.size() == 0);
+
+    for (int i = 0; i < widgets_arr.size(); i++) {
+        widget_t& cur_widget = widgets_arr[i];
+        if (cur_widget.parent_widget_handle != -1) continue;
+        int width_var = create_constraint_var_constant(cur_widget.render_width);
+        int height_var = create_constraint_var_constant(cur_widget.render_height);
+        resolve_dimensions(cur_widget.handle, -1, -1);
+    }
+
     for (int i = 0; i < widgets_arr.size(); i++) {
         widget_t& cur_widget = widgets_arr[i];
         if (cur_widget.parent_widget_handle != -1) continue;
         int x_var = create_constraint_var_constant(cur_widget.render_x);
         int y_var = create_constraint_var_constant(cur_widget.render_y);
-        int width_var = create_constraint_var_constant(cur_widget.render_width);
-        int height_var = create_constraint_var_constant(cur_widget.render_height);
-        autolayout_hierarchy_helper(cur_widget.handle, x_var, y_var, width_var, height_var);
+        resolve_positions(cur_widget.handle, x_var, y_var);
     }
 
     resolve_constraints();
@@ -422,10 +495,24 @@ void resolve_constraints() {
     } while (something_changed);
 }
 
+void render_ui_helper(widget_t& widget) {
+
+    if (widget.style.background_color != TRANSPARENT_COLOR) {
+        draw_background(widget);
+    }
+    if (widget.text_based) {
+        draw_text(widget.text_info.text, glm::vec2(widget.render_x, widget.render_y), widget.text_info.text_size);
+    } 
+
+    for (int child_handle : widget.children_widget_handles) {
+        render_ui_helper(widgets_arr[child_handle]);
+    }
+}
+
 void render_ui() { 
     for (widget_t& widget : widgets_arr) {
-        if (widget.text_based) {
-            draw_text(widget.text_info.text, glm::vec2(widget.render_x, widget.render_y), widget.text_info.text_size);
+        if (widget.parent_widget_handle == -1) {
+            render_ui_helper(widget);
         }
     }
 }
@@ -509,20 +596,60 @@ text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size) {
                 unsigned char c = text[i];	
                 font_char_t& fc = font_mode.chars[c];
                 running_dim.width += fc.advance;
-                running_dim.height = fmax(running_dim.height, fc.height);
-                running_dim.height_below_baseline = fmax(fc.height - fc.bearing.y, running_dim. height_below_baseline);
+                running_dim.max_height_above_baseline = fmax(fc.bearing.y, running_dim.max_height_above_baseline);
+                running_dim.max_height_below_baseline = fmax(fc.height - fc.bearing.y, running_dim.max_height_below_baseline);
             }
         }
     }
+    running_dim.height = running_dim.max_height_above_baseline + running_dim.max_height_below_baseline;
 	return running_dim;
 }
 
-void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
-	glm::vec3 color = glm::vec3(240,216,195);
-	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", color / glm::vec3(255.f));
+void draw_background(widget_t& widget) {
+	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", widget.style.background_color);
+	shader_set_float(font_char_t::ui_opengl_data.shader, "tex_influence", 0.f);
+	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 1);
+	shader_set_float(font_char_t::ui_opengl_data.shader, "border_radius", 5.f);
+
+    float x = widget.render_x;
+    float y = widget.render_y;
+    float width = widget.render_width;
+    float height = widget.render_height;
+
 	vertex_t updated_vertices[4];
+#if 0
+	glm::vec2 origin = glm::vec2(x + (width / 2), y - (height / 2));
+    updated_vertices[0] = create_vertex(glm::vec3(x + (width / 2), y + (height / 2), 0.0f), glm::vec3(0,1,1), glm::vec2(0,0)); // top right
+    updated_vertices[1] = create_vertex(glm::vec3(x + (width / 2), y - (height / 2), 0.0f), glm::vec3(0,0,1), glm::vec2(0,0)); // bottom right
+    updated_vertices[2] = create_vertex(glm::vec3(x - (width / 2), y - (height / 2), 0.0f), glm::vec3(0,1,0), glm::vec2(0,0)); // bottom left
+    updated_vertices[3] = create_vertex(glm::vec3(x - (width / 2), y + (height / 2), 0.0f), glm::vec3(1,0,0), glm::vec2(0,0)); // top left
+#else
+	glm::vec3 origin = glm::vec3(x, y, 0);
+    updated_vertices[0] = create_vertex(origin + glm::vec3(width, 0, 0.0f), glm::vec3(0,1,1), glm::vec2(0,0)); // top right
+    updated_vertices[1] = create_vertex(origin + glm::vec3(width, -height, 0.0f), glm::vec3(0,0,1), glm::vec2(0,0)); // bottom right
+    updated_vertices[2] = create_vertex(origin + glm::vec3(0, -height, 0.0f), glm::vec3(0,1,0), glm::vec2(0,0)); // bottom left
+    updated_vertices[3] = create_vertex(origin, glm::vec3(1,0,0), glm::vec2(0,0)); // top left
+#endif
+    update_vbo_data(font_char_t::ui_opengl_data.vbo, (float*)updated_vertices, sizeof(updated_vertices));
+
+    shader_set_vec3(font_char_t::ui_opengl_data.shader, "top_left", updated_vertices[3].position);
+    shader_set_vec3(font_char_t::ui_opengl_data.shader, "top_right", updated_vertices[0].position);
+    shader_set_vec3(font_char_t::ui_opengl_data.shader, "bottom_left", updated_vertices[2].position);
+    shader_set_vec3(font_char_t::ui_opengl_data.shader, "bottom_right", updated_vertices[1].position);
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // draw the rectangle render after setting all shader parameters
+    draw_obj(font_char_t::ui_opengl_data);
+}
+
+void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
+	glm::vec3 color = create_color(240,216,195);
+	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", color);
+	shader_set_float(font_char_t::ui_opengl_data.shader, "tex_influence", 1.f);
+	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 0);
     text_dim_t text_dim = get_text_dimensions(text, text_size);
-	glm::vec2 origin = starting_pos - glm::vec2(0, text_dim.height);
+	glm::vec2 origin = starting_pos - glm::vec2(0, text_dim.max_height_above_baseline);
+	vertex_t updated_vertices[4];
     for (font_mode_t& font_mode : font_modes) {
         if (font_mode.text_size == text_size) {
             for (int i = 0; i < strlen(text); i++) {

@@ -33,7 +33,8 @@ enum class UI_PROPERTIES {
 enum class WIDGET_SIZE {
     NONE,
     PIXEL_BASED,
-    PARENT_PERCENT_BASED
+    PARENT_PERCENT_BASED,
+    FIT_CONTENT
 };
 
 struct font_mode_t {
@@ -45,13 +46,13 @@ struct font_mode_t {
 struct text_dim_t {
 	float width = 0;
 	float height = 0;
-	float height_below_baseline = 0;
+    float max_height_above_baseline = 0;
+	float max_height_below_baseline = 0;
 };
 
 void init_fonts();
 
 text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size);
-void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size);
 
 enum class DISPLAY_DIR {
     VERTICAL, HORIZONTAL
@@ -61,11 +62,15 @@ enum class FLOAT {
     START, CENTER, END, SPACED_OUT
 };
 
+#define TRANSPARENT_COLOR glm::vec3(-1)
+glm::vec3 create_color(float r, float g, float b);
+
 struct style_t {
     DISPLAY_DIR display_dir = DISPLAY_DIR::VERTICAL;
     FLOAT float_val = FLOAT::START;
     glm::vec2 margins = glm::vec2(0);
     float content_spacing = 0;
+    glm::vec3 background_color = TRANSPARENT_COLOR;
 };
 
 struct text_t {
@@ -169,4 +174,6 @@ void make_constraint_value_constant(int constraint_handle, float value);
 void create_constraint(int constraint_var_handle, std::vector<constraint_term_t>& right_side_terms, float constant);
 void resolve_constraints();
 
+void draw_background(widget_t& widget);
+void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size);
 void render_ui();

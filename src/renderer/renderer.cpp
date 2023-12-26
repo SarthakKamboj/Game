@@ -50,6 +50,9 @@ void render(application_t& app) {
 		push_style(options_style);
 		create_container(1.f, 0.6f, WIDGET_SIZE::PARENT_PERCENT_BASED);
 
+		style_t btn_style;
+		btn_style.background_color = create_color(48, 128, 255);
+		push_style(btn_style);
 		if (create_button("Play")) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = 1;
@@ -59,6 +62,7 @@ void render(application_t& app) {
 		if (create_button("Quit")) {
 			app.running = false;
 		}
+		pop_style();
 		end_container();
 		pop_style();
 
