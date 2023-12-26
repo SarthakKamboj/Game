@@ -153,11 +153,12 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 
     widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
-    widget.width = text_dim.width;
-    widget.height = text_dim.height;
+    style_t& latest_style = styles_stack[styles_stack.size() - 1];
+    widget.width = text_dim.width + (2 * latest_style.padding.x);
+    widget.height = text_dim.height + (2 * latest_style.padding.y);
 
-    widget.render_width = text_dim.width;
-    widget.render_height = text_dim.height;
+    widget.render_width = widget.width;
+    widget.render_height = widget.height;
 
     widget.properties = UI_PROPERTIES::CLICKABLE;
 
@@ -316,14 +317,15 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
     widget_t& widget = widgets_arr[cur_widget_handle];
     if (widget.text_based) {
         text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
-        widget.width = text_dim.width;
-        widget.height = text_dim.height;
-        widget.render_width = text_dim.width;
-        widget.render_height = text_dim.height;
+        widget.width = text_dim.width + (widget.style.padding.x * 2);
+        widget.height = text_dim.height + (widget.style.padding.y * 2);
+
+        widget.render_width = widget.width;
+        widget.render_height = widget.height;
 
         helper_info_t helper_info;
-        helper_info.content_width = text_dim.width;
-        helper_info.content_height = text_dim.height;
+        helper_info.content_width = widget.render_width;
+        helper_info.content_height = widget.render_height;
         return helper_info;
     }
 
@@ -500,8 +502,8 @@ void render_ui_helper(widget_t& widget) {
     if (widget.style.background_color != TRANSPARENT_COLOR) {
         draw_background(widget);
     }
-    if (widget.text_based) {
-        draw_text(widget.text_info.text, glm::vec2(widget.render_x, widget.render_y), widget.text_info.text_size);
+    if (widget.text_based) { 
+        draw_text(widget.text_info.text, glm::vec2(widget.render_x + widget.style.padding.x, widget.render_y - widget.style.padding.y), widget.text_info.text_size);
     } 
 
     for (int child_handle : widget.children_widget_handles) {
@@ -609,7 +611,7 @@ void draw_background(widget_t& widget) {
 	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", widget.style.background_color);
 	shader_set_float(font_char_t::ui_opengl_data.shader, "tex_influence", 0.f);
 	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 1);
-	shader_set_float(font_char_t::ui_opengl_data.shader, "border_radius", 5.f);
+	shader_set_float(font_char_t::ui_opengl_data.shader, "border_radius", widget.style.border_radius);
 
     float x = widget.render_x;
     float y = widget.render_y;

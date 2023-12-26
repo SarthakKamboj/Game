@@ -68,9 +68,10 @@ glm::vec3 create_color(float r, float g, float b);
 struct style_t {
     DISPLAY_DIR display_dir = DISPLAY_DIR::VERTICAL;
     FLOAT float_val = FLOAT::START;
-    glm::vec2 margins = glm::vec2(0);
+    glm::vec2 padding = glm::vec2(0);
     float content_spacing = 0;
     glm::vec3 background_color = TRANSPARENT_COLOR;
+    float border_radius = 0;
 };
 
 struct text_t {

@@ -12,6 +12,7 @@ void render(application_t& app) {
 
 	static bool first = true;
 	start_of_frame(first);
+	// start_of_frame(true);
 	first = false;
 
 	// main menu
@@ -39,7 +40,15 @@ void render(application_t& app) {
 		title_container_style.content_spacing = 10.f;
 		push_style(title_container_style);
 		create_container(1.f, 0.4f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+
+		style_t title_style;
+		title_style.background_color = create_color(255, 60, 54);
+		title_style.padding = glm::vec2(10);
+		title_style.border_radius = 15.f;
+		push_style(title_style);
 		create_text("Platformer Game", TEXT_SIZE::TITLE);
+		pop_style();
+
 		end_container();
 		pop_style();
 
@@ -52,6 +61,13 @@ void render(application_t& app) {
 
 		style_t btn_style;
 		btn_style.background_color = create_color(48, 128, 255);
+		btn_style.padding = glm::vec2(10, 10);
+		const float max_radius = 20.f;
+		btn_style.border_radius = fmod(platformer::time_t::cur_time * 15.f, max_radius * 2);
+		if (btn_style.border_radius > max_radius) {
+			btn_style.border_radius = max_radius - (btn_style.border_radius - max_radius);
+		}
+		btn_style.border_radius = 15.f;
 		push_style(btn_style);
 		if (create_button("Play")) {
 			app.scene_manager.queue_level_load = true;
