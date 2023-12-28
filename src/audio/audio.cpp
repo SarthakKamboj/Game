@@ -92,6 +92,8 @@ audio_source_t create_audio_source() {
 void play_bck_sound() {
     assert(bck_sound_name[0] != 0);
     sound_t& bck_sound = sounds[bck_sound_name];
+    // alSourcef(background_source.al_handle, AL_MIN_GAIN, 0);
+    // alSourcef(background_source.al_handle, AL_GAIN, 0.2f);
     alSourcei(background_source.al_handle, AL_BUFFER, bck_sound.al_buffer_handle);
     alSourcei(background_source.al_handle, AL_LOOPING, 1);
     assert(!detect_error());
