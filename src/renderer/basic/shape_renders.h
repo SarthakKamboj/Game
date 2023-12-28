@@ -24,6 +24,8 @@ struct quad_render_t {
 	static opengl_object_data obj_data;
 };
 
+void init_quad_data();
+
 /// <summary>
 /// Creates a quad to be render
 /// </summary>

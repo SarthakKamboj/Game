@@ -50,7 +50,7 @@ struct text_dim_t {
 	float max_height_below_baseline = 0;
 };
 
-void init_fonts();
+void init_ui();
 
 text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size);
 

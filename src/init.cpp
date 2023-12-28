@@ -15,7 +15,8 @@
 #include "gameobjects/gos.h"
 #include "renderer/basic/shape_renders.h"
 #include "ui/ui.h"
-
+#include "renderer/basic/shape_renders.h"
+#include "audio/audio.h"
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -96,54 +97,6 @@ SDL_Window* init_sdl() {
 	// glDebugMessageCallback( MyOpenGLErrorCallbackFunc, 0 );
 
 	return window;
-}
-
-/// <summary>
-/// Initialize OpenGL data to render a quad to the screen. It creates the 4 vertices and stores it
-/// in a VAO, VBO, and EBO. The rectangle vertex and fragment shaders are loaded where defaults are loaded.
-/// The texture unit is defaulted to 0, the projection matrix is orthographic, and the view matrix
-/// is the identity matrix.
-/// </summary>
-void init_quad_data() {
-
-	opengl_object_data& data = quad_render_t::obj_data;
-
-    // create the vertices of the rectangle
-	vertex_t vertices[4];
-	vertices[0] = create_vertex(glm::vec3(0.5f, 0.5f, 0.0f), glm::vec3(0,1,1), glm::vec2(1,1)); // top right
-	vertices[1] = create_vertex(glm::vec3(0.5f, -0.5f, 0.0f), glm::vec3(0,0,1), glm::vec2(1,0)); // bottom right
-	vertices[2] = create_vertex(glm::vec3(-0.5f, -0.5f, 0.0f), glm::vec3(0,1,0), glm::vec2(0,0)); // bottom left
-	vertices[3] = create_vertex(glm::vec3(-0.5f, 0.5f, 0.0f), glm::vec3(1,0,0), glm::vec2(0,1)); // top left
-
-    // setting the vertices in the vbo
-	data.vbo = create_vbo((float*)vertices, sizeof(vertices));
-
-    // creating the indicies for the rectangle
-	unsigned int indices[] = {
-		0, 1, 3,
-		1, 2, 3
-	};
-
-    // set up ebo with indicies
-	data.ebo = create_ebo(indices, sizeof(indices));
-
-    // create vao and link the vbo/ebo to that vao
-	data.vao = create_vao();
-	bind_vao(data.vao);
-	vao_enable_attribute(data.vao, data.vbo, 0, 3, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, position));
-	vao_enable_attribute(data.vao, data.vbo, 1, 3, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, color));
-	vao_enable_attribute(data.vao, data.vbo, 2, 2, GL_FLOAT, sizeof(vertex_t), offsetof(vertex_t, tex_coord));
-	bind_ebo(data.ebo);
-	unbind_vao();
-	unbind_ebo();
-
-    // load in shader for these rectangle quads because the game is 2D, so everything is basically a solid color or a texture
-	data.shader = create_shader("C:/Sarthak/projects/game/resources/shaders/rectangle.vert", "C:/Sarthak/projects/game/resources/shaders/rectangle.frag");
-    // set projection matrix in the shader
-	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
-	shader_set_mat4(data.shader, "projection", projection);
-	shader_set_mat4(data.shader, "view", glm::mat4(1.0f));
-	shader_set_int(data.shader, "tex", 0);
 }
 
 /// <summary>
@@ -581,9 +534,10 @@ void load_level(application_t& app, int level_num) {
 
 void init(application_t& app) {
 	app.window = init_sdl();
+	init_audio();
     // initialize opengl data for a rectangle
 	init_quad_data();	
-	init_fonts();
+	init_ui();
 	// make sure this is first so that backgrond quads get created first and are always rendered in the back
 	init_parallax_bck_data();
 	init_brick_data();

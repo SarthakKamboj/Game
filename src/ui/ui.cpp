@@ -521,7 +521,7 @@ void render_ui() {
 
 opengl_object_data font_char_t::ui_opengl_data{};
 
-void init_fonts() {
+void init_ui() {
     // int font_sizes
     for (font_mode_t& font_mode : font_modes) {
         std::unordered_map<unsigned char, font_char_t>& chars = font_mode.chars;
