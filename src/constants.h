@@ -10,5 +10,6 @@
 #define BACKGROUND_MUSIC "C:\\Sarthak\\projects\\game\\resources\\audio\\eden_electro.wav"
 #define JUMP_SOUND_EFFECT "C:\\Sarthak\\projects\\game\\resources\\audio\\jump.wav"
 #define STOMP_SOUND_EFFECT "C:\\Sarthak\\projects\\game\\resources\\audio\\stomp.wav"
+#define LEVEL_FINISH_SOUND_EFFECT "C:\\Sarthak\\projects\\game\\resources\\audio\\level_finish.wav"
 
 #define _TESTING 0

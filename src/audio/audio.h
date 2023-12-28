@@ -34,4 +34,6 @@ void pause_bck_sound();
 void resume_bck_sound();
 void stop_bck_sound();
 
-void play_sound(const char* sound_name);
+void play_sound(const char* sound_name, bool overrule = false);
+void clear_sounds();
+bool sound_finished_playing(const char* sound_name);

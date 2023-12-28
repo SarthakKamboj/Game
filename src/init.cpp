@@ -528,6 +528,7 @@ void load_level(application_t& app, int level_num) {
 	sprintf(json_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/data.json", level_num);
 	sprintf(img_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/_composite.png", level_num);
     load_level(app, json_file, img_file);
+	resume_bck_sound();
 	app.scene_manager.cur_level = level_num;
 }
 

@@ -85,6 +85,15 @@ void delete_mc(main_character_t& mc) {
 extern bool level_finished;
 void main_character_t::update(application_t& app, input::user_input_t& user_input) {
 
+	static bool waiting_for_finish_audio = false;
+	if (waiting_for_finish_audio) {
+		if (sound_finished_playing("level_finish")) {
+			waiting_for_finish_audio = false;
+			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
+		}
+		return;
+	}
+
 	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));
 
 	bool prev_dead = dead;
@@ -98,7 +107,9 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	for (general_collision_info_t& col_info : col_infos) {
 
 		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
-			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
+			pause_bck_sound();
+			play_sound("level_finish", true);
+			waiting_for_finish_audio = true;
 			continue;
 		}
 

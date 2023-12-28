@@ -100,7 +100,11 @@ void play_bck_sound() {
 }
 
 void resume_bck_sound() {
-    alSourcePlay(background_source.al_handle);
+    ALint state;
+    alGetSourcei(background_source.al_handle, AL_SOURCE_STATE, &state);
+    if (state == AL_PAUSED) {
+        alSourcePlay(background_source.al_handle);
+    }
     assert(!detect_error());
 }
 
@@ -115,7 +119,18 @@ void stop_bck_sound() {
     assert(!detect_error());
 }
 
-void play_sound(const char* sound_name) {
+void clear_sounds() {
+    for (int i = 0; i < NUM_SOURCES_PER_FORMAT; i++) {
+        alSourceStop(mono_sources[i].al_handle);
+        alSourceStop(stereo_sources[i].al_handle);
+    }
+}
+
+void play_sound(const char* sound_name, bool overrule) {
+    if (overrule) {
+        clear_sounds();
+    }
+
     audio_source_t* pool = NULL;
     sound_t& sound = sounds[sound_name];
     if (sound.num_channels == 1) pool = mono_sources;
@@ -127,6 +142,29 @@ void play_sound(const char* sound_name) {
     assert(!detect_error());
     alSourcePlay(source->al_handle);
     assert(!detect_error());
+}
+
+bool sound_finished_playing(const char* sound_name) {
+    sound_t& sound = sounds[sound_name];
+    ALuint buffer_al_handle = sound.al_buffer_handle;
+    audio_source_t* pool = NULL;
+    if (sound.num_channels == 1) {
+        pool = mono_sources;
+    } else {
+        pool = stereo_sources;
+    }
+
+    for (int i = 0; i < NUM_SOURCES_PER_FORMAT; i++) {
+        ALint cur_buffer;
+        alGetSourcei(pool[i].al_handle, AL_BUFFER, &cur_buffer);
+        if (cur_buffer == buffer_al_handle) {
+            ALint state;
+            alGetSourcei(pool[i].al_handle, AL_SOURCE_STATE, &state);
+            return state == AL_STOPPED || state == AL_INITIAL;
+        }
+    }
+
+    return true;
 }
 
 bool detect_error() {
@@ -181,6 +219,7 @@ void init_audio() {
     read_wav_sound("bck", BACKGROUND_MUSIC, true);
     read_wav_sound("jump", JUMP_SOUND_EFFECT);
     read_wav_sound("stomp", STOMP_SOUND_EFFECT);
+    read_wav_sound("level_finish", LEVEL_FINISH_SOUND_EFFECT);
 
     play_bck_sound();
 }
