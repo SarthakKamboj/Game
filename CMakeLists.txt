@@ -45,6 +45,8 @@ function(configure_game)
     add_subdirectory(external/glad)
     add_subdirectory(external/stb_image)
     add_subdirectory(external/ft2132/freetype-2.13.2)
+    add_subdirectory(external/openal-soft)
+    add_subdirectory(external/libsndfile)
 
     target_include_directories(${PROJECT_NAME} 
         PUBLIC src
@@ -54,16 +56,21 @@ function(configure_game)
         PUBLIC external/glm
         PUBLIC external/stb_image
         PUBLIC external/ft2132/freetype-2.13.2/include
+        PUBLIC external/openal-soft/include
+        PUBLIC external/libsndfile/include
     )
 
     target_link_directories(${PROJECT_NAME} 
         PUBLIC external/SDL2_x64
+        PUBLIC out/build/external/openal-soft/Debug
     )
 
     target_link_libraries(${PROJECT_NAME} glad)
     target_link_libraries(${PROJECT_NAME} stb_image)
     target_link_libraries(${PROJECT_NAME} freetype)
     target_link_libraries(${PROJECT_NAME} SDL2main SDL2)
+    target_link_libraries(${PROJECT_NAME} OpenAL)
+    target_link_libraries(${PROJECT_NAME} sndfile)
 
 endfunction()
 

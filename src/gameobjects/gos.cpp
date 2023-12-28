@@ -8,6 +8,7 @@
 #include "animation/animation.h"
 #include "renderer/opengl/resources.h"
 #include "camera.h"
+#include "audio/audio.h"
 
 struct pair_hash {
     inline std::size_t operator()(const std::pair<int,int> & v) const {
@@ -109,6 +110,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		}
 		else if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
 			if (col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
+    			play_sound("stomp");
 				delete_goomba_by_kin_handle(col_info.kin_handle);
 				rb.vel.y = WINDOW_HEIGHT / 3.f;
 			}
@@ -148,6 +150,8 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 			rb.vel.y = 2 * vel;
 			grounded = false;
 			num_jumps_since_grounded += 1;
+
+    		play_sound("jump");
 		}
 	}
 
