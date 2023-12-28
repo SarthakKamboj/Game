@@ -11,68 +11,35 @@ message(${CMAKE_BUILD_TYPE})
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(RUN_TESTCASES "Run unit tests and test cases" OFF)
-set(BASE_FILES)
-list(APPEND BASE_FILES 
-    src/app.cpp
-    src/camera.cpp
-    src/update.cpp
-    src/physics/physics.cpp
-    src/input/input.cpp
-    src/init.cpp
-    src/renderer/renderer.cpp
-    src/utils/time.cpp
-    src/utils/math.cpp
-    src/utils/io.cpp
-    src/renderer/basic/shape_renders.cpp
-    src/renderer/opengl/buffers.cpp
-    src/renderer/opengl/object_data.cpp
-    src/renderer/opengl/resources.cpp
-    src/renderer/opengl/vertex.cpp
-    src/transform/transform.cpp
-    src/gameobjects/gos.cpp
-    src/animation/animation.cpp
-    src/ui/ui.cpp
-)
-
-function(configure_test_cases)
-    add_subdirectory(external/Catch2)
-    add_subdirectory(external/glad)
-    add_subdirectory(external/stb_image)
-
-    add_executable(${PROJECT_NAME} 
-        # test files go here
-    )
-
-    target_include_directories(${PROJECT_NAME} 
-        PUBLIC src
-
-        PUBLIC ../shared
-        PUBLIC external/SDL2_x64/include/SDL2
-        PUBLIC external/glad/include
-        PUBLIC external/glm
-        PUBLIC external/stb_image
-        PUBLIC external/Catch2/src
-    )
-
-    target_link_directories(${PROJECT_NAME} 
-        PUBLIC external/SDL2_x64
-    )
-
-    target_link_libraries(${PROJECT_NAME} Catch2::Catch2WithMain)
-
-endfunction()
-
 function(configure_game)
 
-    set(EXTRA_FILES)
-    list(APPEND EXTRA_FILES 
+    set(FILES)
+    list(APPEND FILES 
+        src/app.cpp
+        src/camera.cpp
+        src/update.cpp
+        src/physics/physics.cpp
+        src/input/input.cpp
+        src/init.cpp
+        src/renderer/renderer.cpp
+        src/utils/time.cpp
+        src/utils/math.cpp
+        src/utils/io.cpp
+        src/renderer/basic/shape_renders.cpp
+        src/renderer/opengl/buffers.cpp
+        src/renderer/opengl/object_data.cpp
+        src/renderer/opengl/resources.cpp
+        src/renderer/opengl/vertex.cpp
+        src/transform/transform.cpp
+        src/gameobjects/gos.cpp
+        src/animation/animation.cpp
+        src/ui/ui.cpp
+        src/audio/audio.cpp
         src/main.cpp
     )
 
     add_executable(${PROJECT_NAME} 
-        ${BASE_FILES}
-        ${EXTRA_FILES}
+        ${FILES}
     )
 
     add_subdirectory(external/glad)
@@ -100,11 +67,5 @@ function(configure_game)
 
 endfunction()
 
-configure_file(test_config.h.in ${CMAKE_SOURCE_DIR}/src/test_config.h)
-if (RUN_TESTCASES)
-    message("with test cases")
-    configure_test_cases()
-else()
-    message("without test cases")
-    configure_game()
-endif() 
+
+configure_game()
