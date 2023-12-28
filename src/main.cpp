@@ -9,6 +9,7 @@
 #include "physics/physics.h"
 #include "animation/animation.h"
 #include "SDL.h"
+#include "audio/audio.h"
 
 input::user_input_t input_state;
 
@@ -29,6 +30,16 @@ int main(int argc, char *argv[])
 			utils::start_timer(frame_timer);
 
 			input::process_input(input_state);
+
+			// static bool pause = true;
+			// if (input_state.left_clicked) {
+			// 	if (pause) {
+			// 		pause_bck_sound();
+			// 	} else {
+			// 		resume_bck_sound();
+			// 	}
+			// 	pause = !pause;
+			// }
 
 			app.running = !input_state.quit;
 

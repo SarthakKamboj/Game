@@ -99,6 +99,22 @@ void play_bck_sound() {
     assert(!detect_error());
 }
 
+void resume_bck_sound() {
+    alSourcePlay(background_source.al_handle);
+    assert(!detect_error());
+}
+
+void pause_bck_sound() {
+    alSourcePause(background_source.al_handle);
+    assert(!detect_error());
+}
+
+void stop_bck_sound() {
+    sound_t& bck_sound = sounds[bck_sound_name];
+    alSourceStop(background_source.al_handle);
+    assert(!detect_error());
+}
+
 void play_sound(const char* sound_name) {
     audio_source_t* pool = NULL;
     sound_t& sound = sounds[sound_name];

@@ -28,5 +28,10 @@ bool detect_error();
 
 void read_wav_sound(const char* name, const char *filename, bool bck_sound = false);
 audio_source_t create_audio_source();
+
 void play_bck_sound();
+void pause_bck_sound();
+void resume_bck_sound();
+void stop_bck_sound();
+
 void play_sound(const char* sound_name);
