@@ -8,10 +8,6 @@ struct read_status {
     ALuint al_handle = 0;
 };
 
-struct speaker_t {
-
-};
-
 struct sound_device_t {
     ALCdevice* device;
     ALCcontext* context;
