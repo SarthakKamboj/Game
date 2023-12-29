@@ -1,6 +1,11 @@
 #include "io.h"
+
 #include <fstream>
 #include <iostream>
+#include <windows.h>
+#include <cassert>
+
+static bool running_in_vs = false;
 
 namespace io {
 	std::string get_file_contents(const char* path) {
@@ -32,4 +37,25 @@ namespace io {
 		}
 		return std::string();
 	}
+
+	void set_running_in_visual_studio(bool _running_in_vs) {
+		running_in_vs = _running_in_vs;
+	}
+
+	void get_resources_folder_path(char path_buffer[256]) {
+		if (running_in_vs) {
+			sprintf(path_buffer, "C:\\Sarthak\\projects\\game\\resources");
+			return;
+		}
+		static bool got_root_path = false;
+		static char s_folder[256]{};
+		if (!got_root_path) {
+			char folder[256]{};
+			GetCurrentDirectoryA(256, folder);
+			sprintf(s_folder, "%s\\resources", folder);
+			got_root_path = true;
+		}
+		memcpy(path_buffer, s_folder, strlen(s_folder));
+	}
+
 }

@@ -17,6 +17,7 @@
 #include "ui/ui.h"
 #include "renderer/basic/shape_renders.h"
 #include "audio/audio.h"
+#include "utils/io.h"
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -525,8 +526,12 @@ void load_level(application_t& app, int level_num) {
 	level_num = std::min(std::max(1, level_num), 4);
 	char json_file[512]{};
 	char img_file[512]{};
-	sprintf(json_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/data.json", level_num);
-	sprintf(img_file, "C:/Sarthak/projects/game/resources/levels/platformer_game/simplified/Level_%i/_composite.png", level_num);
+	
+	char resources_folder[256]{};
+	io::get_resources_folder_path(resources_folder);
+	const char* levels_folder = LEVELS_FOLDER;
+	sprintf(json_file, "%s\\%s\\Level_%i\\data.json", resources_folder, levels_folder, level_num);
+	sprintf(img_file, "%s\\%s\\Level_%i\\_composite.png", resources_folder, levels_folder, level_num);
     load_level(app, json_file, img_file);
 	resume_bck_sound();
 	app.scene_manager.cur_level = level_num;

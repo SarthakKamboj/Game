@@ -24,7 +24,6 @@ struct main_character_t {
 	glm::vec3 color;
 	glm::vec2 dims;
 
-	static int tex_handle;
 	static int mc_statemachine_handle;
 
 	bool grounded = false;
@@ -78,7 +77,6 @@ struct goomba_t {
 	static const int HEIGHT = GAME_GRID_SIZE;	
 	static const glm::vec3 GOOMBA_COLOR;
 	float move_speed = -50.f;
-	static int tex_handle;
 };
 
 void init_goomba_data();

@@ -8,6 +8,7 @@
 #include "sndfile.h"
 
 #include "constants.h"
+#include "utils/io.h"
 
 #define NUM_SOURCES_PER_FORMAT 5
 
@@ -39,8 +40,14 @@ audio_source_t* get_source_from_pool(audio_source_t* sources) {
 }
 
 void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
+    char resources_folder[256]{};
+    io::get_resources_folder_path(resources_folder);
+
+    char full_file_path[256]{};
+    sprintf(full_file_path, "%s\\%s\\%s", resources_folder, AUDIO_FOLDER, filename);
+
     SF_INFO sound_file_info{};
-    SNDFILE* sound_file = sf_open(filename, SFM_READ, &sound_file_info);
+    SNDFILE* sound_file = sf_open(full_file_path, SFM_READ, &sound_file_info);
     int major_type = sound_file_info.format & SF_FORMAT_TYPEMASK;
     int minor_type = sound_file_info.format & SF_FORMAT_SUBMASK;
     int endianess = sound_file_info.format & SF_FORMAT_ENDMASK;

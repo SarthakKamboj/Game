@@ -9,6 +9,7 @@
 #include "renderer/opengl/resources.h"
 #include "camera.h"
 #include "audio/audio.h"
+#include "utils/io.h"
 
 struct pair_hash {
     inline std::size_t operator()(const std::pair<int,int> & v) const {
@@ -60,20 +61,23 @@ void unload_level(application_t& app) {
 	delete_mc(app.main_character);
 }
 
-int main_character_t::tex_handle = -1;
 int main_character_t::mc_statemachine_handle = -1;
 
 const time_count_t main_character_t::DASH_TIME = 0.1;
 
 void init_mc_data() {
-	main_character_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-3-character-sprite-sheets-pixel-art\\3 SteamMan\\main.png", 0);
-	main_character_t::mc_statemachine_handle = create_state_machine("C:\\Sarthak\\projects\\game\\resources\\art\\character", "mc", "character_running");
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+
+	char character_art_path[256]{};
+	sprintf(character_art_path, "%s\\%s\\character", resource_path, ART_FOLDER);
+	main_character_t::mc_statemachine_handle = create_state_machine(character_art_path, "mc", "character_running");
 }
 
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color) {
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
-	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE * 1.5, false, 1, main_character_t::tex_handle);
+	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE * 1.5, false, 1, -1);
 	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8, GAME_GRID_SIZE * 1.6, false, PHYSICS_RB_TYPE::PLAYER, true, false);
 	return mc;
 }
@@ -206,7 +210,6 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		t->y_deg = 180;
 	}
 	else if (move_right) {
-		// rb.vel.x = vel;
 		if (dash_pressed) {
 			rb.vel.x = vel * 3.f;
 			dashing_right = true;
@@ -239,10 +242,24 @@ int ground_block_t::left_corner_tex_handle = -1;
 int ground_block_t::left_tex_handle = -1;
 
 void init_ground_block_data() {
-	ground_block_t::top_layer_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_02.png", 0);
-	ground_block_t::bottom_layer_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_12.png", 0);
-	ground_block_t::left_corner_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_01.png", 0);
-	ground_block_t::left_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\1 Tiles\\Tile_11.png", 0);
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+
+	char top_path[256]{};
+	sprintf(top_path, "%s\\%s\\ground\\top.png", resource_path, ART_FOLDER);
+	ground_block_t::top_layer_tex_handle = create_texture(top_path, 0);
+
+	char bottom_path[256]{};
+	sprintf(bottom_path, "%s\\%s\\ground\\bottom.png", resource_path, ART_FOLDER);
+	ground_block_t::bottom_layer_tex_handle = create_texture(bottom_path, 0);
+
+	char left_corner_path[256]{};
+	sprintf(left_corner_path, "%s\\%s\\ground\\left_corner.png", resource_path, ART_FOLDER);
+	ground_block_t::left_corner_tex_handle = create_texture(left_corner_path, 0);
+
+	char left_path[256]{};
+	sprintf(left_path, "%s\\%s\\ground\\left.png", resource_path, ART_FOLDER);
+	ground_block_t::left_tex_handle = create_texture(left_path, 0);
 }
 
 void create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot) {
@@ -271,11 +288,8 @@ void create_ground_block(const glm::vec3& pos, const glm::vec3& scale, float rot
 }
 
 const glm::vec3 goomba_t::GOOMBA_COLOR = glm::vec3(0.588f, 0.294f, 0.f);
-int goomba_t::tex_handle = -1;
 
-void init_goomba_data() {
-	goomba_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\Monster_Creatures_Fantasy(Version 1.3)\\Monster_Creatures_Fantasy(Version 1.3)\\Goblin\\goblin.png", 0);
-}
+void init_goomba_data() {}
 
 void create_goomba(const glm::vec3& pos) {
 	goomba_t goomba;
@@ -284,11 +298,18 @@ void create_goomba(const glm::vec3& pos) {
 	running_cnt++;
 	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f, 180.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
-	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT / 2.f, false, 1.f, goomba_t::tex_handle);
+	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT / 2.f, false, 1.f, -1);
 	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
 	char sm_name[64]{};
 	sprintf(sm_name, "goomba_%i", goomba.handle);
-	goomba.statemachine_handle = create_state_machine("C:\\Sarthak\\projects\\game\\resources\\art\\enemy1", sm_name, "enemy1_idle");
+
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+
+	char enemy_folder_path[256]{};
+	sprintf(enemy_folder_path, "%s\\%s\\enemy1", resource_path, ART_FOLDER);
+
+	goomba.statemachine_handle = create_state_machine(enemy_folder_path, sm_name, "enemy1_idle");
 	goombas.push_back(goomba);
 }
 
@@ -348,8 +369,16 @@ int brick_t::unbroken_tex_handle = -1;
 int brick_t::broken_tex_handle = -1;
 
 void init_brick_data() {
-	brick_t::unbroken_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\brick\\unbroken.png", 0);
-	brick_t::broken_tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\brick\\broken.png", 0);
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+
+	char unbroken_path[256]{};
+	sprintf(unbroken_path, "%s\\%s\\brick\\unbroken.png", resource_path, ART_FOLDER);
+	char broken_path[256]{};
+	sprintf(broken_path, "%s\\%s\\brick\\broken.png", resource_path, ART_FOLDER);
+
+	brick_t::unbroken_tex_handle = create_texture(unbroken_path, 0);
+	brick_t::broken_tex_handle = create_texture(broken_path, 0);
 }
 
 const glm::vec3 brick_t::BRICK_COLOR = glm::vec3(149.f, 52.f, 28.f) / 255.f;
@@ -481,7 +510,12 @@ int final_flag_t::tex_handle = -1;
 glm::vec3 final_flag_t::FINAL_FLAG_COLOR = glm::vec3(1, 1, 0);
 
 void init_final_flag_data() {
-	final_flag_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-swamp-game-tileset-pixel-art\\3 Objects\\Pointers\\8.png", 0);
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+	char final_texture_path[256]{};
+	sprintf(final_texture_path, "%s\\%s\\final\\final.png", resource_path, ART_FOLDER);
+
+	final_flag_t::tex_handle = create_texture(final_texture_path, 0);
 }
 
 void create_final_flag(glm::vec3 pos) {
@@ -508,7 +542,12 @@ void init_parallax_bck_data() {
 	int ground_height = -10;
 	parallax_bck::transform_handles[0] = create_transform(glm::vec3(WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
 	parallax_bck::transform_handles[1] = create_transform(glm::vec3(WINDOW_WIDTH + WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
-	parallax_bck::bck_texture = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\background\\background.png", 0);
+
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+	char bck_texture_path[256]{};
+	sprintf(bck_texture_path, "%s\\%s\\background\\background.png", resource_path, ART_FOLDER);
+	parallax_bck::bck_texture = create_texture(bck_texture_path, 0);
 	parallax_bck::rec_render_handles[0] = create_quad_render(parallax_bck::transform_handles[0], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
 	parallax_bck::rec_render_handles[1] = create_quad_render(parallax_bck::transform_handles[1], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
 }
