@@ -31,6 +31,11 @@ struct main_character_t {
 	int num_jumps_since_grounded = 0;
 	bool dead = false;
 
+	bool dashing_left = false;
+	bool dashing_right = false;
+	time_count_t dash_start_time;
+	static const time_count_t DASH_TIME;
+
 	void update(application_t& app, input::user_input_t& user_input);
 };
 

@@ -63,6 +63,8 @@ void unload_level(application_t& app) {
 int main_character_t::tex_handle = -1;
 int main_character_t::mc_statemachine_handle = -1;
 
+const time_count_t main_character_t::DASH_TIME = 0.1;
+
 void init_mc_data() {
 	main_character_t::tex_handle = create_texture("C:\\Sarthak\\projects\\game\\resources\\art\\free-3-character-sprite-sheets-pixel-art\\3 SteamMan\\main.png", 0);
 	main_character_t::mc_statemachine_handle = create_state_machine("C:\\Sarthak\\projects\\game\\resources\\art\\character", "mc", "character_running");
@@ -94,7 +96,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		return;
 	}
 
-	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));
+	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));	
 
 	bool prev_dead = dead;
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER);
@@ -153,6 +155,24 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
     // get velocity
 	const float vel = WINDOW_WIDTH / 4.f;
 
+	if (dashing_left) {
+		dashing_left = (platformer::time_t::cur_time - dash_start_time) < DASH_TIME;
+		if (!dashing_left) {
+			rb.use_gravity = true;
+		}
+		rb.vel.x = -vel * 3.f;
+		return;
+	}
+
+	if (dashing_right) {
+		dashing_right = (platformer::time_t::cur_time - dash_start_time) < DASH_TIME;
+		if (!dashing_right) {
+			rb.use_gravity = true;
+		}
+		rb.vel.x = vel * 3.f;
+		return;
+	}
+
     // jump
     bool jump_btn_pressed = user_input.w_pressed;
 
@@ -166,17 +186,36 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		}
 	}
 
-    bool left_move_pressed = user_input.a_down;
-    bool right_move_pressed = user_input.d_down;
+    bool move_left = user_input.a_down;
+    bool move_right = user_input.d_down;
+
+	bool dash_pressed = user_input.l_pressed;
 
 	transform_t* t = get_transform(rb.transform_handle);
-	if (left_move_pressed) {
-		rb.vel.x = -vel;
+	if (move_left) {
+		if (dash_pressed) {
+			rb.vel.x = -vel * 3.f;
+			dashing_left = true;
+			dash_start_time = platformer::time_t::cur_time;
+			rb.use_gravity = false;
+			rb.vel.y = 0;
+		} else {
+			rb.vel.x = -vel;
+		}
 		set_state_machine_anim(mc_statemachine_handle, "character_running");
 		t->y_deg = 180;
 	}
-	else if (right_move_pressed) {
-		rb.vel.x = vel;
+	else if (move_right) {
+		// rb.vel.x = vel;
+		if (dash_pressed) {
+			rb.vel.x = vel * 3.f;
+			dashing_right = true;
+			dash_start_time = platformer::time_t::cur_time;
+			rb.use_gravity = false;
+			rb.vel.y = 0;
+		} else {
+			rb.vel.x = vel;
+		}
 		set_state_machine_anim(mc_statemachine_handle, "character_running");
 		t->y_deg = 0;
 	}

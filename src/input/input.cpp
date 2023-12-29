@@ -17,6 +17,7 @@ namespace input {
 		user_input.s_pressed = false;
 		user_input.d_pressed = false;
 		user_input.p_pressed = false;
+		user_input.l_pressed = false;
 		user_input.space_pressed = false;
 		user_input.quit = false;
 		user_input.left_clicked = false;
@@ -55,6 +56,10 @@ namespace input {
 							user_input.p_down = false;
 							break;
 						}
+						case SDLK_l: {
+							user_input.l_down = false;
+							break;
+						}
 						default: break;
 					}
 				}
@@ -83,6 +88,11 @@ namespace input {
 						case SDLK_d: {
 							user_input.d_pressed = true;
 							user_input.d_down = true;
+							break;
+						}
+						case SDLK_l: {
+							user_input.l_pressed = true;
+							user_input.l_down = true;
 							break;
 						}
 						case SDLK_SPACE: {

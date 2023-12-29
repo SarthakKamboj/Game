@@ -305,7 +305,11 @@ void update_rigidbodies() {
 		// update non kin rb position and velocity from gravity
 		transform_t& transform = *get_transform(non_kin_rb.transform_handle);
 		time_count_t delta_time = platformer::time_t::delta_time;
-		non_kin_rb.vel.y -= GRAVITY * delta_time;
+		
+		if (non_kin_rb.use_gravity) {
+			non_kin_rb.vel.y -= GRAVITY * delta_time;
+		}
+
 		transform.position.y += non_kin_rb.vel.y * delta_time;
 		transform.position.x += non_kin_rb.vel.x * delta_time;
 
