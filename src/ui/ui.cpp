@@ -54,7 +54,11 @@ void push_style(style_t& style) {
 }
 
 void pop_style() {
-    assert(styles_stack.size() > 1);
+    // assert(styles_stack.size() > 1);
+    if (styles_stack.size() == 0) {
+        std::cout << "styles stack is empty" << std::endl;
+        return;
+    }
     styles_stack.pop_back();
 }
 
@@ -595,6 +599,12 @@ void init_ui() {
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_int(data.shader, "char", 0);
+
+    if (detect_gl_error()) {
+		std::cout << "error loading the ui data" << std::endl;
+	} else {
+		std::cout << "successfully init ui data" << std::endl;
+    }
 }
 
 text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size) {

@@ -97,3 +97,9 @@ void vao_enable_attribute(vao_t& vao, const vbo_t& vbo, const int attrId, const 
 void delete_vao(const vao_t& vao) {
 	glDeleteVertexArrays(1, &vao.id);
 }
+
+bool detect_gl_error() {
+	GLenum error = glGetError();
+	if (error == GL_NO_ERROR) return false;
+	return true;
+}

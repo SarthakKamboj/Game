@@ -24,7 +24,7 @@ struct sound_t {
 };
 
 void init_audio();
-bool detect_error();
+bool detect_al_error();
 
 void read_wav_sound(const char* name, const char *filename, bool bck_sound = false);
 audio_source_t create_audio_source();

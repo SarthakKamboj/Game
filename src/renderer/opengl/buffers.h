@@ -2,6 +2,8 @@
 
 #include "glad/glad.h"
 
+bool detect_gl_error();
+
 /// <summary>
 /// An OpenGL Element Buffer Object
 /// </summary>

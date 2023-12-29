@@ -6,6 +6,7 @@
 #include "constants.h"
 #include "../opengl/vertex.h"
 #include "utils/io.h"
+#include <iostream>
 
 opengl_object_data quad_render_t::obj_data{};
 std::vector<glm::vec3> debug_pts;
@@ -58,6 +59,12 @@ void init_quad_data() {
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_mat4(data.shader, "view", glm::mat4(1.0f));
 	shader_set_int(data.shader, "tex", 0);
+
+	if (detect_gl_error()) {
+		std::cout << "error loading the quad data" << std::endl;
+	} else {
+		std::cout << "successfully init quad data" << std::endl;
+	}
 }
 
 int create_quad_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle) {

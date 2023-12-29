@@ -3,7 +3,6 @@
 #include <fstream>
 #include <iostream>
 #include <windows.h>
-#include <cassert>
 
 static bool running_in_vs = false;
 

@@ -76,7 +76,7 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
     alBufferData(sound_al_handle, format, data, num_bytes, sound_file_info.samplerate);
     free(data);
 
-    assert(!detect_error());
+    assert(!detect_al_error());
 
     sound_t sound;
     sound.al_buffer_handle = sound_al_handle;
@@ -94,7 +94,7 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
 audio_source_t create_audio_source() {
     audio_source_t audio_source;
     alGenSources(1, &audio_source.al_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
     return audio_source;
 }
 
@@ -105,9 +105,9 @@ void play_bck_sound() {
     alSourcef(background_source.al_handle, AL_GAIN, 0.5f);
     alSourcei(background_source.al_handle, AL_BUFFER, bck_sound.al_buffer_handle);
     alSourcei(background_source.al_handle, AL_LOOPING, 1);
-    assert(!detect_error());
+    assert(!detect_al_error());
     alSourcePlay(background_source.al_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
 }
 
 void resume_bck_sound() {
@@ -116,18 +116,18 @@ void resume_bck_sound() {
     if (state == AL_PAUSED) {
         alSourcePlay(background_source.al_handle);
     }
-    assert(!detect_error());
+    assert(!detect_al_error());
 }
 
 void pause_bck_sound() {
     alSourcePause(background_source.al_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
 }
 
 void stop_bck_sound() {
     sound_t& bck_sound = sounds[bck_sound_name];
     alSourceStop(background_source.al_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
 }
 
 void clear_sounds() {
@@ -149,9 +149,9 @@ void play_sound(const char* sound_name, bool overrule) {
     audio_source_t* source = get_source_from_pool(pool);
     if (!source) return;
     alSourcei(source->al_handle, AL_BUFFER, sound.al_buffer_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
     alSourcePlay(source->al_handle);
-    assert(!detect_error());
+    assert(!detect_al_error());
 }
 
 bool sound_finished_playing(const char* sound_name) {
@@ -177,7 +177,7 @@ bool sound_finished_playing(const char* sound_name) {
     return true;
 }
 
-bool detect_error() {
+bool detect_al_error() {
     ALenum error = alGetError();
     if (error != AL_NO_ERROR) {
         switch (error) {
