@@ -29,6 +29,15 @@ struct aabb_collider_t {
 	int collider_debug_transform_handle;
 };
 
+enum CORNER {
+	TOP_LEFT = 0,
+	TOP_RIGHT,
+	BOTTOM_RIGHT,
+	BOTTOM_LEFT,
+
+	NUM_CORNERS
+};
+
 struct rigidbody_t {
     int handle = -1;
 
@@ -58,11 +67,18 @@ enum PHYSICS_COLLISION_DIR: uint8_t {
 };
 
 enum class PHYSICS_RELATIVE_DIR {
-	NONE,
-	RIGHT,
-	LEFT,
-	TOP,
-	BOTTOM
+	NONE = 0,
+	RIGHT = 1 << 0,
+	LEFT = 1 << 1,
+	TOP = 1 << 2,
+	BOTTOM = 1 << 3
+};
+
+struct col_dirs_t {
+	bool right = false;
+	bool left = false;
+	bool top = false;
+	bool bottom = false;
 };
 
 /**

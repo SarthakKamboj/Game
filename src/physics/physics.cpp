@@ -7,6 +7,9 @@
 #include "utils/time.h"
 #include "utils/math.h"
 
+#define TWO_DIM_RESOLVE 1
+#define DIAG_METHOD_RESOLVE !TWO_DIM_RESOLVE
+
 std::vector<rigidbody_t> non_kin_rigidbodies;
 std::vector<rigidbody_t> kin_rigidbodies;
 std::vector<general_collision_info_t> general_frame_col_infos;
@@ -52,10 +55,10 @@ int create_rigidbody(int transform_handle, bool use_gravity, float collider_widt
 }
 
 void rigidbody_t::get_corners(glm::vec2 corners[4]) {
-	glm::vec2& top_left = corners[0];
-	glm::vec2& top_right = corners[1];
-	glm::vec2& bottom_right = corners[2];
-	glm::vec2& bottom_left = corners[3];
+	glm::vec2& top_left = corners[CORNER::TOP_LEFT];
+	glm::vec2& top_right = corners[CORNER::TOP_RIGHT];
+	glm::vec2& bottom_right = corners[CORNER::BOTTOM_RIGHT];
+	glm::vec2& bottom_left = corners[CORNER::BOTTOM_LEFT];
 	
 	glm::vec2 pos(aabb_collider.x, aabb_collider.y);
 
@@ -160,9 +163,9 @@ bool sat_detect_collision(rigidbody_t& rb1, rigidbody_t& rb2) {
  * @param total_col_info Running collision info of the 4 diagnals with this non kinematic rb
  * @param col_info Set collision info for this particular resolving, different from total_col_info because total_col_info is
  * a running record of collision for a non_kin rb with all kin_rbs, this is just for this particular non_kin and kin rb resolving
- * @return Whether there was any sort of collision in this collision resolving
+ * @return Whether there was any sort of collision using the diganals method and what the info was for it
 */
-bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_info_t& total_col_info, collision_info_t& cur_col_info) {
+bool diagnals_method_col_info(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, collision_info_t& total_col_info, collision_info_t& cur_col_info) {
 	glm::vec2 kin_corners[4];
 	glm::vec2 non_kin_corners[4];
 
@@ -183,6 +186,7 @@ bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, c
 			glm::vec2& corner1 = kin_corners[kin_i];
 			glm::vec2& corner2 = kin_corners[(kin_i+1)%4];
 
+			// compared a vertical edge of the kin_rb
 			if (corner1.x == corner2.x) {
 				float y_point_on_non_kin_diag = non_kin_slope * (corner1.x - non_kin_center.x) + non_kin_center.y;
 				glm::vec2 intersection_pt(corner1.x, y_point_on_non_kin_diag);
@@ -191,6 +195,7 @@ bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, c
 				float dir = glm::dot(glm::normalize(intersection_pt - non_kin_center), glm::normalize(non_kin_corner - non_kin_center));
 				float ratio_from_center = glm::sqrt(ratio_from_center_numerator / ratio_from_center_denom);
 				if (dir >= 0 && ratio_from_center >= 0 && ratio_from_center <= 1.f && intersection_pt.y >= fmin(corner1.y, corner2.y) && intersection_pt.y <= fmax(corner1.y, corner2.y)) {
+					// for this diagnal, this intersection is closer to the center
 					if (ratio_from_center <= total_diag_col.ratio_from_center) {
 						float move_ratio = 1 - ratio_from_center;
 						transform_t* t_ptr = get_transform(non_kin_rb.transform_handle);
@@ -209,6 +214,8 @@ bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, c
 					}
 				}
 			}
+
+			// compared a horizontal edge of the kin_rb
 			else if (corner1.y == corner2.y) {
 				float x_point_on_non_kin_diag = ((corner1.y - non_kin_center.y) / non_kin_slope) + non_kin_center.x;
 				glm::vec2 intersection_pt(x_point_on_non_kin_diag, corner1.y);
@@ -217,7 +224,7 @@ bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, c
 				float dir = glm::dot(glm::normalize(intersection_pt - non_kin_center), glm::normalize(non_kin_corner - non_kin_center));
 				float ratio_from_center = glm::sqrt(ratio_from_center_numerator / ratio_from_center_denom);
 				if (dir >= 0 && ratio_from_center >= 0 && ratio_from_center <= 1.f && intersection_pt.x >= fmin(corner1.x, corner2.x) && intersection_pt.x <= fmax(corner1.x, corner2.x)) {
-					// non_kin_rb.vel.y = 0;
+					// for this diagnal, this intersection is closer to the center
 					if (ratio_from_center <= total_diag_col.ratio_from_center) {
 						float move_ratio = 1 - ratio_from_center;
 						transform_t* t_ptr = get_transform(non_kin_rb.transform_handle);
@@ -242,12 +249,32 @@ bool diagnals_method_col_resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, c
 	return detected_col;
 }
 
+void resolve(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, transform_t& non_kin_transform, col_dirs_t col_dirs) {
+	if (col_dirs.right && non_kin_rb.vel.x > 0) {
+		non_kin_rb.vel.x = 0;
+		non_kin_transform.position.x = kin_rb.aabb_collider.x - (kin_rb.aabb_collider.width / 2) - (non_kin_rb.aabb_collider.width / 2);
+	} else if (col_dirs.left && non_kin_rb.vel.x < 0) {
+		non_kin_rb.vel.x = 0;
+		non_kin_transform.position.x = kin_rb.aabb_collider.x + (kin_rb.aabb_collider.width / 2) + (non_kin_rb.aabb_collider.width / 2);
+	}
+
+	if (col_dirs.top && non_kin_rb.vel.y > 0) {
+		non_kin_rb.vel.y = 0;
+		non_kin_transform.position.y = kin_rb.aabb_collider.y - (kin_rb.aabb_collider.height / 2) - (non_kin_rb.aabb_collider.height / 2);				
+	} else if (col_dirs.bottom && non_kin_rb.vel.y < 0) {
+		non_kin_rb.vel.y = 0;
+		non_kin_transform.position.y = kin_rb.aabb_collider.y + (kin_rb.aabb_collider.height / 2) + (non_kin_rb.aabb_collider.height / 2);				
+	}
+}
+
 void update_rigidbodies() {	
 
 	general_frame_col_infos.clear();
 
+	// update kinematic rigidbodies
 	for (int i = 0; i < kin_rigidbodies.size(); i++) {
 		rigidbody_t& rb = kin_rigidbodies[i];
+		// only goombas and ice powers ups move at all, the rest are static entirely
 		if (rb.rb_type == PHYSICS_RB_TYPE::GOOMBA || rb.rb_type == PHYSICS_RB_TYPE::ICE_POWERUP) {
 			time_count_t delta_time = platformer::time_t::delta_time;
 
@@ -273,134 +300,170 @@ void update_rigidbodies() {
 		}
 	}
 
-	for (rigidbody_t& non_kin_rb_orig : non_kin_rigidbodies) {
+	for (rigidbody_t& non_kin_rb : non_kin_rigidbodies) {
 
-		transform_t* ptr = get_transform(non_kin_rb_orig.transform_handle);
-		assert(ptr != NULL);
-		transform_t& transform_orig = *ptr;
+		// update non kin rb position and velocity from gravity
+		transform_t& transform = *get_transform(non_kin_rb.transform_handle);
+		time_count_t delta_time = platformer::time_t::delta_time;
+		non_kin_rb.vel.y -= GRAVITY * delta_time;
+		transform.position.y += non_kin_rb.vel.y * delta_time;
+		transform.position.x += non_kin_rb.vel.x * delta_time;
 
-		if (!non_kin_rb_orig.detect_col) {
-			time_count_t delta_time = platformer::time_t::delta_time;
-			non_kin_rb_orig.vel.y -= GRAVITY * delta_time;
-			transform_orig.position.y += non_kin_rb_orig.vel.y * delta_time;
-			transform_orig.position.x += non_kin_rb_orig.vel.x * delta_time;
+		non_kin_rb.aabb_collider.x = transform.position.x;
+		non_kin_rb.aabb_collider.y = transform.position.y;
 
-			non_kin_rb_orig.aabb_collider.x = transform_orig.position.x;
-			non_kin_rb_orig.aabb_collider.y = transform_orig.position.y;
-
-			if (non_kin_rb_orig.debug) {
-				transform_t* debug_t = get_transform(non_kin_rb_orig.aabb_collider.collider_debug_transform_handle);
-				assert(debug_t);
-				transform_t& debug_transform = *debug_t;
-				debug_transform.position.x = non_kin_rb_orig.aabb_collider.x;
-				debug_transform.position.y = non_kin_rb_orig.aabb_collider.y;
-			}
-			continue;
+		if (non_kin_rb.debug) {
+			transform_t* debug_t = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
+			assert(debug_t);
+			transform_t& debug_transform = *debug_t;
+			debug_transform.position.x = non_kin_rb.aabb_collider.x;
+			debug_transform.position.y = non_kin_rb.aabb_collider.y;
 		}
 
-		// glm::vec2 total_displacement(0);
-		int num_displacements_x = 0;
-		int num_displacements_y = 0;
-
-		const int NUM_CONT_DETECTIONS = 1;
-		int earliest_cont_percent_i = NUM_CONT_DETECTIONS;
-		PHYSICS_COLLISION_DIR last_valid_dir = PHYSICS_COLLISION_DIR::NONE;
+		// if non kin rb is not detecting collision right now, just update positions and move on
+		if (!non_kin_rb.detect_col) {
+			continue;
+		}
 
 		collision_info_t total_col_info;
 
 		for (int j = 0; j < kin_rigidbodies.size(); j++) {
 
 			rigidbody_t& kin_rb = kin_rigidbodies[j];
+			time_count_t delta_time = platformer::time_t::delta_time;
 
-			for (int cont_percent_i = 1; cont_percent_i <= earliest_cont_percent_i; cont_percent_i++) {
+			if (!sat_detect_collision(non_kin_rb, kin_rb)) {
+				continue;
+			}
 
-				time_count_t delta_time = platformer::time_t::delta_time * cont_percent_i / static_cast<float>(NUM_CONT_DETECTIONS);
+#if TWO_DIM_RESOLVE
+			collision_info_t total, cur;
+			diagnals_method_col_info(kin_rb, non_kin_rb, total, cur);
 
-				// copies of non kinematic rb and transform for this sim at this time delta
-				rigidbody_t non_kin_rb = non_kin_rb_orig;
-				transform_t transform = transform_orig;
-
-				// apply gravity
-				if (non_kin_rb.use_gravity) {
-					non_kin_rb.vel.y -= GRAVITY * delta_time;
-				}
-
-				transform.position.y += non_kin_rb.vel.y * delta_time;
-				transform.position.x += non_kin_rb.vel.x * delta_time;
-
-				non_kin_rb.aabb_collider.x = transform.position.x;
-				non_kin_rb.aabb_collider.y = transform.position.y;
-
-				if (!sat_detect_collision(non_kin_rb, kin_rb)) continue;
-
-				collision_info_t cur_col_info;
-				bool detected_col = diagnals_method_col_resolve(kin_rb, non_kin_rb, total_col_info, cur_col_info);
-
-				if (detected_col) {
-					earliest_cont_percent_i = cont_percent_i;
-					for (int i = 0; i < 4; i++) {
-						PHYSICS_COLLISION_DIR dir = cur_col_info.diag_cols[i].dir;
-						if (dir != PHYSICS_COLLISION_DIR::NONE) {
-							PHYSICS_RELATIVE_DIR rel_dir = PHYSICS_RELATIVE_DIR::NONE;
-							if (dir == PHYSICS_COLLISION_DIR::HORIZONTAL) {
-								if (cur_col_info.diag_cols[i].displacement.x <= 0.f) {
-									rel_dir = PHYSICS_RELATIVE_DIR::RIGHT;
-								}
-								else {
-									rel_dir = PHYSICS_RELATIVE_DIR::LEFT;
-								}
-							}
-							else {
-								if (cur_col_info.diag_cols[i].displacement.y <= 0.f) {
-									rel_dir = PHYSICS_RELATIVE_DIR::TOP;
-								}
-								else {
-									rel_dir = PHYSICS_RELATIVE_DIR::BOTTOM;
-								}
-							} 
-							general_collision_info_t general_col_info(non_kin_rb.rb_type, kin_rb.rb_type, dir, rel_dir, kin_rb.handle);
-							general_frame_col_infos.push_back(general_col_info);
-							break;
+			col_dirs_t col_dirs;
+			for (int i = 0; i < 4; i++) {
+				PHYSICS_COLLISION_DIR dir = cur.diag_cols[i].dir;
+				if (dir != PHYSICS_COLLISION_DIR::NONE) {
+					PHYSICS_RELATIVE_DIR rel_dir = PHYSICS_RELATIVE_DIR::NONE;
+					if (dir == PHYSICS_COLLISION_DIR::HORIZONTAL) {
+						if (cur.diag_cols[i].displacement.x <= 0.f) {
+							rel_dir = PHYSICS_RELATIVE_DIR::RIGHT;
+							col_dirs.right = true;
+						}
+						else {
+							rel_dir = PHYSICS_RELATIVE_DIR::LEFT;
+							col_dirs.left = true;
 						}
 					}
+					else {
+						if (cur.diag_cols[i].displacement.y <= 0.f) {
+							rel_dir = PHYSICS_RELATIVE_DIR::TOP;
+							col_dirs.top = true;
+						}
+						else {
+							rel_dir = PHYSICS_RELATIVE_DIR::BOTTOM;
+							col_dirs.bottom = true;
+						}
+					} 
+					general_collision_info_t general_col_info(non_kin_rb.rb_type, kin_rb.rb_type, dir, rel_dir, kin_rb.handle);
+					general_frame_col_infos.push_back(general_col_info);
 					break;
 				}
 			}
+	
+			resolve(kin_rb, non_kin_rb, transform, col_dirs);
+
+			// update aabb positions
+			non_kin_rb.aabb_collider.x = transform.position.x;
+			non_kin_rb.aabb_collider.y = transform.position.y;
+
+			// debugging collider
+			transform_t* col_transform_ptr = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
+			assert(col_transform_ptr);
+			transform_t& collider_debug_transform = *col_transform_ptr;
+			collider_debug_transform.position.x = non_kin_rb.aabb_collider.x;
+			collider_debug_transform.position.y = non_kin_rb.aabb_collider.y;
+#endif
+
+#if DIAG_METHOD_RESOLVE
+			collision_info_t cur_col_info;
+			bool detected_col = diagnals_method_col_info(kin_rb, non_kin_rb, total_col_info, cur_col_info);
+
+			// should record collision direction (relative to non kin rb)
+			if (detected_col) {
+				for (int i = 0; i < 4; i++) {
+					PHYSICS_COLLISION_DIR dir = cur_col_info.diag_cols[i].dir;
+					if (dir != PHYSICS_COLLISION_DIR::NONE) {
+						PHYSICS_RELATIVE_DIR rel_dir = PHYSICS_RELATIVE_DIR::NONE;
+						if (dir == PHYSICS_COLLISION_DIR::HORIZONTAL) {
+							if (cur_col_info.diag_cols[i].displacement.x <= 0.f) {
+								rel_dir = PHYSICS_RELATIVE_DIR::RIGHT;
+							}
+							else {
+								rel_dir = PHYSICS_RELATIVE_DIR::LEFT;
+							}
+						}
+						else {
+							if (cur_col_info.diag_cols[i].displacement.y <= 0.f) {
+								rel_dir = PHYSICS_RELATIVE_DIR::TOP;
+							}
+							else {
+								rel_dir = PHYSICS_RELATIVE_DIR::BOTTOM;
+							}
+						} 
+						general_collision_info_t general_col_info(non_kin_rb.rb_type, kin_rb.rb_type, dir, rel_dir, kin_rb.handle);
+						general_frame_col_infos.push_back(general_col_info);
+						break;
+					}
+				}
+				break;
+			}
+#endif
+
 		}
 
-		time_count_t delta_time = platformer::time_t::delta_time * earliest_cont_percent_i / static_cast<float>(NUM_CONT_DETECTIONS);
-
-		float orig_y = transform_orig.position.y;
-
-		non_kin_rb_orig.vel.y -= GRAVITY * delta_time;
-		transform_orig.position.y += non_kin_rb_orig.vel.y * delta_time;
-		transform_orig.position.x += non_kin_rb_orig.vel.x * delta_time;
-
+#if DIAG_METHOD_RESOLVE
+		// displace non kin rb properly based on collision information
 		glm::vec3 total_displacement(0.f);
+		bool hor = false;
+		bool vert = false;
 		for (int i = 0; i < 4; i++) {
 			diag_col_info_t& diag_col_info = total_col_info.diag_cols[i];
 			if (diag_col_info.dir == PHYSICS_COLLISION_DIR::NONE) continue;
-			if (diag_col_info.dir == PHYSICS_COLLISION_DIR::HORIZONTAL && fabs(diag_col_info.displacement.x) >= total_displacement.x) {
+			if (diag_col_info.dir == PHYSICS_COLLISION_DIR::HORIZONTAL && fabs(diag_col_info.displacement.x) >= fabs(total_displacement.x)) {
 				total_displacement.x = diag_col_info.displacement.x;
-				non_kin_rb_orig.vel.x = 0;
+				non_kin_rb.vel.x = 0;
+				hor = true;
+				if (non_kin_rb.rb_type == PHYSICS_RB_TYPE::PLAYER) {
+					printf("hor ");
+				}
 			}
-			else if (diag_col_info.dir == PHYSICS_COLLISION_DIR::VERTICAL && fabs(diag_col_info.displacement.y) >= total_displacement.y){
+			else if (diag_col_info.dir == PHYSICS_COLLISION_DIR::VERTICAL && fabs(diag_col_info.displacement.y) >= fabs(total_displacement.y)){
 				total_displacement.y = diag_col_info.displacement.y;
-				non_kin_rb_orig.vel.y = 0;
+				non_kin_rb.vel.y = 0;
+				vert = true;
+				if (non_kin_rb.rb_type == PHYSICS_RB_TYPE::PLAYER) {
+					printf("vert ");
+				}
 			}
 		}
+		if (total_displacement != glm::vec3(0.f) && non_kin_rb.rb_type == PHYSICS_RB_TYPE::PLAYER) {
+			printf("displacement (%f, %f) \n", total_displacement.x, total_displacement.y);
+		}
+		transform.position += total_displacement;
 
-		transform_orig.position += total_displacement;
-
-		non_kin_rb_orig.aabb_collider.x = transform_orig.position.x;
-		non_kin_rb_orig.aabb_collider.y = transform_orig.position.y;
+		// update aabb positions
+		non_kin_rb.aabb_collider.x = transform.position.x;
+		non_kin_rb.aabb_collider.y = transform.position.y;
 
 		// debugging collider
-        transform_t* col_transform_ptr = get_transform(non_kin_rb_orig.aabb_collider.collider_debug_transform_handle);
-        assert(col_transform_ptr != NULL);
+        transform_t* col_transform_ptr = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
+        assert(col_transform_ptr);
 		transform_t& collider_debug_transform = *col_transform_ptr;
-		collider_debug_transform.position.x = non_kin_rb_orig.aabb_collider.x;
-		collider_debug_transform.position.y = non_kin_rb_orig.aabb_collider.y;
+		collider_debug_transform.position.x = non_kin_rb.aabb_collider.x;
+		collider_debug_transform.position.y = non_kin_rb.aabb_collider.y;
+#endif
+	
 	}
 }
 

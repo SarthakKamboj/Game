@@ -34,7 +34,7 @@ namespace input {
 					user_input.left_clicked = (event.button.button == SDL_BUTTON_LEFT);	
 				}
 				case SDL_KEYUP: {
-					switch (event.key.keysym.sym) {
+					switch (event.key.keysym.sym) {	
 						case SDLK_w: {
 							user_input.w_down = false;
 							break;
@@ -61,6 +61,10 @@ namespace input {
 				break;
 				case SDL_KEYDOWN: {
 					switch (event.key.keysym.sym) {
+						case SDLK_ESCAPE: {
+							user_input.quit = true;
+							break;
+						}
 						case SDLK_w: {
 							user_input.w_pressed = true;
 							user_input.w_down = true;

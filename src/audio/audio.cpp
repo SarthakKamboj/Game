@@ -92,8 +92,8 @@ audio_source_t create_audio_source() {
 void play_bck_sound() {
     assert(bck_sound_name[0] != 0);
     sound_t& bck_sound = sounds[bck_sound_name];
-    // alSourcef(background_source.al_handle, AL_MIN_GAIN, 0);
-    // alSourcef(background_source.al_handle, AL_GAIN, 0.2f);
+    alSourcef(background_source.al_handle, AL_MIN_GAIN, 0);
+    alSourcef(background_source.al_handle, AL_GAIN, 0.5f);
     alSourcei(background_source.al_handle, AL_BUFFER, bck_sound.al_buffer_handle);
     alSourcei(background_source.al_handle, AL_LOOPING, 1);
     assert(!detect_error());
@@ -138,8 +138,7 @@ void play_sound(const char* sound_name, bool overrule) {
     if (sound.num_channels == 1) pool = mono_sources;
     else pool = stereo_sources;
     audio_source_t* source = get_source_from_pool(pool);
-    assert(source != NULL);
-    // alSourceQueueBuffers(source->al_handle, 1, &sound.al_buffer_handle);
+    if (!source) return;
     alSourcei(source->al_handle, AL_BUFFER, sound.al_buffer_handle);
     assert(!detect_error());
     alSourcePlay(source->al_handle);
