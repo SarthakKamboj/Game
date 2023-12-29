@@ -3,10 +3,11 @@
 #include "../renderer.h"
 #include "transform/transform.h"
 #include <vector>
-#include "constants.h"
 #include "../opengl/vertex.h"
 #include "utils/io.h"
 #include <iostream>
+
+#include "constants.h"
 
 opengl_object_data quad_render_t::obj_data{};
 std::vector<glm::vec3> debug_pts;
@@ -134,7 +135,7 @@ void draw_debug_pt(glm::vec3 pos) {
 void draw_quad_render(const quad_render_t& quad) {
     // get the transform for that rectangle render
     transform_t* transform_ptr = get_transform(quad.transform_handle);
-    assert(transform_ptr != NULL);
+    game_assert(transform_ptr != NULL);
 	transform_t cur_transform = *transform_ptr;
     
     // add the internal offset, especially necessary for scale to make sure width and height are abided by

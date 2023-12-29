@@ -1,6 +1,5 @@
 #include "audio.h"
 
-#include <cassert>
 #include <iostream>
 #include <unordered_map>
 #include <string>
@@ -54,8 +53,8 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
     int minor_type = sound_file_info.format & SF_FORMAT_SUBMASK;
     int endianess = sound_file_info.format & SF_FORMAT_ENDMASK;
 
-    assert(major_type == SF_FORMAT_WAV);
-    assert(sound_file_info.channels <= 2);
+    game_assert(major_type == SF_FORMAT_WAV);
+    game_assert(sound_file_info.channels <= 2);
 
     ALenum format;
     if (sound_file_info.channels == 1) {
@@ -69,14 +68,14 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
     short* data = static_cast<short*>(malloc(num_bytes));
 
     sf_count_t count = sf_readf_short(sound_file, data, sound_file_info.frames);
-    assert(count > 0);
+    game_assert(count > 0);
 
     ALuint sound_al_handle;
     alGenBuffers(1, &sound_al_handle);
     alBufferData(sound_al_handle, format, data, num_bytes, sound_file_info.samplerate);
     free(data);
 
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 
     sound_t sound;
     sound.al_buffer_handle = sound_al_handle;
@@ -94,20 +93,20 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
 audio_source_t create_audio_source() {
     audio_source_t audio_source;
     alGenSources(1, &audio_source.al_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
     return audio_source;
 }
 
 void play_bck_sound() {
-    assert(bck_sound_name[0] != 0);
+    game_assert(bck_sound_name[0] != 0);
     sound_t& bck_sound = sounds[bck_sound_name];
     alSourcef(background_source.al_handle, AL_MIN_GAIN, 0);
     alSourcef(background_source.al_handle, AL_GAIN, 0.5f);
     alSourcei(background_source.al_handle, AL_BUFFER, bck_sound.al_buffer_handle);
     alSourcei(background_source.al_handle, AL_LOOPING, 1);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
     alSourcePlay(background_source.al_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 }
 
 void resume_bck_sound() {
@@ -116,18 +115,18 @@ void resume_bck_sound() {
     if (state == AL_PAUSED) {
         alSourcePlay(background_source.al_handle);
     }
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 }
 
 void pause_bck_sound() {
     alSourcePause(background_source.al_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 }
 
 void stop_bck_sound() {
     sound_t& bck_sound = sounds[bck_sound_name];
     alSourceStop(background_source.al_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 }
 
 void clear_sounds() {
@@ -149,9 +148,9 @@ void play_sound(const char* sound_name, bool overrule) {
     audio_source_t* source = get_source_from_pool(pool);
     if (!source) return;
     alSourcei(source->al_handle, AL_BUFFER, sound.al_buffer_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
     alSourcePlay(source->al_handle);
-    assert(!detect_al_error());
+    game_assert(!detect_al_error());
 }
 
 bool sound_finished_playing(const char* sound_name) {

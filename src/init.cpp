@@ -1,8 +1,6 @@
 #include <string>
-#include <stdexcept>
 #include <iostream>
 #include "glad/glad.h"
-#include "constants.h"
 #include "app.h"
 #include "SDL.h"
 #include "renderer/opengl/buffers.h"
@@ -15,9 +13,10 @@
 #include "gameobjects/gos.h"
 #include "renderer/basic/shape_renders.h"
 #include "ui/ui.h"
-#include "renderer/basic/shape_renders.h"
 #include "audio/audio.h"
 #include "utils/io.h"
+
+#include "constants.h"
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -207,7 +206,7 @@ struct color_conversion_t {
 	/// <param name="color_str">Color represented as string in uppercase hex format with # in the front</param>
 	color_conversion_t(const char* item_name, const char* color_str) {
 		memcpy(m_item_name, item_name, strlen(item_name));
-		assert(color_str[0] == '#');
+		game_assert(color_str[0] == '#');
 		color_str++;
 		for (int i = 0; i < 6; i++) {
 			unsigned char* color_val = NULL;
@@ -360,11 +359,11 @@ void read_entities(FILE* file) {
 
 		key_val_t key_val = separate_key_val(line);
 		if (strcmp(key_val.key, "PlayerStart") == 0) {
-			assert(*key_val.val == '[');
+			game_assert(*key_val.val == '[');
 			player_pos = read_entity_data(file);
 		}
 		if (strcmp(key_val.key, "FinalFlag") == 0) {
-			assert(*key_val.val == '[');
+			game_assert(*key_val.val == '[');
 			final_flag_pos = read_entity_data(file);
 		}
 	}	
@@ -423,10 +422,10 @@ void recursive_section_traverse(FILE* file) {
 		// }
 		if (strcmp(key_val.val, "{}") == 0 ||  strcmp(key_val.val, "[]") == 0) continue;
 		if (key_val.key && strcmp(key_val.key, "customFields") == 0 && strcmp(key_val.val, "{}") != 0) {
-			assert(*key_val.val == '{');
+			game_assert(*key_val.val == '{');
 			read_color_map_info(file);
 		} else if (key_val.key && strcmp(key_val.key, "entities") == 0) {
-			assert(*key_val.val == '{');
+			game_assert(*key_val.val == '{');
 			read_entities(file);
 		} else if (strcmp(key_val.val, "{") == 0 || strcmp(key_val.val, "[") == 0) {
 			skip_over_section(file);
@@ -461,7 +460,7 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	unsigned char* level_img_data = stbi_load(level_img, &img_file_width, &img_file_height, &num_channels, 0);
 	if (level_img_data == NULL) return;
 
-	assert(num_channels == 3 || num_channels == 4);
+	game_assert(num_channels == 3 || num_channels == 4);
 
 	const int LEVEL_MAP_ROWS = floor(img_file_height / LEVEL_MAP_GRID_SIZE);
 	const int LEVEL_MAP_COLS = floor(img_file_width / LEVEL_MAP_GRID_SIZE);

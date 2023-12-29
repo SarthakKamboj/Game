@@ -1,11 +1,12 @@
 #include "physics.h"
 #include <vector>
-#include "constants.h"
 #include "transform/transform.h"
 #include <iostream>
 #include "input/input.h"
 #include "utils/time.h"
 #include "utils/math.h"
+
+#include "constants.h"
 
 #define TWO_DIM_RESOLVE 1
 #define DIAG_METHOD_RESOLVE !TWO_DIM_RESOLVE
@@ -199,7 +200,7 @@ bool diagnals_method_col_info(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, coll
 					if (ratio_from_center <= total_diag_col.ratio_from_center) {
 						float move_ratio = 1 - ratio_from_center;
 						transform_t* t_ptr = get_transform(non_kin_rb.transform_handle);
-						assert(t_ptr != NULL);
+						game_assert(t_ptr != NULL);
 						transform_t& transform = *t_ptr;
 						glm::vec2 displacement = -(non_kin_corner - non_kin_center) * move_ratio;
 						total_diag_col.dir = HORIZONTAL;
@@ -228,7 +229,7 @@ bool diagnals_method_col_info(rigidbody_t& kin_rb, rigidbody_t& non_kin_rb, coll
 					if (ratio_from_center <= total_diag_col.ratio_from_center) {
 						float move_ratio = 1 - ratio_from_center;
 						transform_t* t_ptr = get_transform(non_kin_rb.transform_handle);
-						assert(t_ptr != NULL);
+						game_assert(t_ptr != NULL);
 						transform_t& transform = *t_ptr;
 						glm::vec2 displacement = -(non_kin_corner - non_kin_center) * move_ratio;
 						total_diag_col.dir = VERTICAL;
@@ -279,7 +280,7 @@ void update_rigidbodies() {
 			time_count_t delta_time = platformer::time_t::delta_time;
 
 			transform_t* t = get_transform(rb.transform_handle);
-			assert(t);
+			game_assert(t);
 			transform_t& transform = *t;
 
 			if (rb.use_gravity) {
@@ -292,7 +293,7 @@ void update_rigidbodies() {
 
 			if (rb.debug) {
 				transform_t* debug_t = get_transform(rb.aabb_collider.collider_debug_transform_handle);
-				assert(debug_t);
+				game_assert(debug_t);
 				transform_t& debug_transform = *debug_t;
 				debug_transform.position.x = rb.aabb_collider.x;
 				debug_transform.position.y = rb.aabb_collider.y;
@@ -318,7 +319,7 @@ void update_rigidbodies() {
 
 		if (non_kin_rb.debug) {
 			transform_t* debug_t = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
-			assert(debug_t);
+			game_assert(debug_t);
 			transform_t& debug_transform = *debug_t;
 			debug_transform.position.x = non_kin_rb.aabb_collider.x;
 			debug_transform.position.y = non_kin_rb.aabb_collider.y;
@@ -383,7 +384,7 @@ void update_rigidbodies() {
 
 			// debugging collider
 			transform_t* col_transform_ptr = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
-			assert(col_transform_ptr);
+			game_assert(col_transform_ptr);
 			transform_t& collider_debug_transform = *col_transform_ptr;
 			collider_debug_transform.position.x = non_kin_rb.aabb_collider.x;
 			collider_debug_transform.position.y = non_kin_rb.aabb_collider.y;
@@ -462,7 +463,7 @@ void update_rigidbodies() {
 
 		// debugging collider
         transform_t* col_transform_ptr = get_transform(non_kin_rb.aabb_collider.collider_debug_transform_handle);
-        assert(col_transform_ptr);
+        game_assert(col_transform_ptr);
 		transform_t& collider_debug_transform = *col_transform_ptr;
 		collider_debug_transform.position.x = non_kin_rb.aabb_collider.x;
 		collider_debug_transform.position.y = non_kin_rb.aabb_collider.y;

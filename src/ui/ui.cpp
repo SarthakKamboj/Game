@@ -54,7 +54,7 @@ void push_style(style_t& style) {
 }
 
 void pop_style() {
-    // assert(styles_stack.size() > 1);
+    // game_assert(styles_stack.size() > 1);
     if (styles_stack.size() == 0) {
         std::cout << "styles stack is empty" << std::endl;
         return;
@@ -360,27 +360,27 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
 
     if (parent_width_handle == -1 || parent_height_handle == -1) {
         // this is a parent widget and must be specified in pixels
-        assert(widget.widget_size == WIDGET_SIZE::PIXEL_BASED);
-        assert(widget.width >= 0.f);
-        assert(widget.height >= 0.f);
+        game_assert(widget.widget_size == WIDGET_SIZE::PIXEL_BASED);
+        game_assert(widget.width >= 0.f);
+        game_assert(widget.height >= 0.f);
 
         make_constraint_value_constant(widget_width_handle, widget.width);
         make_constraint_value_constant(widget_height_handle, widget.height);
     }
     else {
-        assert(parent_width_handle != -1);
-        assert(parent_height_handle != -1);
+        game_assert(parent_width_handle != -1);
+        game_assert(parent_height_handle != -1);
         if (widget.widget_size == WIDGET_SIZE::PIXEL_BASED) {
-            assert(widget.width >= 0.f);
-            assert(widget.height >= 0.f);
+            game_assert(widget.width >= 0.f);
+            game_assert(widget.height >= 0.f);
 
             make_constraint_value_constant(widget_width_handle, widget.width);
             make_constraint_value_constant(widget_height_handle, widget.height);
         } else if (widget.widget_size == WIDGET_SIZE::PARENT_PERCENT_BASED) {
-            assert(widget.width <= 1.f);
-            assert(widget.width >= 0.f);
-            assert(widget.height <= 1.f);
-            assert(widget.height >= 0.f);
+            game_assert(widget.width <= 1.f);
+            game_assert(widget.width >= 0.f);
+            game_assert(widget.height <= 1.f);
+            game_assert(widget.height >= 0.f);
 
             std::vector<constraint_term_t> width_terms;
             width_terms.push_back(create_constraint_term(parent_width_handle, widget.width));
@@ -408,7 +408,7 @@ void autolayout_hierarchy() {
 
     if (!ui_will_update) return;
 
-    assert(widget_stack.size() == 0);
+    game_assert(widget_stack.size() == 0);
 
     for (int i = 0; i < widgets_arr.size(); i++) {
         widget_t& cur_widget = widgets_arr[i];

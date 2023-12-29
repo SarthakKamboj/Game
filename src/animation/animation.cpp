@@ -3,9 +3,10 @@
 #include "utils/time.h"
 #include <vector>
 #include <iostream>
-#include <cassert>
 #include <filesystem>
 #include <string.h>
+
+#include "constants.h"
 
 namespace fs = std::filesystem;
 

@@ -1,5 +1,4 @@
 #include "gos.h"
-#include "constants.h" 
 #include <iostream>
 #include "utils/time.h"
 #include <vector>
@@ -10,6 +9,8 @@
 #include "camera.h"
 #include "audio/audio.h"
 #include "utils/io.h"
+
+#include "constants.h" 
 
 struct pair_hash {
     inline std::size_t operator()(const std::pair<int,int> & v) const {
@@ -107,7 +108,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 
     // get rigidbody and make sure its valid
     rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
-    assert(rb_ptr != NULL);
+    game_assert(rb_ptr != NULL);
 	rigidbody_t& rb = *rb_ptr;
 
 	for (general_collision_info_t& col_info : col_infos) {
@@ -318,7 +319,7 @@ void update_goomba(goomba_t& goomba) {
 	set_quad_texture(goomba.rec_render_handle, get_tex_handle_for_statemachine(goomba.statemachine_handle));
 
 	transform_t* transform_ptr = get_transform(goomba.transform_handle);
-	assert(transform_ptr);
+	game_assert(transform_ptr);
 
 	for (goomba_turn_pt_t& turn_pt : goomba_turn_pts) {
 		glm::vec2 diff_vec = glm::vec2(turn_pt.x, turn_pt.y) - glm::vec2(transform_ptr->position.x, transform_ptr->position.y);
@@ -400,7 +401,7 @@ void update_brick(brick_t& brick) {
 		if (col.non_kin_type == PHYSICS_RB_TYPE::PLAYER && col.rel_dir == PHYSICS_RELATIVE_DIR::TOP) {
 			if (!brick.created_powerup) {
 				transform_t* t = get_transform(brick.transform_handle);
-				assert(t);
+				game_assert(t);
 				// create_coin(t->position);
 				// create_ice_powerup(t->position);
 				// delete_brick(brick);
@@ -441,7 +442,7 @@ const float coin_t::MOVE_VERT_ANIM = 40.f;
 const float coin_t::ANIM_TIME = 0.15f;
 void update_coin(coin_t& coin) {
 	transform_t* t = get_transform(coin.transform_handle);
-	assert(t);
+	game_assert(t);
 	float time_elapsed = platformer::time_t::cur_time - coin.creation_time;
 	t->position.y = coin.start_pos.y + (time_elapsed / coin_t::ANIM_TIME * coin_t::MOVE_VERT_ANIM);
 	if (time_elapsed >= coin_t::ANIM_TIME) {
@@ -477,7 +478,7 @@ void create_ice_powerup(glm::vec3 pos) {
 void update_ice_powerup(ice_power_up_t& power_up) {
 	float time_since_created = platformer::time_t::cur_time - power_up.creation_time;
 	transform_t* t = get_transform(power_up.transform_handle);
-	assert(t);
+	game_assert(t);
 	if (time_since_created < 1.f) {
 		const float TOTAL_MOVE_Y = ((brick_t::HEIGHT / 2) + (ice_power_up_t::HEIGHT / 2)) * 1.2f;
 		t->position.y = power_up.start_y_pos + (TOTAL_MOVE_Y * time_since_created);
@@ -485,7 +486,7 @@ void update_ice_powerup(ice_power_up_t& power_up) {
 	}
 
 	rigidbody_t* rb = get_rigidbody(power_up.rigidbody_handle);
-	assert(rb);
+	game_assert(rb);
 	rb->use_gravity = true;
 	rb->detect_col = true;
 

@@ -93,7 +93,8 @@ void bind_texture(int handle, bool required_bind) {
     }
 
 	if (required_bind) {
-		assert("could not find texture even though required bind was asserted");
+		// game_assert("could not find texture even though required bind was asserted");
+		game_assert(false);
 	}
 
 	glBindTexture(GL_TEXTURE_2D, 0);

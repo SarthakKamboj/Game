@@ -1,6 +1,8 @@
 #include "transform.h"
 #include <vector>
 
+#include "constants.h"
+
 static std::vector<transform_t> transforms;
 
 int create_transform(glm::vec3 position, glm::vec3 scale, float rot_deg, float y_deg) {
@@ -38,7 +40,7 @@ transform_t* get_transform(int transform_handle) {
             return &transform;
         }
     }
-    assert("transform doesn't exist");
+    assert(false);
     return NULL;
 }
 
