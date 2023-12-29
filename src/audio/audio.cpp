@@ -12,6 +12,8 @@
 
 #define NUM_SOURCES_PER_FORMAT 5
 
+static bool sound_working = true;
+
 static sound_device_t sound_device;
 
 static audio_source_t background_source;
@@ -211,14 +213,23 @@ bool detect_error() {
 void init_audio() {
     sound_device.device = alcOpenDevice(NULL);
     if (!sound_device.device) {
+        sound_working = false;
         std::cout << "could not make device" << std::endl;
+        return;
     }
     sound_device.context = alcCreateContext(sound_device.device, NULL);
     if (!sound_device.context) {
+        alcCloseDevice(sound_device.device);
+        sound_working = false;
         std::cout << "could not make context" << std::endl;
+        return;
     }
     if (alcMakeContextCurrent(sound_device.context) == ALC_FALSE) {
+        sound_working = false;
         std::cout << "could not make context current context" << std::endl;
+        alcCloseDevice(sound_device.device);
+        alcDestroyContext(sound_device.context);
+        return;
     }
 
     background_source = create_audio_source();
@@ -230,4 +241,6 @@ void init_audio() {
     read_wav_sound("level_finish", LEVEL_FINISH_SOUND_EFFECT);
 
     play_bck_sound();
+
+    std::cout << "sound initialized successfully" << std::endl;
 }
