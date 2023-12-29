@@ -1,53 +1,56 @@
-# Prerequisites
-*.d
+out
+.vscode
+external
+# # Prerequisites
+# *.d
 
-# Compiled Object files
-*.slo
-*.lo
-*.o
-*.obj
+# # Compiled Object files
+# *.slo
+# *.lo
+# *.o
+# *.obj
 
-# Precompiled Headers
-*.gch
-*.pch
+# # Precompiled Headers
+# *.gch
+# *.pch
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
-build/*.dll
+# # Compiled Dynamic libraries
+# *.so
+# *.dylib
+# build/*.dll
 
-# Fortran module files
-*.mod
-*.smod
+# # Fortran module files
+# *.mod
+# *.smod
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
-build/*.lib
+# # Compiled Static libraries
+# *.lai
+# *.la
+# *.a
+# build/*.lib
 
-*.png
+# *.png
 
-# Executables
-*.exe
-*.out
-*.app
+# # Executables
+# *.exe
+# *.out
+# *.app
 
  
-CMakeLists.txt.user
-CMakeCache.txt
-CMakeFiles
-CMakeScripts
-Testing
-Makefile
-cmake_install.cmake
-install_manifest.txt
-compile_commands.json
-CTestTestfile.cmake
-_deps
+# CMakeLists.txt.user
+# CMakeCache.txt
+# CMakeFiles
+# CMakeScripts
+# Testing
+# Makefile
+# cmake_install.cmake
+# install_manifest.txt
+# compile_commands.json
+# CTestTestfile.cmake
+# _deps
 
 
-[Oo][Uu][Tt]/
-[Bb][Uu][Ii][Ll][Dd]/
-.vscode/settings.json
-.vs/
+# [Oo][Uu][Tt]/
+# [Bb][Uu][Ii][Ll][Dd]/
+# .vscode/settings.json
+# .vs/
