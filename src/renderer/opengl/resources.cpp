@@ -130,6 +130,9 @@ shader_t create_shader(const char* vert_file, const char* frag_file) {
 	char frag_path[256]{};
 	sprintf(frag_path, "%s\\%s\\%s", resource_path, SHADERS_FOLDER, frag_file);
 
+	std::cout << vert_path << std::endl;
+	std::cout << frag_path << std::endl;
+
 	std::string vert_code_str = io::get_file_contents(vert_path);
 	const char* vert_shader_source = vert_code_str.c_str();
 	glShaderSource(vert_shader, 1, &vert_shader_source, NULL);
