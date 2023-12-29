@@ -10,6 +10,8 @@
 #define AUDIO_FOLDER "audio"
 #define LEVELS_FOLDER "levels\\platformer_game\\simplified"
 #define ART_FOLDER "art"
+#define FONTS_FOLDER "fonts"
+#define SHADERS_FOLDER "shaders"
 
 #define BACKGROUND_MUSIC "eden_electro.wav"
 #define JUMP_SOUND_EFFECT "jump.wav"

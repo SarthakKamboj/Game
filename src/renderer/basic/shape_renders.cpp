@@ -5,6 +5,7 @@
 #include <vector>
 #include "constants.h"
 #include "../opengl/vertex.h"
+#include "utils/io.h"
 
 opengl_object_data quad_render_t::obj_data{};
 std::vector<glm::vec3> debug_pts;
@@ -51,7 +52,7 @@ void init_quad_data() {
 	unbind_ebo();
 
     // load in shader for these rectangle quads because the game is 2D, so everything is basically a solid color or a texture
-	data.shader = create_shader("C:/Sarthak/projects/game/resources/shaders/rectangle.vert", "C:/Sarthak/projects/game/resources/shaders/rectangle.frag");
+	data.shader = create_shader("rectangle.vert", "rectangle.frag");
     // set projection matrix in the shader
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);

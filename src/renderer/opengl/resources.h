@@ -17,7 +17,7 @@ struct shader_t {
 /// <param name="vert_path">The path to the GLSL vertex shader</param>
 /// <param name="frag_path">The path to the GLSL fragment shader</param>
 /// <returns>The shader</returns>
-shader_t create_shader(const char* vert_path, const char* frag_path);
+shader_t create_shader(const char* vert_file, const char* frag_file);
 
 /// <summary>
 /// Bind the shader by object

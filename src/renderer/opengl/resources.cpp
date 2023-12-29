@@ -113,7 +113,7 @@ texture_t* get_tex(int handle) {
 }
 
 // SHADER
-shader_t create_shader(const char* vert_path, const char* frag_path) {
+shader_t create_shader(const char* vert_file, const char* frag_file) {
 	shader_t shader;
 
 	GLuint vert_shader = glCreateShader(GL_VERTEX_SHADER);
@@ -121,6 +121,14 @@ shader_t create_shader(const char* vert_path, const char* frag_path) {
 
 	int success;
 	char info_log[512];
+
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+
+	char vert_path[256]{};
+	sprintf(vert_path, "%s\\%s\\%s", resource_path, SHADERS_FOLDER, vert_file);
+	char frag_path[256]{};
+	sprintf(frag_path, "%s\\%s\\%s", resource_path, SHADERS_FOLDER, frag_file);
 
 	std::string vert_code_str = io::get_file_contents(vert_path);
 	const char* vert_shader_source = vert_code_str.c_str();

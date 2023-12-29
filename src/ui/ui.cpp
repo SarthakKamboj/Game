@@ -10,6 +10,7 @@
 #include FT_FREETYPE_H  
 
 #include "input/input.h"
+#include "utils/io.h"
 
 extern input::user_input_t input_state;
 
@@ -531,7 +532,13 @@ void init_ui() {
             return;
         }
         FT_Face face;
-        if (FT_New_Face(lib, "C:\\Sarthak\\projects\\game\\resources\\fonts\\Courier_Prime\\CourierPrime-Regular.ttf", 0, &face))
+
+        char resource_path[256]{};
+        io::get_resources_folder_path(resource_path);
+        char font_path[256]{};
+        sprintf(font_path, "%s\\%s\\Courier_Prime\\CourierPrime-Regular.ttf", resource_path, FONTS_FOLDER);
+
+        if (FT_New_Face(lib, font_path, 0, &face))
         {
             std::cout << "ERROR::FREETYPE: Failed to load font" << std::endl;  
             return;
@@ -584,7 +591,7 @@ void init_ui() {
 	unbind_vao();
 	unbind_ebo();
 
-	data.shader = create_shader("C:/Sarthak/projects/game/resources/shaders/text.vert", "C:/Sarthak/projects/game/resources/shaders/text.frag");
+	data.shader = create_shader("text.vert", "text.frag");
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_int(data.shader, "char", 0);
