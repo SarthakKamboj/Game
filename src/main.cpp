@@ -43,66 +43,64 @@ int main(int argc, char *argv[])
 
 	init(app);	
 
+	std::cout << "finished init" << std::endl;
+
 	bool paused = false;
+	static uint64_t frame = 0;
 
 	while (app.running)
     {
-		try {
-			utils::game_timer_t frame_timer;
-			utils::start_timer(frame_timer);
+		utils::game_timer_t frame_timer;
+		utils::start_timer(frame_timer);
 
-			input::process_input(input_state);
+		input::process_input(input_state);
 
-			// static bool pause = true;
-			// if (input_state.left_clicked) {
-			// 	if (pause) {
-			// 		pause_bck_sound();
-			// 	} else {
-			// 		resume_bck_sound();
-			// 	}
-			// 	pause = !pause;
-			// }
+		// static bool pause = true;
+		// if (input_state.left_clicked) {
+		// 	if (pause) {
+		// 		pause_bck_sound();
+		// 	} else {
+		// 		resume_bck_sound();
+		// 	}
+		// 	pause = !pause;
+		// }
 
-			app.running = !input_state.quit;
+		app.running = !input_state.quit;
 
-			if (input_state.p_pressed) {
-				paused = !paused;
-			}
+		if (input_state.p_pressed) {
+			paused = !paused;
+		}
 
-			world::update(app);
-			render(app);
+		world::update(app);
+		render(app);
 
-			if (app.scene_manager.queue_level_load) {
-				unload_level(app);
-				clear_debug_pts();
-				load_level(app, app.scene_manager.level_to_load);
-			}
+		if (app.scene_manager.queue_level_load) {
+			unload_level(app);
+			clear_debug_pts();
+			load_level(app, app.scene_manager.level_to_load);
+		}
 
-			utils::end_timer(frame_timer);
-			if (!paused) {
-				platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
-				static unsigned int i = 0;
-				i++;
-			}
-			else {
-				platformer::time_t::delta_time = 0;
-			}
-			platformer::time_t::cur_time += platformer::time_t::delta_time;	
+		utils::end_timer(frame_timer);
+		if (!paused) {
+			platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
+			static unsigned int i = 0;
+			i++;
+		}
+		else {
+			platformer::time_t::delta_time = 0;
+		}
+		platformer::time_t::cur_time += platformer::time_t::delta_time;	
 
-			if (platformer::time_t::cur_time > 5) {
-				app.clicked = true;
-			}
+		if (platformer::time_t::cur_time > 5) {
+			app.clicked = true;
+		}
 
-			const char* sdlError = SDL_GetError();
-			if (sdlError && sdlError[0] != '\0') {
-				std::cerr << "SDL Error: " << sdlError << std::endl;
-			}	
+		const char* sdlError = SDL_GetError();
+		if (sdlError && sdlError[0] != '\0') {
+			std::cout << "SDL Error: " << sdlError << std::endl;
+		}	
 
-		} catch (const std::exception& e) {
-            printf("error in world update");
-            std::cout << e.what();
-			exit(-1);
-        }
+		std::cout << "frame " << frame++ << " finished" << std::endl;
     }
 
 	return EXIT_SUCCESS;

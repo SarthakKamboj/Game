@@ -6,16 +6,13 @@
 #include "glad/glad.h"
 #include "constants.h"
 
+#include "buffers.h"
+
 static std::vector<texture_t> textures;
 static int tex_running_cnt = 0;
 
 // TEXTURE
 int create_texture(const char* path, int tex_slot) {
-#if _TESTING
-	return -1;
-#endif
-
-
     for (int i = 0; i < textures.size(); i++) {
         if (strcmp(path, textures[i].path) == 0) {
             return textures[i].handle;
@@ -28,6 +25,7 @@ int create_texture(const char* path, int tex_slot) {
 	stbi_set_flip_vertically_on_load(true);
 
 	unsigned char* data = stbi_load(path, &width, &height, &num_channels, 0);
+	game_assert(data);
 
 	glGenTextures(1, &texture.id);
 	glBindTexture(GL_TEXTURE_2D, texture.id);
@@ -46,6 +44,8 @@ int create_texture(const char* path, int tex_slot) {
     tex_running_cnt++;
 
     textures.push_back(texture);
+
+	game_assert(!detect_gl_error());
 
 	return texture.handle;
 }

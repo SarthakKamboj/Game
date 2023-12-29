@@ -92,6 +92,8 @@ SDL_Window* init_sdl() {
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_MULTISAMPLE);
 
+	game_assert(window);
+
 	// glEnable(GL_DEBUG_OUTPUT);
 	// glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	// glDebugMessageCallback( MyOpenGLErrorCallbackFunc, 0 );
@@ -443,7 +445,8 @@ void recursive_section_traverse(FILE* file) {
 /// <param name="level_img">The absolute path to the composite image for the level</param>
 void load_level(application_t& app, const char* json_file_path, const char* level_img) {
 	FILE* file = fopen(json_file_path, "r");
-	if (!file) return;
+	// if (!file) return;
+	game_assert(file != NULL);
 	while (!feof(file)) {
 		char line[128]{};
 		fgets(line, sizeof(line), file);
@@ -458,7 +461,8 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	// data organized left to right row by row
 	stbi_set_flip_vertically_on_load(false);
 	unsigned char* level_img_data = stbi_load(level_img, &img_file_width, &img_file_height, &num_channels, 0);
-	if (level_img_data == NULL) return;
+	// if (level_img_data == NULL) return;
+	game_assert(level_img_data != NULL);
 
 	game_assert(num_channels == 3 || num_channels == 4);
 
