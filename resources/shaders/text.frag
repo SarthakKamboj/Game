@@ -14,13 +14,13 @@ uniform vec3 bottom_right;
 
 uniform float border_radius;
 
-uniform sampler2D char;
+uniform sampler2D character_tex;
 uniform vec3 color;
 uniform float tex_influence;
 
 void main() {
     float t = tex_influence;
-    float c = texture(char, tex_coord).r;
+    float c = texture(character_tex, tex_coord).r;
     vec4 tex_part = vec4(color, 1.0) * vec4(1,1,1,c);
     frag_color = (t * tex_part) + ((1-t) * vec4(color, 1));
 

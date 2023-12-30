@@ -598,7 +598,7 @@ void init_ui() {
 	data.shader = create_shader("text.vert", "text.frag");
 	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
 	shader_set_mat4(data.shader, "projection", projection);
-	shader_set_int(data.shader, "char", 0);
+	shader_set_int(data.shader, "character_tex", 0);
 
     if (detect_gl_error()) {
 		std::cout << "error loading the ui data" << std::endl;

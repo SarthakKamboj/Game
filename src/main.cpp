@@ -100,7 +100,7 @@ int main(int argc, char *argv[])
 			std::cout << "SDL Error: " << sdlError << std::endl;
 		}	
 
-		std::cout << "frame " << frame++ << " finished" << std::endl;
+		// std::cout << "frame " << frame++ << " finished" << std::endl;
     }
 
 	return EXIT_SUCCESS;
