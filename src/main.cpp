@@ -67,9 +67,9 @@ int main(int argc, char *argv[])
 
 		app.running = !input_state.quit;
 
-		if (input_state.p_pressed) {
-			paused = !paused;
-		}
+		// if (input_state.p_pressed) {
+		// 	paused = !paused;
+		// }
 
 		world::update(app);
 		render(app);
@@ -93,6 +93,13 @@ int main(int argc, char *argv[])
 
 		if (platformer::time_t::cur_time > 5) {
 			app.clicked = true;
+		}
+
+		// static int i = 0;
+		// i++;
+
+		if (input_state.p_pressed) {
+			std::cout << "fps: " << 1 / platformer::time_t::delta_time << std::endl;
 		}
 
 		const char* sdlError = SDL_GetError();
