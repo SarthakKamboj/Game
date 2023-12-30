@@ -3,6 +3,10 @@
 #include "utils/time.h"
 #include "constants.h"
 
+#include "app.h"
+
+extern application_t app;
+
 camera_t::camera_t() {
 	pos = glm::vec3(0, -10, 0);
 	rotation = 0;
@@ -21,8 +25,8 @@ void camera_t::update(input::user_input_t& user_input, main_character_t& main_ch
 	transform_t* char_transform = get_transform(main_char.transform_handle);
 	assert(char_transform);
 	float normalized_player_pos_x = char_transform->position.x - pos.x;
-	const float left_boundary = WINDOW_WIDTH * 1.f / 4.f;
-	const float right_boundary = WINDOW_WIDTH * 3.f / 4.f;
+	const float left_boundary = app.window_width * 1.f / 4.f;
+	const float right_boundary = app.window_width * 3.f / 4.f;
 	if (normalized_player_pos_x > right_boundary) {
 		float amount_over = normalized_player_pos_x - right_boundary;
 		pos.x += amount_over;

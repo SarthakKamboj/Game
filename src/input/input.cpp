@@ -20,7 +20,8 @@ namespace input {
 	void process_input(application_t& app, user_input_t& user_input) {
 
 		SDL_GetMouseState(&user_input.x_pos, &user_input.y_pos);
-		user_input.y_pos = WINDOW_HEIGHT - user_input.y_pos;
+		// user_input.y_pos = WINDOW_HEIGHT - user_input.y_pos;
+		user_input.y_pos = app.window_height - user_input.y_pos;
 
 		user_input.w_pressed = false;
 		user_input.a_pressed = false;
@@ -73,7 +74,10 @@ namespace input {
 							SDL_Log("Window %d size changed to %dx%d",
 									event.window.windowID, event.window.data1,
 									event.window.data2);
-									break;
+							app.window_width = event.window.data1;
+							app.window_height = event.window.data2;
+							app.resized = true;
+							break;
 						}
 						default: break;
 					}

@@ -15,6 +15,7 @@
 #define WANT_EXTRA_INFO 1
 
 input::user_input_t input_state;
+application_t app;
 
 bool level_finished = false;
 
@@ -38,8 +39,6 @@ int main(int argc, char *argv[])
 	io::get_resources_folder_path(buffer);
 	std::cout << buffer << std::endl;
 #endif
-
-	application_t app;
 
 	init(app);	
 
@@ -107,6 +106,8 @@ int main(int argc, char *argv[])
 			std::cout << "SDL Error: " << sdlError << std::endl;
 			SDL_ClearError();
 		}	
+
+		app.resized = false;
     }
 
 	return EXIT_SUCCESS;

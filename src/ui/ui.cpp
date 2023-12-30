@@ -12,7 +12,10 @@
 #include "input/input.h"
 #include "utils/io.h"
 
+#include "app.h"
+
 extern input::user_input_t input_state;
+extern application_t app;
 
 static int cur_widget_count = 0;
 
@@ -100,12 +103,12 @@ int register_widget(widget_t& widget, bool push_onto_stack) {
 void create_panel(const char* panel_name) {
     widget_t panel;
     memcpy(panel.key, panel_name, strlen(panel_name)); 
-    panel.height = WINDOW_HEIGHT;
-    panel.width = WINDOW_WIDTH;
+    panel.height = app.window_height;
+    panel.width = app.window_width;
     panel.widget_size = WIDGET_SIZE::PIXEL_BASED;
 
     panel.render_x = 0;
-    panel.render_y = WINDOW_HEIGHT;
+    panel.render_y = app.window_height;
     panel.render_width = panel.width;
     panel.render_height = panel.height;
 
@@ -596,7 +599,7 @@ void init_ui() {
 	unbind_ebo();
 
 	data.shader = create_shader("text.vert", "text.frag");
-	glm::mat4 projection = glm::ortho(0.0f, (float)WINDOW_WIDTH, 0.0f, (float)WINDOW_HEIGHT);
+	glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_int(data.shader, "character_tex", 0);
 

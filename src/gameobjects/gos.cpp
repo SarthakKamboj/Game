@@ -62,6 +62,8 @@ void unload_level(application_t& app) {
 	delete_mc(app.main_character);
 }
 
+extern application_t app;
+
 int main_character_t::mc_statemachine_handle = -1;
 
 const time_count_t main_character_t::DASH_TIME = 0.1;
@@ -130,7 +132,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 			if (col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
     			play_sound("stomp");
 				delete_goomba_by_kin_handle(col_info.kin_handle);
-				rb.vel.y = WINDOW_HEIGHT / 3.f;
+				rb.vel.y = app.window_height / 3.f;
 			}
 			else {
 				dead = true;
@@ -144,7 +146,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 
 	if (!prev_dead && dead) {
 		// static float time_elapsed = 0;
-		rb.vel.y = WINDOW_HEIGHT / 2.f;
+		rb.vel.y = app.window_height / 2.f;
 		rb.detect_col = false;
 		return;
 	}
@@ -158,7 +160,8 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	}
 
     // get velocity
-	const float vel = WINDOW_WIDTH / 4.f;
+	// const float vel = app.window_width / 4.f;
+	const float vel = 200.f;
 
 	if (dashing_left) {
 		dashing_left = (platformer::time_t::cur_time - dash_start_time) < DASH_TIME;
@@ -541,34 +544,34 @@ int parallax_bck::rec_render_handles[2] = {-1, -1};
 
 void init_parallax_bck_data() {
 	int ground_height = -10;
-	parallax_bck::transform_handles[0] = create_transform(glm::vec3(WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
-	parallax_bck::transform_handles[1] = create_transform(glm::vec3(WINDOW_WIDTH + WINDOW_WIDTH/2, ground_height + (WINDOW_HEIGHT-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
+	parallax_bck::transform_handles[0] = create_transform(glm::vec3(app.window_width/2, ground_height + (app.window_height-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
+	parallax_bck::transform_handles[1] = create_transform(glm::vec3(app.window_width + app.window_width/2, ground_height + (app.window_height-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
 
 	char resource_path[256]{};
 	io::get_resources_folder_path(resource_path);
 	char bck_texture_path[256]{};
 	sprintf(bck_texture_path, "%s\\%s\\background\\background.png", resource_path, ART_FOLDER);
 	parallax_bck::bck_texture = create_texture(bck_texture_path, 0);
-	parallax_bck::rec_render_handles[0] = create_quad_render(parallax_bck::transform_handles[0], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
-	parallax_bck::rec_render_handles[1] = create_quad_render(parallax_bck::transform_handles[1], glm::vec3(1), WINDOW_WIDTH, WINDOW_HEIGHT-ground_height, false, 1.f, parallax_bck::bck_texture);
+	parallax_bck::rec_render_handles[0] = create_quad_render(parallax_bck::transform_handles[0], glm::vec3(1), app.window_width, app.window_height-ground_height, false, 1.f, parallax_bck::bck_texture);
+	parallax_bck::rec_render_handles[1] = create_quad_render(parallax_bck::transform_handles[1], glm::vec3(1), app.window_width, app.window_height-ground_height, false, 1.f, parallax_bck::bck_texture);
 }
 
 void update_parallax_bcks(camera_t& camera) {
 	int cam_x = camera.pos.x;
-	int window_width_offset = cam_x / WINDOW_WIDTH;
+	int window_width_offset = cam_x / app.window_width;
 
 	transform_t* even_bck = get_transform(parallax_bck::transform_handles[0]);
 	if (window_width_offset % 2 == 0) {
-		even_bck->position.x = (window_width_offset * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+		even_bck->position.x = (window_width_offset * app.window_width) + (app.window_width / 2);
 	} else {
-		even_bck->position.x = ((window_width_offset + 1) * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+		even_bck->position.x = ((window_width_offset + 1) * app.window_width) + (app.window_width / 2);
 	}
 
 	transform_t* odd_bck = get_transform(parallax_bck::transform_handles[1]);
 	if (window_width_offset % 2 == 1) {
-		odd_bck->position.x = (window_width_offset * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+		odd_bck->position.x = (window_width_offset * app.window_width) + (app.window_width / 2);
 	} else {
-		odd_bck->position.x = ((window_width_offset + 1) * WINDOW_WIDTH) + (WINDOW_WIDTH / 2);
+		odd_bck->position.x = ((window_width_offset + 1) * app.window_width) + (app.window_width / 2);
 	}
 }
 

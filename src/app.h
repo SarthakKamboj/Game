@@ -4,6 +4,8 @@
 #include "gameobjects/gos.h"
 #include "camera.h"
 
+#include "constants.h"
+
 // level 0 is the main menu
 struct scene_manager_t {
 	bool queue_level_load = false;
@@ -17,6 +19,11 @@ void scene_manager_load_level(scene_manager_t& sm, int level_num);
 /// Holds application (global) level info
 /// </summary>
 struct application_t {
+
+	float window_width = STARTING_WINDOW_WIDTH;
+	float window_height = STARTING_WINDOW_HEIGHT;
+	bool resized = false;
+
 	bool running = true;
 	SDL_Window* window = NULL;
 	main_character_t main_character;
