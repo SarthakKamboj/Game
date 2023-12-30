@@ -1,5 +1,7 @@
 #pragma once
 
+struct application_t;
+
 namespace input {
 
     /// <summary>
@@ -14,6 +16,9 @@ namespace input {
 		bool p_pressed = false;
 		bool l_pressed = false;
         bool space_pressed = false;
+        
+        bool controller_a_pressed = false;
+        bool controller_y_pressed = false;
 
 		// true while continuously button is down
         bool w_down = false;
@@ -23,6 +28,9 @@ namespace input {
 		bool p_down = false;
 		bool l_down = false;
 
+        bool controller_a_down = false;
+        bool controller_y_down = false;
+
         bool right_clicked = false;
         bool left_clicked = false;
 
@@ -30,11 +38,14 @@ namespace input {
 
         int x_pos;
         int y_pos;
+
+        float controller_x_axis = 0;
+        float controller_y_axis = 0;
     };
 
 	/// <summary>
 	/// process the input for the frame
 	/// </summary>
 	/// <param name="user_input"></param>
-	void process_input(user_input_t& user_input);
+	void process_input(application_t& app, user_input_t& user_input);
 }

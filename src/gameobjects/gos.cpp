@@ -179,7 +179,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	}
 
     // jump
-    bool jump_btn_pressed = user_input.w_pressed;
+    bool jump_btn_pressed = user_input.w_pressed || user_input.controller_a_pressed;
 
 	if (jump_btn_pressed) {
 		if (grounded || num_jumps_since_grounded <= 1) {
@@ -191,10 +191,10 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		}
 	}
 
-    bool move_left = user_input.a_down;
-    bool move_right = user_input.d_down;
+    bool move_left = user_input.a_down || user_input.controller_x_axis <= -0.5f;;
+    bool move_right = user_input.d_down || user_input.controller_x_axis >= 0.5f;
 
-	bool dash_pressed = user_input.l_pressed;
+	bool dash_pressed = user_input.l_pressed || user_input.controller_y_pressed;
 
 	transform_t* t = get_transform(rb.transform_handle);
 	if (move_left) {

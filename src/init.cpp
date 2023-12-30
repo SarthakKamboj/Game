@@ -543,6 +543,14 @@ void load_level(application_t& app, int level_num) {
 
 void init(application_t& app) {
 	app.window = init_sdl();
+
+	for (int i = 0; i < SDL_NumJoysticks(); i++) {
+		if (SDL_IsGameController(i)) {
+			app.game_controller = SDL_GameControllerOpen(i);
+			std::cout << "found game controller joystick " << i << std::endl;
+		}
+	}
+
 	init_audio();
     // initialize opengl data for a rectangle
 	init_quad_data();	

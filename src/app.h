@@ -23,6 +23,8 @@ struct application_t {
 	camera_t camera;
 	scene_manager_t scene_manager;
 	bool clicked = false;
+
+	SDL_GameController* game_controller = NULL;
 };
 
 /// <summary>

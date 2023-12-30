@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
 		utils::game_timer_t frame_timer;
 		utils::start_timer(frame_timer);
 
-		input::process_input(input_state);
+		input::process_input(app, input_state);
 
 		// static bool pause = true;
 		// if (input_state.left_clicked) {
@@ -105,6 +105,7 @@ int main(int argc, char *argv[])
 		const char* sdlError = SDL_GetError();
 		if (sdlError && sdlError[0] != '\0') {
 			std::cout << "SDL Error: " << sdlError << std::endl;
+			SDL_ClearError();
 		}	
     }
 
