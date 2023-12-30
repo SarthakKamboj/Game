@@ -43,6 +43,8 @@ namespace input {
         float controller_y_axis = 0;
     };
 
+    void init_controller(application_t& app);
+
 	/// <summary>
 	/// process the input for the frame
 	/// </summary>

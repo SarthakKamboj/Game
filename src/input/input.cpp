@@ -11,6 +11,15 @@
 
 namespace input {
 
+    void init_controller(application_t& app) {
+		for (int i = 0; i < SDL_NumJoysticks(); i++) {
+			if (SDL_IsGameController(i)) {
+				app.game_controller = SDL_GameControllerOpen(i);
+				std::cout << "found game controller joystick " << i << std::endl;
+			}
+		}
+	}
+
 	void process_input(application_t& app, user_input_t& user_input) {
 
 		SDL_GetMouseState(&user_input.x_pos, &user_input.y_pos);
@@ -31,6 +40,14 @@ namespace input {
 		user_input.left_clicked = false;
 		user_input.right_clicked = false;
 
+		user_input.controller_x_axis = 0;
+		user_input.controller_y_axis = 0;
+
+		if (app.game_controller) {
+			user_input.controller_x_axis = SDL_GameControllerGetAxis(app.game_controller, SDL_CONTROLLER_AXIS_LEFTX) / 32768.f;
+			user_input.controller_y_axis = SDL_GameControllerGetAxis(app.game_controller, SDL_CONTROLLER_AXIS_LEFTY) / 32768.f;
+		}
+
 		SDL_Event event;
 		while (SDL_PollEvent(&event)) {
 			switch (event.type) {
@@ -38,51 +55,65 @@ namespace input {
 					user_input.quit = true;
 					break;
 				}
-				case SDL_JOYAXISMOTION: {
-					SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
-					if (app.game_controller && event.jaxis.which == SDL_JoystickInstanceID(controller_joystick)) {
-						if (event.jaxis.axis == X_AXIS) {
-							user_input.controller_x_axis = event.jaxis.value / 32768.f;
-						} else if (event.jaxis.axis == Y_AXIS) {
-							user_input.controller_y_axis = -(event.jaxis.value / 32768.f);
+				case SDL_CONTROLLERDEVICEADDED: {
+					if (!app.game_controller) {
+						init_controller(app);
+					}
+					break;
+				}
+				case SDL_CONTROLLERDEVICEREMOVED: {
+					if (app.game_controller) {
+						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
+						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
+							app.game_controller = NULL;
+							user_input.controller_a_down = false;
+							user_input.controller_a_pressed = false;
+							user_input.controller_y_down = false;
+							user_input.controller_y_pressed = false;
+							user_input.controller_x_axis = 0;
+							user_input.controller_y_axis = 0;
+							init_controller(app);
 						}
-
 					}
 					break;
 				}
 				case SDL_CONTROLLERBUTTONUP: {
-					SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
-					if (app.game_controller && event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
-						switch (event.cbutton.button) {
-							case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A: {
-								user_input.controller_a_down = false;
-								break;
+					if (app.game_controller) {
+						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
+						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
+							switch (event.cbutton.button) {
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A: {
+									user_input.controller_a_down = false;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y: {
+									user_input.controller_y_down = false;
+									break;
+								}
+								default: break;
 							}
-							case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y: {
-								user_input.controller_y_down = false;
-								break;
-							}
-							default: break;
 						}
 					}
 					break;	
 				}
 
 				case SDL_CONTROLLERBUTTONDOWN: {
-					SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
-					if (app.game_controller && event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
-						switch (event.cbutton.button) {
-							case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A: {
-								user_input.controller_a_pressed = true;
-								user_input.controller_a_down = true;
-								break;
+					if (app.game_controller) {
+						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
+						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
+							switch (event.cbutton.button) {
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A: {
+									user_input.controller_a_pressed = true;
+									user_input.controller_a_down = true;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y: {
+									user_input.controller_y_pressed = true;
+									user_input.controller_y_down = true;
+									break;
+								}
+								default: break;
 							}
-							case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y: {
-								user_input.controller_y_pressed = true;
-								user_input.controller_y_down = true;
-								break;
-							}
-							default: break;
 						}
 					}
 					break;
@@ -169,6 +200,4 @@ namespace input {
 			}
 		}
 	}
-
-
 }
