@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 
 		utils::end_timer(frame_timer);
 		if (!paused) {
-			platformer::time_t::delta_time = frame_timer.elapsed_time_sec;
+			platformer::time_t::delta_time = fmin(frame_timer.elapsed_time_sec, 1 / 60.f);
 			static unsigned int i = 0;
 			i++;
 		}

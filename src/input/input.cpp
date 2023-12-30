@@ -6,9 +6,6 @@
 
 #include <iostream>
 
-#define X_AXIS 0
-#define Y_AXIS 1
-
 namespace input {
 
     void init_controller(application_t& app) {
@@ -53,6 +50,33 @@ namespace input {
 			switch (event.type) {
 				case SDL_QUIT: {
 					user_input.quit = true;
+					break;
+				}
+				case SDL_WINDOWEVENT: {
+					switch (event.window.event) {
+						case SDL_WINDOWEVENT_MOVED: {
+							int x = event.window.data1;
+							int y = event.window.data2;
+							break;
+						}
+						// seems like this is called 2x on resizes
+						case SDL_WINDOWEVENT_RESIZED: {
+							// int width = event.window.data1;
+							// int height = event.window.data2;
+							SDL_Log("Window %d resized to %dx%d",
+								event.window.windowID, event.window.data1,
+								event.window.data2);
+							break;
+						}
+						// seems like this is called 1x on resizes
+						case SDL_WINDOWEVENT_SIZE_CHANGED: {
+							SDL_Log("Window %d size changed to %dx%d",
+									event.window.windowID, event.window.data1,
+									event.window.data2);
+									break;
+						}
+						default: break;
+					}
 					break;
 				}
 				case SDL_CONTROLLERDEVICEADDED: {
