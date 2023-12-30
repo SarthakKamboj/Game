@@ -142,6 +142,7 @@ shader_t create_shader(const char* vert_file, const char* frag_file) {
 	if (!success)
 	{
 		glGetShaderInfoLog(vert_shader, 512, NULL, info_log);
+		std::cout << "ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" + std::string(info_log) << std::endl;
 		throw std::runtime_error("ERROR::SHADER::VERTEX::COMPILATION_FAILED\n" + std::string(info_log));
 	}
 
@@ -153,7 +154,8 @@ shader_t create_shader(const char* vert_file, const char* frag_file) {
 	if (!success)
 	{
 		glGetShaderInfoLog(frag_shader, 512, NULL, info_log);
-		throw std::runtime_error("ERROR::SHADER::FRAGMENT::COMPILATION_FAILED\n" + std::string(info_log));
+		std::cout << "error::shader::fragment::compilation_failed\n" + std::string(info_log) << std::endl;
+		throw std::runtime_error("error::shader::fragment::compilation_failed\n" + std::string(info_log));
 	}
 
 	shader.id = glCreateProgram();
