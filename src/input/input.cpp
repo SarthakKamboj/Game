@@ -62,21 +62,14 @@ namespace input {
 						}
 						// seems like this is called 2x on resizes
 						case SDL_WINDOWEVENT_RESIZED: {
-							// int width = event.window.data1;
-							// int height = event.window.data2;
-							SDL_Log("Window %d resized to %dx%d",
-								event.window.windowID, event.window.data1,
-								event.window.data2);
 							break;
 						}
 						// seems like this is called 1x on resizes
 						case SDL_WINDOWEVENT_SIZE_CHANGED: {
-							SDL_Log("Window %d size changed to %dx%d",
-									event.window.windowID, event.window.data1,
-									event.window.data2);
 							app.window_width = event.window.data1;
 							app.window_height = event.window.data2;
 							app.resized = true;
+							glViewport(0, 0, app.window_width, app.window_height);
 							break;
 						}
 						default: break;

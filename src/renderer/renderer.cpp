@@ -21,7 +21,6 @@ void render(application_t& app) {
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		panel_style.float_val = FLOAT::END;
-		panel_style.content_spacing = 20.f;
 		push_style(panel_style);
 		create_panel("main menu panel");
 		pop_style();
@@ -29,7 +28,6 @@ void render(application_t& app) {
 		style_t container_style;
 		container_style.display_dir = DISPLAY_DIR::VERTICAL;
 		container_style.float_val = FLOAT::CENTER;
-		container_style.content_spacing = 20.f;
 		push_style(container_style);
 		create_container(0.7f, 1.f, WIDGET_SIZE::PARENT_PERCENT_BASED);
 		pop_style();
@@ -37,9 +35,8 @@ void render(application_t& app) {
 		style_t title_container_style;
 		title_container_style.display_dir = DISPLAY_DIR::VERTICAL;
 		title_container_style.float_val = FLOAT::END;
-		title_container_style.content_spacing = 10.f;
 		push_style(title_container_style);
-		create_container(1.f, 0.4f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(1.f, 0.2f, WIDGET_SIZE::PARENT_PERCENT_BASED);
 
 		style_t title_style;
 		title_style.background_color = create_color(255, 60, 54);
@@ -54,10 +51,10 @@ void render(application_t& app) {
 
 		style_t options_style;
 		options_style.display_dir = DISPLAY_DIR::VERTICAL;
-		options_style.float_val = FLOAT::START;
+		options_style.float_val = FLOAT::CENTER;
 		options_style.content_spacing = 10.f;
 		push_style(options_style);
-		create_container(1.f, 0.6f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(1.f, 0.8f, WIDGET_SIZE::PARENT_PERCENT_BASED);
 
 		style_t btn_style;
 		btn_style.background_color = create_color(48, 128, 255);

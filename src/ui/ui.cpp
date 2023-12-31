@@ -38,6 +38,12 @@ glm::vec3 create_color(float r, float g, float b) {
 void start_of_frame(bool _ui_will_update) {
     ui_will_update = _ui_will_update;
 
+   if (app.resized) {
+		glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
+		shader_set_mat4(font_char_t::ui_opengl_data.shader, "projection", projection);
+        ui_will_update = true;
+	}
+
     styles_stack.clear();
     style_t default_style;
     styles_stack.push_back(default_style);
@@ -430,7 +436,7 @@ void autolayout_hierarchy() {
     }
 
     resolve_constraints();
-    ui_will_update = false;
+    // ui_will_update = false;
 }
 
 int create_constraint_var(const char* var_name, float* val) {
@@ -519,7 +525,7 @@ void render_ui_helper(widget_t& widget) {
     }
 }
 
-void render_ui() { 
+void render_ui() {  
     for (widget_t& widget : widgets_arr) {
         if (widget.parent_widget_handle == -1) {
             render_ui_helper(widget);
