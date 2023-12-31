@@ -80,8 +80,8 @@ void init_mc_data() {
 main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& scale, float rot, glm::vec3& color) {
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
-	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE * 1.5, false, 1, -1);
-	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8, GAME_GRID_SIZE * 1.6, false, PHYSICS_RB_TYPE::PLAYER, true, false);
+	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE, false, 1, -1);
+	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
 	return mc;
 }
 
