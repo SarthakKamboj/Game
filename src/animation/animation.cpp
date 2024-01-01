@@ -186,10 +186,15 @@ void set_state_machine_anim(int state_machine_handle, const char* anim_name) {
 					return;
 				}
 			}
+
+			printf("anim name %s for state machine %s not found", anim_name, sm.name);
+			assert(false);
 		}
 	}	
 
-	assert("anim name %c for state machine %c not found", anim_name, sm.name);
+	printf("state machine with id %i not found", state_machine_handle);
+	assert(false);
+
 }
 
 int get_tex_handle_for_statemachine(int state_machine_handle) {

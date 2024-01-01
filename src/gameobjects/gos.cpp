@@ -94,8 +94,21 @@ void delete_mc(main_character_t& mc) {
 extern bool level_finished;
 void main_character_t::update(application_t& app, input::user_input_t& user_input) {
 
+	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));	
+
+	// get rigidbody and make sure its valid
+    rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
+    game_assert(rb_ptr != NULL);
+	rigidbody_t& rb = *rb_ptr;
+
 	static bool waiting_for_finish_audio = false;
 	if (waiting_for_finish_audio) {
+		if (rb.vel.y >= 0) {
+			set_state_machine_anim(mc_statemachine_handle, "character_level_finish");
+		} else if (rb.vel.y < 0) {
+			set_state_machine_anim(mc_statemachine_handle, "character_jump_down");
+		}
+
 		if (sound_finished_playing("level_finish")) {
 			waiting_for_finish_audio = false;
 			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
@@ -103,15 +116,8 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		return;
 	}
 
-	set_quad_texture(rec_render_handle, get_tex_handle_for_statemachine(mc_statemachine_handle));	
-
 	bool prev_dead = dead;
-	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER);
-
-    // get rigidbody and make sure its valid
-    rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
-    game_assert(rb_ptr != NULL);
-	rigidbody_t& rb = *rb_ptr;
+	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER); 
 
 	for (general_collision_info_t& col_info : col_infos) {
 
@@ -127,8 +133,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		if (hit_groundable_object && hit_obj_from_above) {
 			grounded = true;
 			num_jumps_since_grounded = 0;
-		}
-		else if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
+		} else if (col_info.kin_type == PHYSICS_RB_TYPE::GOOMBA) {
 			if (col_info.rel_dir == PHYSICS_RELATIVE_DIR::BOTTOM) {
     			play_sound("stomp");
 				delete_goomba_by_kin_handle(col_info.kin_handle);
@@ -160,10 +165,10 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	}
 
     // get velocity
-	// const float vel = app.window_width / 4.f;
 	const float vel = 200.f;
 
 	if (dashing_left) {
+		set_state_machine_anim(mc_statemachine_handle, "character_dash");
 		dashing_left = (platformer::time_t::cur_time - dash_start_time) < DASH_TIME;
 		if (!dashing_left) {
 			rb.use_gravity = true;
@@ -173,6 +178,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	}
 
 	if (dashing_right) {
+		set_state_machine_anim(mc_statemachine_handle, "character_dash");
 		dashing_right = (platformer::time_t::cur_time - dash_start_time) < DASH_TIME;
 		if (!dashing_right) {
 			rb.use_gravity = true;
