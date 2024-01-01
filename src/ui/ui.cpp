@@ -111,7 +111,9 @@ void create_panel(const char* panel_name) {
     memcpy(panel.key, panel_name, strlen(panel_name)); 
     panel.height = app.window_height;
     panel.width = app.window_width;
-    panel.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    // panel.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    panel.widget_size_width = WIDGET_SIZE::PIXEL_BASED;
+    panel.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
 
     panel.render_x = 0;
     panel.render_y = app.window_height;
@@ -125,13 +127,16 @@ void end_panel() {
     pop_widget();
 }
 
-void create_container(float width, float height, WIDGET_SIZE widget_size) {
+// void create_container(float width, float height, WIDGET_SIZE widget_size) {
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height) {
     widget_t container;
     const char* container_name = "container";
     memcpy(container.key, container_name, strlen(container_name));
     container.height = height;
     container.width = width;
-    container.widget_size = widget_size;
+    // container.widget_size = widget_size;
+    container.widget_size_width = widget_size_width;
+    container.widget_size_height = widget_size_height;
 
     register_widget(container, true); 
 }
@@ -148,7 +153,9 @@ void create_text(const char* text, TEXT_SIZE text_size) {
 
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 
-    widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    // widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    widget.widget_size_width = WIDGET_SIZE::PIXEL_BASED;
+    widget.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     widget.width = text_dim.width;
     widget.height = text_dim.height;
 
@@ -166,7 +173,9 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
 
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 
-    widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    // widget.widget_size = WIDGET_SIZE::PIXEL_BASED;
+    widget.widget_size_width = WIDGET_SIZE::PIXEL_BASED;
+    widget.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     style_t& latest_style = styles_stack[styles_stack.size() - 1];
     widget.width = text_dim.width + (2 * latest_style.padding.x);
     widget.height = text_dim.height + (2 * latest_style.padding.y);
@@ -369,7 +378,9 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
 
     if (parent_width_handle == -1 || parent_height_handle == -1) {
         // this is a parent widget and must be specified in pixels
-        game_assert(widget.widget_size == WIDGET_SIZE::PIXEL_BASED);
+        // game_assert(widget.widget_size == WIDGET_SIZE::PIXEL_BASED);
+        game_assert(widget.widget_size_width == WIDGET_SIZE::PIXEL_BASED);
+        game_assert(widget.widget_size_height == WIDGET_SIZE::PIXEL_BASED);
         game_assert(widget.width >= 0.f);
         game_assert(widget.height >= 0.f);
 
@@ -379,6 +390,8 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
     else {
         game_assert(parent_width_handle != -1);
         game_assert(parent_height_handle != -1);
+        
+#if 0
         if (widget.widget_size == WIDGET_SIZE::PIXEL_BASED) {
             game_assert(widget.width >= 0.f);
             game_assert(widget.height >= 0.f);
@@ -402,6 +415,36 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
             make_constraint_value_constant(widget_width_handle, content_size.x);
             make_constraint_value_constant(widget_height_handle, content_size.y);
         }
+#else
+        if (widget.widget_size_width == WIDGET_SIZE::PIXEL_BASED) {
+            game_assert(widget.width >= 0.f);
+            make_constraint_value_constant(widget_width_handle, widget.width);
+        } else if (widget.widget_size_width == WIDGET_SIZE::PARENT_PERCENT_BASED) {
+            game_assert(widget.width <= 1.f);
+            game_assert(widget.width >= 0.f);
+
+            std::vector<constraint_term_t> width_terms;
+            width_terms.push_back(create_constraint_term(parent_width_handle, widget.width));
+            create_constraint(widget_width_handle, width_terms, 0);
+        } else if (widget.widget_size_width == WIDGET_SIZE::FIT_CONTENT) {
+            make_constraint_value_constant(widget_width_handle, content_size.x);
+        }
+        
+        if (widget.widget_size_height == WIDGET_SIZE::PIXEL_BASED) {
+            game_assert(widget.height >= 0.f);
+            make_constraint_value_constant(widget_height_handle, widget.height);
+        } else if (widget.widget_size_height == WIDGET_SIZE::PARENT_PERCENT_BASED) {
+            game_assert(widget.height <= 1.f);
+            game_assert(widget.height >= 0.f);
+
+            std::vector<constraint_term_t> height_terms;
+            height_terms.push_back(create_constraint_term(parent_height_handle, widget.height));
+            create_constraint(widget_height_handle, height_terms, 0);
+        } else if (widget.widget_size_height == WIDGET_SIZE::FIT_CONTENT) {
+            make_constraint_value_constant(widget_height_handle, content_size.y);
+        }
+        
+#endif
     }
 
     resolve_constraints();

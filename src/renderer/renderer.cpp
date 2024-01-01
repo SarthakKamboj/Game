@@ -26,16 +26,17 @@ void render(application_t& app) {
 
 		style_t container_style;
 		container_style.display_dir = DISPLAY_DIR::VERTICAL;
-		container_style.float_val = FLOAT::CENTER;
+		container_style.float_val = FLOAT::START;
 		push_style(container_style);
-		create_container(0.7f, 1.f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(0.7f, 1.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED);
 		pop_style();
 		
+		float container_height = 0.35f;
 		style_t title_container_style;
 		title_container_style.display_dir = DISPLAY_DIR::VERTICAL;
 		title_container_style.float_val = FLOAT::END;
 		push_style(title_container_style);
-		create_container(1.f, 0.2f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(1.f, container_height, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED);
 
 		style_t title_style;
 		title_style.background_color = create_color(255, 60, 54);
@@ -53,7 +54,7 @@ void render(application_t& app) {
 		options_style.float_val = FLOAT::CENTER;
 		options_style.content_spacing = 10.f;
 		push_style(options_style);
-		create_container(1.f, 0.8f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(1.f, 0.55f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED);
 
 		style_t btn_style;
 		btn_style.background_color = create_color(48, 128, 255);
@@ -101,9 +102,8 @@ void render(application_t& app) {
 		style_t container_style;
 		container_style.float_val = FLOAT::CENTER;
 		container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
-		// container_style.background_color = create_color(0,255,0);
 		push_style(container_style);
-		create_container(1.f, 0.5f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		create_container(1.f, 0.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT);
 		pop_style();
 
 		style_t title_style;

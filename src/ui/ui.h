@@ -87,7 +87,9 @@ struct widget_t {
     bool text_based = false;
     text_t text_info;
 
-    WIDGET_SIZE widget_size = WIDGET_SIZE::PIXEL_BASED;
+    // WIDGET_SIZE widget_size = WIDGET_SIZE::PIXEL_BASED;
+    WIDGET_SIZE widget_size_width = WIDGET_SIZE::PIXEL_BASED;
+    WIDGET_SIZE widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     float width = -1.f;
     float height = -1.f;
 
@@ -133,7 +135,8 @@ void create_panel(const char* panel_name);
 void end_panel();
 
 // void create_container(float width, float height);
-void create_container(float width, float height, WIDGET_SIZE widget_size);
+// void create_container(float width, float height, WIDGET_SIZE widget_size);
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height);
 void end_container();
 // void add_text_to_panel(int panel_handle, text_t& text);
 
