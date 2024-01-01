@@ -20,6 +20,9 @@
 #define STOMP_SOUND_EFFECT "stomp.wav"
 #define LEVEL_FINISH_SOUND_EFFECT "level_finish.wav"
 
+#define MAIN_MENU_LEVEL 0
+#define GAME_OVER_SCREEN_LEVEL 255
+
 #define game_assert(exp) if ((exp) == false) std::cout << "on line " << __LINE__ << " in file " << __FILE__ << " the game_assert failed" << std::endl;
 
 #define _TESTING 0

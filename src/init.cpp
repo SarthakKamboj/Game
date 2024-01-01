@@ -17,7 +17,13 @@
 #include "utils/io.h"
 #include "input/input.h"
 
+#include <filesystem>
+
 #include "constants.h"
+
+namespace fs = std::filesystem;
+
+static int num_levels = 0;
 
 void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, GLuint errorID, GLenum severity, GLsizei length, const GLchar *message, const void *userParam)
 {
@@ -516,12 +522,34 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	create_final_flag(glm::vec3(flag_level_col*GAME_GRID_SIZE, flag_level_row*GAME_GRID_SIZE, 0));
 }
 
+void set_num_levels() {
+	char resources_folder[256]{};
+	io::get_resources_folder_path(resources_folder);
+	const char* levels_folder = LEVELS_FOLDER;
+	char levels_folder_full_path[256]{};
+	sprintf(levels_folder_full_path, "%s\\%s", resources_folder, levels_folder);
+
+	for (auto& level_folder : fs::directory_iterator(levels_folder_full_path)) {
+		num_levels++;
+	}
+}
+
 void load_level(application_t& app, int level_num) {
 	app.scene_manager.queue_level_load = false; 
 	app.scene_manager.level_to_load = -1;
 
-	if (level_num == 0) {
-		app.scene_manager.cur_level = 0;		
+	std::cout << "loading level " << level_num << std::endl;
+
+	if (level_num == MAIN_MENU_LEVEL) {
+		app.scene_manager.cur_level = MAIN_MENU_LEVEL;
+		std::cout << "loaded main menu" << std::endl;
+		return;
+	}
+
+	if (level_num >= num_levels + 1) {
+		app.scene_manager.cur_level = GAME_OVER_SCREEN_LEVEL;
+		resume_bck_sound();
+		std::cout << "loaded game over" << std::endl;
 		return;
 	}
 
@@ -537,6 +565,8 @@ void load_level(application_t& app, int level_num) {
     load_level(app, json_file, img_file);
 	resume_bck_sound();
 	app.scene_manager.cur_level = level_num;
+
+	std::cout << "loaded level " << level_num << std::endl;
 }
 
 
@@ -554,7 +584,8 @@ void init(application_t& app) {
 	init_final_flag_data();
 	init_goomba_data();
 	init_ground_block_data();
-	load_level(app, 0);
+	set_num_levels();
+	load_level(app, MAIN_MENU_LEVEL);
 }
 
 void scene_manager_load_level(scene_manager_t& sm, int level_num) {

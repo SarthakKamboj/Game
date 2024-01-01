@@ -8,15 +8,14 @@
 
 void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);	
-
-	static bool first = true;
-	start_of_frame(first);
-	// start_of_frame(true);
-	first = false;
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
 	// main menu
 	if (app.scene_manager.cur_level == 0) {
+		
+		static bool first = true;
+		start_of_frame(first);
+		first = false;
 		
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::HORIZONTAL;
@@ -84,6 +83,41 @@ void render(application_t& app) {
 
 		autolayout_hierarchy();
 
+		render_ui();
+
+	} else if (app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL) {
+
+		static bool first = true;
+		start_of_frame(first);
+		first = false;
+
+		style_t panel_style;
+		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
+		panel_style.float_val = FLOAT::CENTER;
+		push_style(panel_style);
+		create_panel("main menu panel");
+		pop_style();	
+
+		style_t container_style;
+		container_style.float_val = FLOAT::CENTER;
+		container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+		// container_style.background_color = create_color(0,255,0);
+		push_style(container_style);
+		create_container(1.f, 0.5f, WIDGET_SIZE::PARENT_PERCENT_BASED);
+		pop_style();
+
+		style_t title_style;
+		title_style.background_color = create_color(255, 60, 54);
+		title_style.padding = glm::vec2(10);
+		title_style.border_radius = 15.f;
+		push_style(title_style);
+		create_text("GAME OVER", TEXT_SIZE::TITLE);
+		pop_style();
+
+		end_container();
+		end_panel();
+
+		autolayout_hierarchy();
 		render_ui();
 
 	} else {
