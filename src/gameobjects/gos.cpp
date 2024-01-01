@@ -67,6 +67,7 @@ extern application_t app;
 int main_character_t::mc_statemachine_handle = -1;
 
 const time_count_t main_character_t::DASH_TIME = 0.1;
+const time_count_t main_character_t::DASH_WAIT_TIME = 4;
 
 void init_mc_data() {
 	char resource_path[256]{};
@@ -82,6 +83,7 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	mc.transform_handle = create_transform(pos, scale, rot);
 	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE, false, 1, -1);
 	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
+	mc.dash_start_time = -(main_character_t::DASH_WAIT_TIME + main_character_t::DASH_TIME);
 	return mc;
 }
 
@@ -99,28 +101,13 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	// get rigidbody and make sure its valid
     rigidbody_t* rb_ptr = get_rigidbody(rigidbody_handle);
     game_assert(rb_ptr != NULL);
-	rigidbody_t& rb = *rb_ptr;
-
-	static bool waiting_for_finish_audio = false;
-	if (waiting_for_finish_audio) {
-		if (rb.vel.y >= 0) {
-			set_state_machine_anim(mc_statemachine_handle, "character_level_finish");
-		} else if (rb.vel.y < 0) {
-			set_state_machine_anim(mc_statemachine_handle, "character_jump_down");
-		}
-
-		if (sound_finished_playing("level_finish")) {
-			waiting_for_finish_audio = false;
-			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
-		}
-		return;
-	}
+	rigidbody_t& rb = *rb_ptr;	
 
 	bool prev_dead = dead;
+	static bool waiting_for_finish_audio = false;
+
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER); 
-
 	for (general_collision_info_t& col_info : col_infos) {
-
 		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
 			pause_bck_sound();
 			play_sound("level_finish", true);
@@ -152,6 +139,8 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	if (!prev_dead && dead) {
 		// static float time_elapsed = 0;
 		rb.vel.y = app.window_height / 2.f;
+		rb.vel.x = 0;
+		rb.use_gravity = true;
 		rb.detect_col = false;
 		return;
 	}
@@ -160,6 +149,20 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		transform_t* t = get_transform(rb.transform_handle);
 		if (t->position.y <= -750.f) {
 			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level);
+		}
+		return;
+	}
+
+	if (waiting_for_finish_audio) {
+		if (rb.vel.y >= 0) {
+			set_state_machine_anim(mc_statemachine_handle, "character_level_finish");
+		} else if (rb.vel.y < 0) {
+			set_state_machine_anim(mc_statemachine_handle, "character_jump_down");
+		}
+
+		if (sound_finished_playing("level_finish")) {
+			waiting_for_finish_audio = false;
+			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
 		}
 		return;
 	}
@@ -204,10 +207,11 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
     bool move_right = user_input.d_down || user_input.controller_x_axis >= 0.5f;
 
 	bool dash_pressed = user_input.l_pressed || user_input.controller_y_pressed;
+	bool can_dash =  (platformer::time_t::cur_time >= (dash_start_time + main_character_t::DASH_TIME + main_character_t::DASH_WAIT_TIME));
 
 	transform_t* t = get_transform(rb.transform_handle);
 	if (move_left) {
-		if (dash_pressed) {
+		if (dash_pressed && can_dash) {
 			rb.vel.x = -vel * 3.f;
 			dashing_left = true;
 			dash_start_time = platformer::time_t::cur_time;
@@ -220,7 +224,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		t->y_deg = 180;
 	}
 	else if (move_right) {
-		if (dash_pressed) {
+		if (dash_pressed && can_dash) {
 			rb.vel.x = vel * 3.f;
 			dashing_right = true;
 			dash_start_time = platformer::time_t::cur_time;

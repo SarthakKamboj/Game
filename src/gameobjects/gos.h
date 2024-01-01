@@ -32,8 +32,9 @@ struct main_character_t {
 
 	bool dashing_left = false;
 	bool dashing_right = false;
-	time_count_t dash_start_time;
+	time_count_t dash_start_time = 0;
 	static const time_count_t DASH_TIME;
+	static const time_count_t DASH_WAIT_TIME;
 
 	void update(application_t& app, input::user_input_t& user_input);
 };
