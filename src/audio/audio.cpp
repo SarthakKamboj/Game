@@ -87,7 +87,6 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
     if (bck_sound) {
         bck_sound_name = name;
     }
-    
 }
 
 audio_source_t create_audio_source() {

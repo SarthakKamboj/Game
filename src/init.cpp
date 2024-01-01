@@ -446,7 +446,6 @@ void recursive_section_traverse(FILE* file) {
 /// <param name="level_img">The absolute path to the composite image for the level</param>
 void load_level(application_t& app, const char* json_file_path, const char* level_img) {
 	FILE* file = fopen(json_file_path, "r");
-	// if (!file) return;
 	game_assert(file != NULL);
 	while (!feof(file)) {
 		char line[128]{};
@@ -462,7 +461,6 @@ void load_level(application_t& app, const char* json_file_path, const char* leve
 	// data organized left to right row by row
 	stbi_set_flip_vertically_on_load(false);
 	unsigned char* level_img_data = stbi_load(level_img, &img_file_width, &img_file_height, &num_channels, 0);
-	// if (level_img_data == NULL) return;
 	game_assert(level_img_data != NULL);
 
 	game_assert(num_channels == 3 || num_channels == 4);
@@ -527,7 +525,7 @@ void load_level(application_t& app, int level_num) {
 		return;
 	}
 
-	level_num = std::min(std::max(1, level_num), 4);
+	// level_num = std::min(std::max(1, level_num), 4);
 	char json_file[512]{};
 	char img_file[512]{};
 	

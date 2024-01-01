@@ -104,14 +104,14 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	rigidbody_t& rb = *rb_ptr;	
 
 	bool prev_dead = dead;
-	static bool waiting_for_finish_audio = false;
+	static bool waiting_for_level_finish_audio = false;
 
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER); 
 	for (general_collision_info_t& col_info : col_infos) {
-		if (col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
+		if (!waiting_for_level_finish_audio && col_info.kin_type == PHYSICS_RB_TYPE::FINAL_FLAG) {
 			pause_bck_sound();
 			play_sound("level_finish", true);
-			waiting_for_finish_audio = true;
+			waiting_for_level_finish_audio = true;
 			continue;
 		}
 
@@ -159,7 +159,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		return;
 	}
 
-	if (waiting_for_finish_audio) {
+	if (waiting_for_level_finish_audio) {
 		if (rb.vel.y >= 0) {
 			set_state_machine_anim(mc_statemachine_handle, "character_level_finish");
 		} else if (rb.vel.y < 0) {
@@ -167,7 +167,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		}
 
 		if (sound_finished_playing("level_finish")) {
-			waiting_for_finish_audio = false;
+			waiting_for_level_finish_audio = false;
 			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level + 1);
 		}
 		return;
