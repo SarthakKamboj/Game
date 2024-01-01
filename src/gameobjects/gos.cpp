@@ -145,11 +145,17 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 		return;
 	}
 
+	transform_t* t = get_transform(rb.transform_handle);
 	if (dead) {
-		transform_t* t = get_transform(rb.transform_handle);
+		set_state_machine_anim(mc_statemachine_handle, "character_death");
 		if (t->position.y <= -750.f) {
 			scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level);
 		}
+		return;
+	}
+
+	if (t->position.y <= -750.f) {
+		scene_manager_load_level(app.scene_manager, app.scene_manager.cur_level);
 		return;
 	}
 
@@ -209,7 +215,6 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	bool dash_pressed = user_input.l_pressed || user_input.controller_y_pressed;
 	bool can_dash =  (platformer::time_t::cur_time >= (dash_start_time + main_character_t::DASH_TIME + main_character_t::DASH_WAIT_TIME));
 
-	transform_t* t = get_transform(rb.transform_handle);
 	if (move_left) {
 		if (dash_pressed && can_dash) {
 			rb.vel.x = -vel * 3.f;
