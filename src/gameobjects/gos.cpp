@@ -302,7 +302,7 @@ void create_goomba(const glm::vec3& pos) {
 	running_cnt++;
 	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f, 180.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
-	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT / 2.f, false, 1.f, -1);
+	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT, false, 1.f, -1);
 	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
 	char sm_name[64]{};
 	sprintf(sm_name, "goomba_%i", goomba.handle);
@@ -313,7 +313,7 @@ void create_goomba(const glm::vec3& pos) {
 	char enemy_folder_path[256]{};
 	sprintf(enemy_folder_path, "%s\\%s\\enemy1", resource_path, ART_FOLDER);
 
-	goomba.statemachine_handle = create_state_machine(enemy_folder_path, sm_name, "enemy1_idle");
+	goomba.statemachine_handle = create_state_machine(enemy_folder_path, sm_name, "enemy1_walking");
 	goombas.push_back(goomba);
 }
 

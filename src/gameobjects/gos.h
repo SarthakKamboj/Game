@@ -73,8 +73,8 @@ struct goomba_t {
 	int rec_render_handle = -1;
 	int statemachine_handle = -1;
 	int rigidbody_handle = -1;
-	static const int WIDTH = GAME_GRID_SIZE;
 	static const int HEIGHT = GAME_GRID_SIZE;	
+	static const int WIDTH = goomba_t::HEIGHT * 1.1f;
 	static const glm::vec3 GOOMBA_COLOR;
 	float move_speed = -50.f;
 };
