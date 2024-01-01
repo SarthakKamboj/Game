@@ -4,7 +4,8 @@ character anims:
 11: jumping up
 12: jumping down
 13: dash
-14-26: level_finish
+14-22: level_finish
+23-29: death
 
 enemy1 anims:
 1-9: walking
