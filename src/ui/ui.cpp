@@ -116,8 +116,8 @@ void create_panel(const char* panel_name) {
     panel.widget_size_width = WIDGET_SIZE::PIXEL_BASED;
     panel.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
 
-    panel.render_x = 0;
-    panel.render_y = app.window_height;
+    panel.x = 0;
+    panel.y = app.window_height;
     panel.render_width = panel.width;
     panel.render_height = panel.height;
 
@@ -211,14 +211,14 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
 
     if (!ui_will_update) {
         widget_t& cached_widget = widgets_arr[widget_handle];
-        if (input_state.x_pos >= cached_widget.render_x &&
-            input_state.x_pos <= (cached_widget.render_x + cached_widget.render_width) &&
+        if (input_state.x_pos >= (cached_widget.x + cached_widget.style.margin.x) &&
+            input_state.x_pos <= (cached_widget.x + cached_widget.render_width + cached_widget.style.margin.x) &&
             // render x and render y specified as the top left pivot and y in ui is 0 on the
-            // bottom and WINDOW_HEIGHT on the top, so cached_widget.render_y is the top y of the 
-            // widget and cached_widget.render_y - cached_widget.render_height is the bottom y 
+            // bottom and WINDOW_HEIGHT on the top, so cached_widget.y is the top y of the 
+            // widget and cached_widget.y - cached_widget.render_height is the bottom y 
             // of the widget
-            input_state.y_pos <= cached_widget.render_y &&
-            input_state.y_pos >= (cached_widget.render_y - cached_widget.render_height)
+            input_state.y_pos <= (cached_widget.y - cached_widget.style.margin.y) &&
+            input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y)
         ) {
             return input_state.left_clicked;
         }
@@ -263,8 +263,8 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
 
         widget_t& child_widget = widgets_arr[child_widget_handle];
         
-        int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.render_x);
-        int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.render_y);
+        int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.x);
+        int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.y);
 
         if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
             std::vector<constraint_term_t> x_pos_terms;
@@ -571,8 +571,8 @@ void autolayout_hierarchy() {
     for (int i = 0; i < widgets_arr.size(); i++) {
         widget_t& cur_widget = widgets_arr[i];
         if (cur_widget.parent_widget_handle != -1) continue;
-        int x_var = create_constraint_var_constant(cur_widget.render_x);
-        int y_var = create_constraint_var_constant(cur_widget.render_y);
+        int x_var = create_constraint_var_constant(cur_widget.x);
+        int y_var = create_constraint_var_constant(cur_widget.y);
         resolve_positions(cur_widget.handle, x_var, y_var);
     }
 
@@ -660,7 +660,7 @@ void render_ui_helper(widget_t& widget) {
     if (widget.image_based) {
         draw_image_container(widget);
     } else if (widget.text_based) { 
-        draw_text(widget.text_info.text, glm::vec2(widget.render_x + widget.style.padding.x + widget.style.margin.x, widget.render_y - widget.style.padding.y - widget.style.margin.y), widget.text_info.text_size, widget.style.color);
+        draw_text(widget.text_info.text, glm::vec2(widget.x + widget.style.padding.x + widget.style.margin.x, widget.y - widget.style.padding.y - widget.style.margin.y), widget.text_info.text_size, widget.style.color);
     } 
 
     for (int child_handle : widget.children_widget_handles) {
@@ -711,19 +711,20 @@ void init_ui() {
             font_char.c = c;
             if (c == ' ') {
                 font_char.width = 10;
-                font_char.advance = 30;
+                font_char.advance = font_char.width;
                 font_char.height = 20;
                 font_char.bearing.x = 5;
                 font_char.bearing.y = 5;
+                font_char.texture_handle = -1;
             } else {
                 font_char.width = face->glyph->bitmap.width;
                 font_char.advance = font_char.width * 1.025f;
                 font_char.height = face->glyph->bitmap.rows;
                 font_char.bearing.x = face->glyph->bitmap_left;
                 font_char.bearing.y = face->glyph->bitmap_top;
+                font_char.texture_handle = create_texture(face->glyph->bitmap.buffer, font_char.width, font_char.height, 0);
             }
 
-            font_char.texture_handle = create_texture(face->glyph->bitmap.buffer, font_char.width, font_char.height, 0);
             chars[c] = font_char;
         }
     }
@@ -783,8 +784,8 @@ void draw_background(widget_t& widget) {
 	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 1);
 	shader_set_float(font_char_t::ui_opengl_data.shader, "border_radius", widget.style.border_radius);
 
-    float x = widget.render_x + widget.style.margin.x;
-    float y = widget.render_y - widget.style.margin.y;
+    float x = widget.x + widget.style.margin.x;
+    float y = widget.y - widget.style.margin.y;
     float width = widget.render_width;
     float height = widget.render_height;
 
@@ -827,21 +828,23 @@ void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size, gl
             for (int i = 0; i < strlen(text); i++) {
                 unsigned char c = text[i];	
                 font_char_t& fc = font_mode.chars[c];
-                bind_texture(fc.texture_handle, true);
 
-                glm::vec2 running_pos;
-                running_pos.x = origin.x + fc.bearing.x + (fc.width / 2);
-                running_pos.y = origin.y + fc.bearing.y - (fc.height / 2);
+                if (fc.texture_handle != -1) {
+                    bind_texture(fc.texture_handle, true);
+                    glm::vec2 running_pos;
+                    running_pos.x = origin.x + fc.bearing.x + (fc.width / 2);
+                    running_pos.y = origin.y + fc.bearing.y - (fc.height / 2);
 
-                updated_vertices[0] = create_vertex(glm::vec3(running_pos.x + (fc.width / 2), running_pos.y + (fc.height / 2), 0.0f), glm::vec3(0,1,1), glm::vec2(1,0)); // top right
-                updated_vertices[1] = create_vertex(glm::vec3(running_pos.x + (fc.width / 2), running_pos.y - (fc.height / 2), 0.0f), glm::vec3(0,0,1), glm::vec2(1,1)); // bottom right
-                updated_vertices[2] = create_vertex(glm::vec3(running_pos.x - (fc.width / 2), running_pos.y - (fc.height / 2), 0.0f), glm::vec3(0,1,0), glm::vec2(0,1)); // bottom left
-                updated_vertices[3] = create_vertex(glm::vec3(running_pos.x - (fc.width / 2), running_pos.y + (fc.height / 2), 0.0f), glm::vec3(1,0,0), glm::vec2(0,0)); // top left
-                update_vbo_data(font_char_t::ui_opengl_data.vbo, (float*)updated_vertices, sizeof(updated_vertices));
+                    updated_vertices[0] = create_vertex(glm::vec3(running_pos.x + (fc.width / 2), running_pos.y + (fc.height / 2), 0.0f), glm::vec3(0,1,1), glm::vec2(1,0)); // top right
+                    updated_vertices[1] = create_vertex(glm::vec3(running_pos.x + (fc.width / 2), running_pos.y - (fc.height / 2), 0.0f), glm::vec3(0,0,1), glm::vec2(1,1)); // bottom right
+                    updated_vertices[2] = create_vertex(glm::vec3(running_pos.x - (fc.width / 2), running_pos.y - (fc.height / 2), 0.0f), glm::vec3(0,1,0), glm::vec2(0,1)); // bottom left
+                    updated_vertices[3] = create_vertex(glm::vec3(running_pos.x - (fc.width / 2), running_pos.y + (fc.height / 2), 0.0f), glm::vec3(1,0,0), glm::vec2(0,0)); // top left
+                    update_vbo_data(font_char_t::ui_opengl_data.vbo, (float*)updated_vertices, sizeof(updated_vertices));
 
-                glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-                // draw the rectangle render after setting all shader parameters
-                draw_obj(font_char_t::ui_opengl_data);
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                    // draw the rectangle render after setting all shader parameters
+                    draw_obj(font_char_t::ui_opengl_data);
+                }
                 origin.x += fc.advance;
             }
         }
@@ -856,7 +859,7 @@ void draw_image_container(widget_t& widget) {
 
     bind_texture(widget.texture_handle, true);
 
-    glm::vec2 top_left(widget.render_x, widget.render_y);
+    glm::vec2 top_left(widget.x, widget.y);
 
     updated_vertices[0] = create_vertex(glm::vec3(top_left.x + widget.render_width, top_left.y, 0.0f), glm::vec3(0,1,1), glm::vec2(1,1)); // top right
     updated_vertices[1] = create_vertex(glm::vec3(top_left.x + widget.render_width, top_left.y - widget.render_height, 0.f), glm::vec3(0,0,1), glm::vec2(1,0)); // bottom right

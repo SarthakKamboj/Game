@@ -114,10 +114,12 @@ struct widget_t {
     float width = -1.f;
     float height = -1.f; 
 
-    // all specified in pixels with (render_x, render_y) using top left as the pt
+
+    // all specified in pixels with (x, y) using top left as the pt
+    float x = -1.f;
+    float y = -1.f;
+
     // does not include margins, just base width plus padding
-    float render_x = -1.f;
-    float render_y = -1.f;
     float render_width = -1.f;
     float render_height = -1.f;
 

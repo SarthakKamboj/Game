@@ -128,7 +128,7 @@ void render(application_t& app) {
 
 		style_t main_section_style;
 		main_section_style.background_color = create_color(255, 255, 255);
-		main_section_style.content_spacing = 20;
+		main_section_style.content_spacing = 50;
 		main_section_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
 		main_section_style.vertical_align_val = ALIGN::CENTER;
@@ -142,7 +142,7 @@ void render(application_t& app) {
 		col_style.vertical_align_val = ALIGN::SPACE_BETWEEN;
 		col_style.content_spacing = 30;
 		push_style(col_style);
-		create_container(0.4f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "left column text");
+		create_container(0.f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "left column text");
 		pop_style();
 
 		style_t text_style;
@@ -157,12 +157,12 @@ void render(application_t& app) {
 		end_container();
 
 		push_style(col_style);
-		create_container(0.4f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "right column text");
+		create_container(0.f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "right column text");
 		pop_style();
 
 		push_style(text_style);
 		create_text("WINDOWED");
-		create_text("V SYNC");
+		create_text("V-SYNC");
 		create_text("CREDITS");
 		create_text("RESET GAME");
 		pop_style();

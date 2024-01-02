@@ -42,7 +42,7 @@ void unload_level(application_t& app) {
 	for (ice_power_up_t& ipu : ice_power_ups) delete_ice_powerup_by_kin_handle(ipu.rigidbody_handle);
 	ice_power_ups.clear();
 	delete_final_flag();
-	memset(&final_flag, 0, sizeof(final_flag));
+	final_flag = final_flag_t();
 
 	for (int i = 0; i < ground_blocks.size(); i++) {
 		delete_quad_render(ground_blocks[i].rec_render_handle);
@@ -82,7 +82,7 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
 	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE, false, 1, -1);
-	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
+	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8f, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, true);
 	mc.dash_start_time = -(main_character_t::DASH_WAIT_TIME + main_character_t::DASH_TIME);
 	return mc;
 }
