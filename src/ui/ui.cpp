@@ -90,8 +90,9 @@ static font_mode_t font_modes[2] = {
     }
 };
 
-int register_widget(widget_t& widget, bool push_onto_stack) {
+int register_widget(widget_t& widget, const char* key, bool push_onto_stack) {
     widget.handle = cur_widget_count++;
+    memcpy(widget.key, key, strlen(key));
     if (!ui_will_update) return widget.handle;
     if (widget_stack.size() > 0) widget.parent_widget_handle = widget_stack[widget_stack.size() - 1];
     else widget.parent_widget_handle = -1;
@@ -120,7 +121,7 @@ void create_panel(const char* panel_name) {
     panel.render_width = panel.width;
     panel.render_height = panel.height;
 
-    register_widget(panel, true);
+    register_widget(panel, panel_name, true);
 }
 
 void end_panel() {
@@ -128,9 +129,9 @@ void end_panel() {
 }
 
 // void create_container(float width, float height, WIDGET_SIZE widget_size) {
-void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height) {
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name) {
     widget_t container;
-    const char* container_name = "container";
+    // const char* container_name = "container";
     memcpy(container.key, container_name, strlen(container_name));
     container.height = height;
     container.width = width;
@@ -138,14 +139,14 @@ void create_container(float width, float height, WIDGET_SIZE widget_size_width, 
     container.widget_size_width = widget_size_width;
     container.widget_size_height = widget_size_height;
 
-    register_widget(container, true); 
+    register_widget(container, container_name, true); 
 }
 
 void end_container() {
     pop_widget();
 }
 
-void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height) {
+void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* img_name) {
 
     assert(widget_size_width != WIDGET_SIZE::FIT_CONTENT);
     assert(widget_size_height != WIDGET_SIZE::FIT_CONTENT);
@@ -162,7 +163,7 @@ void create_image_container(int texture_handle, float width, float height, WIDGE
     widget.width = width;
     widget.height = height;
 
-    register_widget(widget);
+    register_widget(widget, img_name);
 }
 
 void create_text(const char* text, TEXT_SIZE text_size) {
@@ -182,7 +183,7 @@ void create_text(const char* text, TEXT_SIZE text_size) {
     widget.render_width = text_dim.width;
     widget.render_height = text_dim.height;
 
-    register_widget(widget);
+    register_widget(widget, text);
 }
 
 bool create_button(const char* text, TEXT_SIZE text_size) {
@@ -205,7 +206,7 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
 
     widget.properties = UI_PROPERTIES::CLICKABLE;
 
-    int widget_handle = register_widget(widget);
+    int widget_handle = register_widget(widget, text);
 
     if (!ui_will_update) {
         widget_t& cached_widget = widgets_arr[widget_handle];
@@ -244,108 +245,180 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
         return helper_info;
     }
 
-    int space_var = create_constraint_var("spacing", NULL);
-    int start_offset = create_constraint_var("start offset", NULL);
+    int space_var_hor = create_constraint_var("spacing hor", NULL);
+    int space_var_vert = create_constraint_var("spacing vert", NULL);
+    int start_offset_hor = create_constraint_var("start offset hor", NULL);
+    int start_offset_vert = create_constraint_var("start offset vert", NULL);
 
-    int idx = 1;
+    int idx = 0;
+    if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL && widget.style.horizontal_align_val == ALIGN::SPACE_AROUND ||
+        widget.style.display_dir == DISPLAY_DIR::VERTICAL && widget.style.vertical_align_val == ALIGN::SPACE_AROUND) {
+        idx++;
+    }
     glm::vec2 content_size(0);
     for (int child_widget_handle : widget.children_widget_handles) {
 
         widget_t& child_widget = widgets_arr[child_widget_handle];
-
-        std::vector<constraint_term_t> terms;
-        terms.push_back(create_constraint_term(space_var, idx));
-        terms.push_back(create_constraint_term(start_offset, 1));
-
+        
         int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.render_x);
         int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.render_y);
 
         if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+            std::vector<constraint_term_t> x_pos_terms;
             float constant = content_size.x;
-            terms.push_back(create_constraint_term(x_pos_handle, 1));
-            create_constraint(child_widget_x_pos_handle, terms, constant);
+            x_pos_terms.push_back(create_constraint_term(x_pos_handle, 1));
+            x_pos_terms.push_back(create_constraint_term(start_offset_hor, 1));
+            x_pos_terms.push_back(create_constraint_term(space_var_hor, idx));
+            create_constraint(child_widget_x_pos_handle, x_pos_terms, constant);
 
             std::vector<constraint_term_t> y_pos_terms;
+            y_pos_terms.push_back(create_constraint_term(start_offset_vert, 1));
             y_pos_terms.push_back(create_constraint_term(y_pos_handle, 1));
             create_constraint(child_widget_y_pos_handle, y_pos_terms, 0);
         } else {
+            std::vector<constraint_term_t> y_pos_terms;
             float constant = -content_size.y;
-            terms.push_back(create_constraint_term(y_pos_handle, 1));
-            create_constraint(child_widget_y_pos_handle, terms, constant);
+            y_pos_terms.push_back(create_constraint_term(y_pos_handle, 1));
+            y_pos_terms.push_back(create_constraint_term(start_offset_vert, 1));
+            y_pos_terms.push_back(create_constraint_term(space_var_vert, idx));
+            create_constraint(child_widget_y_pos_handle, y_pos_terms, constant);
 
             std::vector<constraint_term_t> x_pos_terms;
+            x_pos_terms.push_back(create_constraint_term(start_offset_hor, 1));
             x_pos_terms.push_back(create_constraint_term(x_pos_handle, 1));
             create_constraint(child_widget_x_pos_handle, x_pos_terms, 0);
         }
 
         helper_info_t child_helper_info = resolve_positions(child_widget_handle, child_widget_x_pos_handle, child_widget_y_pos_handle);
-        content_size.x += child_helper_info.content_width;
-        content_size.y += child_helper_info.content_height;
+        if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+            content_size.x += child_helper_info.content_width;
+            content_size.y = fmax(content_size.y, child_helper_info.content_height);
+        } else {
+            content_size.x = fmax(content_size.x, child_helper_info.content_width);
+            content_size.y += child_helper_info.content_height;
+        }
         idx++;
     }
 
     resolve_constraints();
 
-    if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
-        switch (widget.style.float_val) {
-            case FLOAT::SPACED_OUT: {
-                make_constraint_value_constant(space_var, (widget.render_width - content_size.x) / (widget.children_widget_handles.size() + 1.f));
-                make_constraint_value_constant(start_offset, 0);
-            }
-                break;
-            case FLOAT::CENTER: {
-                make_constraint_value_constant(space_var, widget.style.content_spacing);
-                float remaining_space = widget.render_width - content_size.x - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
-                float offset = remaining_space / 2.f;
-                make_constraint_value_constant(start_offset, offset);
-            }
-                break;
-            case FLOAT::START: {
-                make_constraint_value_constant(space_var, widget.style.content_spacing);
-                make_constraint_value_constant(start_offset, 0);
-            }
-                break;
-            case FLOAT::END: {
-                make_constraint_value_constant(space_var, widget.style.content_spacing);
-                float offset = (widget.render_width - content_size.x) - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
-                make_constraint_value_constant(start_offset, offset);
-            }
-                break;
-            default: {
-                make_constraint_value_constant(space_var, widget.style.content_spacing);
-                make_constraint_value_constant(start_offset, 0);
+    switch (widget.style.horizontal_align_val) {
+        case ALIGN::SPACE_BETWEEN: {
+            if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+                int num_children = widget.children_widget_handles.size();
+                if (num_children == 1) {
+                    make_constraint_value_constant(space_var_hor, (widget.render_width - content_size.x) / 2);
+                } else {
+                    make_constraint_value_constant(space_var_hor, (widget.render_width - content_size.x) / (num_children - 1));
+                }
+                make_constraint_value_constant(start_offset_hor, 0);
+            } else {
+                make_constraint_value_constant(space_var_hor, 0);
+                make_constraint_value_constant(start_offset_hor, 0);
             }
         }
-    } else {
-        // because pivot is top left but screen coordinate's pivot is bottom left, so y must be negated
-        switch (widget.style.float_val) {
-            case FLOAT::SPACED_OUT: {
-                make_constraint_value_constant(space_var, -(widget.render_height - content_size.y) / (widget.children_widget_handles.size() + 1.f));
-                make_constraint_value_constant(start_offset, 0);
+            break;
+        case ALIGN::SPACE_AROUND: {
+            if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+                make_constraint_value_constant(space_var_hor, (widget.render_width - content_size.x) / (widget.children_widget_handles.size() + 1.f));
+                make_constraint_value_constant(start_offset_hor, 0);
+            } else {
+                make_constraint_value_constant(space_var_hor, 0);
+                make_constraint_value_constant(start_offset_hor, 0);
             }
-                break;
-            case FLOAT::CENTER: {
-                make_constraint_value_constant(space_var, -widget.style.content_spacing);
-                float remaining_space = widget.render_height - content_size.y - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
-                float offset = remaining_space / 2.f;
-                make_constraint_value_constant(start_offset, -offset);
+        }
+            break;
+        case ALIGN::CENTER: {
+            make_constraint_value_constant(space_var_hor, widget.style.content_spacing);
+            float remaining_space = 0.f;
+            if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+                remaining_space = widget.render_width - content_size.x - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
+            } else {
+                remaining_space = widget.render_width - content_size.x;
             }
-                break;
-            case FLOAT::START: {
-                make_constraint_value_constant(space_var, -widget.style.content_spacing);
-                make_constraint_value_constant(start_offset, 0);
+            float offset = remaining_space / 2.f;
+            make_constraint_value_constant(start_offset_hor, offset);
+        }
+            break;
+        case ALIGN::START: {
+            make_constraint_value_constant(space_var_hor, widget.style.content_spacing);
+            make_constraint_value_constant(start_offset_hor, 0);
+        }
+            break;
+        case ALIGN::END: {
+            make_constraint_value_constant(space_var_hor, widget.style.content_spacing);
+            float offset = 0.f;
+            if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
+                offset = (widget.render_width - content_size.x) - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
+            } else {
+                offset = widget.render_width - content_size.x;
             }
-                break;
-            case FLOAT::END: {
-                make_constraint_value_constant(space_var, -widget.style.content_spacing);
-                float space_on_top = (widget.render_height - content_size.y) - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
-                make_constraint_value_constant(start_offset, -space_on_top);
+            make_constraint_value_constant(start_offset_hor, offset);
+        }
+            break;
+        default: {
+            make_constraint_value_constant(space_var_hor, 0);
+            make_constraint_value_constant(start_offset_hor, 0);
+        }
+    }
+    
+    // because pivot is top left but screen coordinate's pivot is bottom left, so y must be negated
+    switch (widget.style.vertical_align_val) {
+        case ALIGN::SPACE_BETWEEN: {
+            if (widget.style.display_dir == DISPLAY_DIR::VERTICAL) {
+                int num_children = widget.children_widget_handles.size();
+                if (num_children == 1) {
+                    make_constraint_value_constant(space_var_vert, (widget.render_height - content_size.y) / 2);
+                } else {
+                    make_constraint_value_constant(space_var_vert, (widget.render_height - content_size.y) / (num_children - 1));
+                }
+                make_constraint_value_constant(start_offset_vert, 0);
+            } else {
+                make_constraint_value_constant(space_var_vert, 0);
+                make_constraint_value_constant(start_offset_vert, 0);
             }
-                break;
-            default: {
-                make_constraint_value_constant(space_var, -widget.style.content_spacing);
-                make_constraint_value_constant(start_offset, 0);
+        }
+        case ALIGN::SPACE_AROUND: {
+            if (widget.style.display_dir == DISPLAY_DIR::VERTICAL) {
+                make_constraint_value_constant(space_var_vert, -(widget.render_height - content_size.y) / (widget.children_widget_handles.size() + 1.f));
+                make_constraint_value_constant(start_offset_vert, 0);
+            } else {
+                make_constraint_value_constant(space_var_vert, 0);
+                make_constraint_value_constant(start_offset_vert, 0);
             }
+        }
+        break;
+        case ALIGN::CENTER: {
+            make_constraint_value_constant(space_var_vert, -widget.style.content_spacing);
+            float remaining_space = 0.f;
+            if (widget.style.display_dir == DISPLAY_DIR::VERTICAL) {
+                remaining_space = widget.render_height - content_size.y - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
+            } else {
+                remaining_space = widget.render_height - content_size.y;
+            }
+            float offset = remaining_space / 2.f;
+            make_constraint_value_constant(start_offset_vert, -offset);
+        }
+            break;
+        case ALIGN::START: {
+            make_constraint_value_constant(space_var_vert, -widget.style.content_spacing);
+            make_constraint_value_constant(start_offset_vert, 0);
+        }
+            break;
+        case ALIGN::END: {
+            make_constraint_value_constant(space_var_vert, -widget.style.content_spacing);
+            float space_on_top = 0.f;
+            if (widget.style.display_dir == DISPLAY_DIR::VERTICAL) {
+                space_on_top = (widget.render_height - content_size.y) - (widget.style.content_spacing * (widget.children_widget_handles.size() + 1.f));
+            } else {
+                space_on_top = widget.render_height - content_size.y;
+            }
+            make_constraint_value_constant(start_offset_vert, -space_on_top);
+        }
+            break;
+        default: {
+            make_constraint_value_constant(space_var_vert, 0);
+            make_constraint_value_constant(start_offset_vert, 0);
         }
     }
 

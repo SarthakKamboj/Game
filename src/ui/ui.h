@@ -58,8 +58,8 @@ enum class DISPLAY_DIR {
     VERTICAL, HORIZONTAL
 };
 
-enum class FLOAT {
-    START, CENTER, END, SPACED_OUT
+enum class ALIGN {
+    START, CENTER, END, SPACE_AROUND, SPACE_BETWEEN
 };
 
 #define TRANSPARENT_COLOR glm::vec3(-1)
@@ -67,7 +67,8 @@ glm::vec3 create_color(float r, float g, float b);
 
 struct style_t {
     DISPLAY_DIR display_dir = DISPLAY_DIR::VERTICAL;
-    FLOAT float_val = FLOAT::START;
+    ALIGN horizontal_align_val = ALIGN::START;
+    ALIGN vertical_align_val = ALIGN::START;
     glm::vec2 padding = glm::vec2(0);
     float content_spacing = 0;
     glm::vec3 background_color = TRANSPARENT_COLOR;
@@ -87,7 +88,7 @@ struct image_container_t {
     float width = 0.f;
     float height = 0.f;
 };
-void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height);
+void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* img_name);
 
 struct widget_t {
     int handle = -1;
@@ -147,11 +148,11 @@ void end_panel();
 
 // void create_container(float width, float height);
 // void create_container(float width, float height, WIDGET_SIZE widget_size);
-void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height);
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name);
 void end_container();
 // void add_text_to_panel(int panel_handle, text_t& text);
 
-int register_widget(widget_t& widget, bool push_onto_stack = false);
+int register_widget(widget_t& widget, const char* key, bool push_onto_stack = false);
 
 void autolayout_hierarchy();
 
