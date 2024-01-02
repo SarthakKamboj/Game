@@ -21,7 +21,6 @@ struct main_character_t {
 	int rec_render_handle = -1;
     // rigidbody for the character
 	int rigidbody_handle = -1;
-	int rigidbody_handle = -1;
 	glm::vec3 color;
 	glm::vec2 dims;
 
