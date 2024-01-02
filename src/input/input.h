@@ -8,6 +8,9 @@ namespace input {
     /// Struct to store user input data
     /// </summary>
     struct user_input_t {
+
+        bool some_key_pressed = false;
+
 		// true just on the initial click, but false even if button is down
         bool w_pressed = false;
         bool a_pressed = false;

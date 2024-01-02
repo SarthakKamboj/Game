@@ -72,6 +72,7 @@ struct style_t {
     float content_spacing = 0;
     glm::vec3 background_color = TRANSPARENT_COLOR;
     float border_radius = 0;
+    glm::vec3 color = glm::vec3(1,1,1);
 };
 
 struct text_t {
@@ -81,11 +82,21 @@ struct text_t {
 void create_text(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
 bool create_button(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
 
+struct image_container_t {
+    int texture_handle = -1;
+    float width = 0.f;
+    float height = 0.f;
+};
+void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height);
+
 struct widget_t {
     int handle = -1;
 
     bool text_based = false;
     text_t text_info;
+
+    bool image_based = false;
+    int texture_handle = -1;
 
     // WIDGET_SIZE widget_size = WIDGET_SIZE::PIXEL_BASED;
     WIDGET_SIZE widget_size_width = WIDGET_SIZE::PIXEL_BASED;
@@ -140,14 +151,7 @@ void create_container(float width, float height, WIDGET_SIZE widget_size_width, 
 void end_container();
 // void add_text_to_panel(int panel_handle, text_t& text);
 
-int fresh_widget_handle();
 int register_widget(widget_t& widget, bool push_onto_stack = false);
-
-struct button_t {
-    text_t text;
-    style_t style;
-};
-button_t create_button(text_t& text, style_t& style);
 
 void autolayout_hierarchy();
 
@@ -179,5 +183,6 @@ void create_constraint(int constraint_var_handle, std::vector<constraint_term_t>
 void resolve_constraints();
 
 void draw_background(widget_t& widget);
-void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size);
+void draw_image_container(widget_t& widget);
+void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size, glm::vec3& color);
 void render_ui();

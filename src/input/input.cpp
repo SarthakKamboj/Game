@@ -23,6 +23,7 @@ namespace input {
 		// user_input.y_pos = WINDOW_HEIGHT - user_input.y_pos;
 		user_input.y_pos = app.window_height - user_input.y_pos;
 
+		user_input.some_key_pressed = false;
 		user_input.w_pressed = false;
 		user_input.a_pressed = false;
 		user_input.s_pressed = false;
@@ -174,6 +175,7 @@ namespace input {
 				}
 				break;
 				case SDL_KEYDOWN: {
+					user_input.some_key_pressed = true;
 					switch (event.key.keysym.sym) {
 						case SDLK_ESCAPE: {
 							user_input.quit = true;

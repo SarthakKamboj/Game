@@ -145,6 +145,26 @@ void end_container() {
     pop_widget();
 }
 
+void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height) {
+
+    assert(widget_size_width != WIDGET_SIZE::FIT_CONTENT);
+    assert(widget_size_height != WIDGET_SIZE::FIT_CONTENT);
+
+    texture_t* tex = get_tex(texture_handle);
+    game_assert(tex);
+    game_assert(tex->tex_slot == 1);
+
+    widget_t widget;
+    widget.image_based = true;
+    widget.texture_handle = texture_handle;
+    widget.widget_size_width = widget_size_width;
+    widget.widget_size_height = widget_size_height;
+    widget.width = width;
+    widget.height = height;
+
+    register_widget(widget);
+}
+
 void create_text(const char* text, TEXT_SIZE text_size) {
     widget_t widget;
     widget.text_based = true;
@@ -559,8 +579,11 @@ void render_ui_helper(widget_t& widget) {
     if (widget.style.background_color != TRANSPARENT_COLOR) {
         draw_background(widget);
     }
-    if (widget.text_based) { 
-        draw_text(widget.text_info.text, glm::vec2(widget.render_x + widget.style.padding.x, widget.render_y - widget.style.padding.y), widget.text_info.text_size);
+
+    if (widget.image_based) {
+        draw_image_container(widget);
+    } else if (widget.text_based) { 
+        draw_text(widget.text_info.text, glm::vec2(widget.render_x + widget.style.padding.x, widget.render_y - widget.style.padding.y), widget.text_info.text_size, widget.style.color);
     } 
 
     for (int child_handle : widget.children_widget_handles) {
@@ -651,6 +674,7 @@ void init_ui() {
 	glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
 	shader_set_mat4(data.shader, "projection", projection);
 	shader_set_int(data.shader, "character_tex", 0);
+	shader_set_int(data.shader, "image_tex", 1);
 
     if (detect_gl_error()) {
 		std::cout << "error loading the ui data" << std::endl;
@@ -713,10 +737,10 @@ void draw_background(widget_t& widget) {
     draw_obj(font_char_t::ui_opengl_data);
 }
 
-void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
-	glm::vec3 color = create_color(240,216,195);
+void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size, glm::vec3& color) {
 	shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", color);
 	shader_set_float(font_char_t::ui_opengl_data.shader, "tex_influence", 1.f);
+	shader_set_int(font_char_t::ui_opengl_data.shader, "is_character_tex", 1);
 	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 0);
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 	glm::vec2 origin = starting_pos - glm::vec2(0, text_dim.max_height_above_baseline);
@@ -726,7 +750,6 @@ void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
             for (int i = 0; i < strlen(text); i++) {
                 unsigned char c = text[i];	
                 font_char_t& fc = font_mode.chars[c];
-                // shader_set_vec3(font_char_t::ui_opengl_data.shader, "color", glm::vec3(0,1,1));
                 bind_texture(fc.texture_handle, true);
 
                 glm::vec2 running_pos;
@@ -746,4 +769,25 @@ void draw_text(const char* text, glm::vec2 starting_pos, TEXT_SIZE text_size) {
             }
         }
     }
+}
+
+void draw_image_container(widget_t& widget) {
+	shader_set_float(font_char_t::ui_opengl_data.shader, "tex_influence", 1.f);
+	shader_set_int(font_char_t::ui_opengl_data.shader, "is_character_tex", 0);
+	shader_set_int(font_char_t::ui_opengl_data.shader, "round_vertices", 0);
+	vertex_t updated_vertices[4];
+
+    bind_texture(widget.texture_handle, true);
+
+    glm::vec2 top_left(widget.render_x, widget.render_y);
+
+    updated_vertices[0] = create_vertex(glm::vec3(top_left.x + widget.render_width, top_left.y, 0.0f), glm::vec3(0,1,1), glm::vec2(1,1)); // top right
+    updated_vertices[1] = create_vertex(glm::vec3(top_left.x + widget.render_width, top_left.y - widget.render_height, 0.f), glm::vec3(0,0,1), glm::vec2(1,0)); // bottom right
+    updated_vertices[2] = create_vertex(glm::vec3(top_left.x, top_left.y - widget.render_height, 0.0f), glm::vec3(0,1,0), glm::vec2(0,0)); // bottom left
+    updated_vertices[3] = create_vertex(glm::vec3(top_left.x, top_left.y, 0.0f), glm::vec3(1,0,0), glm::vec2(0,1)); // top left
+    update_vbo_data(font_char_t::ui_opengl_data.vbo, (float*)updated_vertices, sizeof(updated_vertices));
+
+    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    // draw the rectangle render after setting all shader parameters
+    draw_obj(font_char_t::ui_opengl_data);
 }
