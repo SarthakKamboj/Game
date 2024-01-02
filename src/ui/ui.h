@@ -70,6 +70,7 @@ struct style_t {
     ALIGN horizontal_align_val = ALIGN::START;
     ALIGN vertical_align_val = ALIGN::START;
     glm::vec2 padding = glm::vec2(0);
+    glm::vec2 margin = glm::vec2(0);
     float content_spacing = 0;
     glm::vec3 background_color = TRANSPARENT_COLOR;
     float border_radius = 0;
@@ -99,12 +100,6 @@ struct widget_t {
     bool image_based = false;
     int texture_handle = -1;
 
-    // WIDGET_SIZE widget_size = WIDGET_SIZE::PIXEL_BASED;
-    WIDGET_SIZE widget_size_width = WIDGET_SIZE::PIXEL_BASED;
-    WIDGET_SIZE widget_size_height = WIDGET_SIZE::PIXEL_BASED;
-    float width = -1.f;
-    float height = -1.f;
-
     std::vector<int> children_widget_handles;
     int parent_widget_handle = NULL;
 
@@ -113,11 +108,23 @@ struct widget_t {
     UI_PROPERTIES properties = UI_PROPERTIES::NONE;
     style_t style;
 
+    // width of widget without padding or margins
+    WIDGET_SIZE widget_size_width = WIDGET_SIZE::PIXEL_BASED;
+    WIDGET_SIZE widget_size_height = WIDGET_SIZE::PIXEL_BASED;
+    float width = -1.f;
+    float height = -1.f; 
+
     // all specified in pixels with (render_x, render_y) using top left as the pt
+    // does not include margins, just base width plus padding
     float render_x = -1.f;
     float render_y = -1.f;
     float render_width = -1.f;
     float render_height = -1.f;
+
+    // includes base width, padding, and margins
+    float content_width = -1.f;
+    float content_height = -1.f;
+
 };
 
 void start_of_frame(bool ui_will_update = false);

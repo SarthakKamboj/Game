@@ -544,9 +544,15 @@ void load_level(application_t& app, int level_num) {
 		app.scene_manager.cur_level = MAIN_MENU_LEVEL;
 		std::cout << "loaded main menu" << std::endl;
 		return;
-	}
-
-	if (level_num >= num_levels + 1) {
+	} else if (level_num == SETTINGS_LEVEL) {
+		app.scene_manager.cur_level = SETTINGS_LEVEL;
+		std::cout << "settings menu" << std::endl;
+		return;
+	} else if (level_num == QUIT_LEVEL) {
+		app.scene_manager.cur_level = QUIT_LEVEL;
+		std::cout << "quit menu" << std::endl;
+		return;
+	} else if (level_num >= num_levels + 1) {
 		app.scene_manager.cur_level = GAME_OVER_SCREEN_LEVEL;
 		resume_bck_sound();
 		std::cout << "loaded game over" << std::endl;

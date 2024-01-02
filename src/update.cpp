@@ -13,21 +13,12 @@
 #include "test_config.h"
 
 extern input::user_input_t input_state;
-// extern int object_transform_handle;
 
 namespace world {
     
-
     void update(application_t& app) {
 
-        if (app.scene_manager.cur_level == MAIN_MENU_LEVEL) {
-            if (input_state.some_key_pressed) {
-                app.scene_manager.queue_level_load = true;
-                app.scene_manager.level_to_load = 1;
-            }
-            return;
-        }
-        if (app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL) return;
+        if (app.scene_manager.cur_level == MAIN_MENU_LEVEL || app.scene_manager.cur_level == SETTINGS_LEVEL || app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL || app.scene_manager.cur_level == QUIT_LEVEL) return;
 
         update_parallax_bcks(app.camera);
 
