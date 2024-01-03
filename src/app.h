@@ -28,6 +28,8 @@ struct application_t {
 	bool bck_muted = false;
 	bool sound_fx_muted = false;
 
+	bool new_level_just_loaded = false;
+
 	bool running = true;
 	SDL_Window* window = NULL;
 	main_character_t main_character;

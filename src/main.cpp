@@ -73,10 +73,12 @@ int main(int argc, char *argv[])
 		world::update(app);
 		render(app);
 
+		app.new_level_just_loaded = false;
 		if (app.scene_manager.queue_level_load) {
 			unload_level(app);
 			clear_debug_pts();
 			load_level(app, app.scene_manager.level_to_load);
+			app.new_level_just_loaded = true;
 		}
 
 		utils::end_timer(frame_timer);

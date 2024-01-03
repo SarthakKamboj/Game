@@ -8,6 +8,35 @@ struct info_pair_t {
     const char* right;
 };
 
+struct bool_settings_state_t {
+    bool bck_muted = false;
+    bool sound_fx_muted = false;
+    bool is_full_screen = false;
+};
+
+struct settings_changed_t {
+    bool aspect_ratio = false;
+    bool bck_music = false;
+    bool sound_fx = false;
+    bool windowed = false;
+};
+bool something_changed(settings_changed_t settings_changed);
+
+enum class ASPECT_RATIO {
+    A_1920x1080,
+    A_1600x900,
+    A_1440x990,
+    A_1366x768,
+    A_1280x1024,
+};
+
+struct aspect_ratio_t {
+    ASPECT_RATIO ratio;
+    const char* str;
+    float width = 0.f;
+    float height = 0.f;
+};
+
 /// <summary>
 /// Render the application
 /// </summary>

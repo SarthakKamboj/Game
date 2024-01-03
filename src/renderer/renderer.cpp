@@ -13,6 +13,43 @@ extern input::user_input_t input_state;
 
 static bool ui_updated = true;
 
+static aspect_ratio_t aspect_ratios[5] = {
+	aspect_ratio_t {
+		ASPECT_RATIO::A_1920x1080,
+		"1920 x 1080",
+		1920,
+		1080
+	},
+	aspect_ratio_t {
+		ASPECT_RATIO::A_1600x900,
+		"1600 x 900",
+		1600,
+		900
+	},
+	aspect_ratio_t {
+		ASPECT_RATIO::A_1440x990,
+		"1440 x 990",
+		1440,
+		990
+	},
+	aspect_ratio_t {
+		ASPECT_RATIO::A_1366x768,
+		"1366 x 768",
+		1366,
+		768
+	},
+	aspect_ratio_t {
+		ASPECT_RATIO::A_1280x1024,
+		"1280 x 1024",
+		1280,
+		1024
+	}
+};
+
+bool something_changed(settings_changed_t settings_changed) {
+	return settings_changed.aspect_ratio || settings_changed.bck_music || settings_changed.sound_fx || settings_changed.windowed;
+}
+
 void render_infos(info_pair_t* pairs, int num_pairs) {
 	style_t pair_style;
 	pair_style.content_spacing = 20;
@@ -155,7 +192,7 @@ void render(application_t& app) {
 		float main_section_height_percent = 0.85f;
 
 		style_t main_section_style;
-		main_section_style.background_color = create_color(255, 255, 255);
+		main_section_style.background_color = WHITE;
 		main_section_style.content_spacing = 30;
 		main_section_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
@@ -184,7 +221,7 @@ void render(application_t& app) {
 		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
 
 		style_t options_btn_style;
-		options_btn_style.background_color = create_color(255, 255, 255);
+		options_btn_style.background_color = WHITE;
 		options_btn_style.border_radius = 10.f;
 		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
@@ -254,28 +291,51 @@ void render(application_t& app) {
 		// }
 
 	} else if (app.scene_manager.cur_level == SETTINGS_LEVEL) {
+		static settings_changed_t settings_changed;
+		static bool_settings_state_t settings_state;
+
+		if (app.new_level_just_loaded) {
+			settings_state.bck_muted = app.bck_muted;
+			settings_state.is_full_screen = app.is_full_screen;
+			settings_state.sound_fx_muted = app.sound_fx_muted;
+
+			settings_changed = settings_changed_t();
+		}
+
 		start_of_frame(ui_updated);
 		ui_updated = false;
+
 
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
 		panel_style.vertical_align_val = ALIGN::CENTER;
 		panel_style.horizontal_align_val = ALIGN::CENTER;
-		panel_style.background_color = create_color(255, 255, 255);
+		panel_style.background_color = WHITE;
 		push_style(panel_style);
 		create_panel("main menu panel");
 		pop_style();
 
 		float main_section_height_percent = 0.85f;
+		// static bool something_changed = false;
 
-		style_t main_section_style;
-		main_section_style.background_color = create_color(255, 255, 255);
-		main_section_style.content_spacing = 50;
-		main_section_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+		style_t main_section_style;	
+		main_section_style.background_color = WHITE;
+		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
 		main_section_style.vertical_align_val = ALIGN::CENTER;
+		main_section_style.content_spacing = 50;
+		// main_section_style.background_color = RED;
 		push_style(main_section_style);
 		create_container(0.9f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+		pop_style();
+
+		style_t options_sections_style;
+		options_sections_style.content_spacing = 50;
+		options_sections_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+		options_sections_style.horizontal_align_val = ALIGN::CENTER;
+		options_sections_style.vertical_align_val = ALIGN::CENTER;
+		push_style(options_sections_style);
+		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "options section");
 		pop_style();
 
 		style_t col_style;
@@ -292,33 +352,39 @@ void render(application_t& app) {
 		enabled_text_style.padding = glm::vec2(25, 10);
 
 		style_t disabled_text_style;
-		disabled_text_style.color = create_color(211,211,211);
+		disabled_text_style.color = GREY;
 		disabled_text_style.padding = glm::vec2(25, 10);
 
 		push_style(enabled_text_style);
-		create_text("RESOLUTION OPTIONS");
+		static int selected_option = 0;
+		const char* options[5] = {
+			aspect_ratios[0].str,
+			aspect_ratios[1].str,
+			aspect_ratios[2].str,
+			aspect_ratios[3].str,
+			aspect_ratios[4].str
+		};
+
+		if (create_selector(selected_option, options, 5, 200.f, 20.f, selected_option)) {
+			ui_updated = true;
+			aspect_ratio_t& ratio = aspect_ratios[selected_option];
+			settings_changed.aspect_ratio = (ratio.width != app.window_width || ratio.height != app.window_height);
+		}
+
 		pop_style();
 
-		push_style(app.sound_fx_muted ? disabled_text_style : enabled_text_style);
+		push_style(settings_state.sound_fx_muted ? disabled_text_style : enabled_text_style);
 		if (create_button("SOUND")) {
-			if (app.sound_fx_muted) {
-				unmute_sounds();
-			} else {
-				mute_sounds();
-			}
-			app.sound_fx_muted = !app.sound_fx_muted;
+			settings_changed.sound_fx = !settings_changed.sound_fx;
+			settings_state.sound_fx_muted = !settings_state.sound_fx_muted;
 			ui_updated = true;			
 		}
 		pop_style();
 
-		push_style(app.bck_muted ? disabled_text_style : enabled_text_style);
+		push_style(settings_state.bck_muted ? disabled_text_style : enabled_text_style);
 		if (create_button("MUSIC")) {
-			if (app.bck_muted) {
-				unmute_bck_sound();
-			} else {
-				mute_bck_sound();
-			}
-			app.bck_muted = !app.bck_muted;
+			settings_changed.bck_music = !settings_changed.bck_music;
+			settings_state.bck_muted = !settings_state.bck_muted;
 			ui_updated = true;
 		}
 		pop_style();
@@ -329,24 +395,15 @@ void render(application_t& app) {
 		create_container(0.f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "right column text");
 		pop_style();
 
-		if (!app.is_full_screen) {
-			push_style(disabled_text_style);
-		} else {
-			push_style(enabled_text_style);
-		}
+		push_style(settings_state.is_full_screen ? disabled_text_style : enabled_text_style);
 		if (create_button("WINDOWED")) {
-			if (app.is_full_screen) {
-				SDL_SetWindowFullscreen(app.window, 0);
-			} else {
-				SDL_SetWindowFullscreen(app.window, SDL_WINDOW_FULLSCREEN);
-			}
-			app.is_full_screen = !app.is_full_screen;
+			settings_changed.windowed = !settings_changed.windowed;
+			settings_state.is_full_screen = !settings_state.is_full_screen;
 			ui_updated = true;
 		}
 		pop_style();
 
 		push_style(enabled_text_style);
-		// create_text("V-SYNC");
 		if (create_button("CREDITS")) {
 			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
@@ -356,6 +413,53 @@ void render(application_t& app) {
 		pop_style();
 
 		end_container();
+		end_container();
+
+		bool changed = something_changed(settings_changed);
+
+		style_t btn_style;
+		btn_style.color = WHITE;
+		btn_style.background_color = changed ? DARK_BLUE : GREY;
+		btn_style.border_radius = 10.f;
+		btn_style.padding = glm::vec2(10);
+		push_style(btn_style);
+		if (create_button("Save") && changed) {
+			
+			if (settings_changed.windowed) {
+				if (app.is_full_screen) {
+					SDL_SetWindowFullscreen(app.window, 0);
+				} else {
+					SDL_SetWindowFullscreen(app.window, SDL_WINDOW_FULLSCREEN);
+				}
+				app.is_full_screen = !app.is_full_screen;
+			}
+
+			if (settings_changed.bck_music) {
+				if (app.bck_muted) {
+					unmute_bck_sound();
+				} else {
+					mute_bck_sound();
+				}
+				app.bck_muted = !app.bck_muted;
+			}
+
+			if (settings_changed.sound_fx) {
+				if (app.sound_fx_muted) {
+					unmute_sounds();
+				} else {
+					mute_sounds();
+				}
+				app.sound_fx_muted = !app.sound_fx_muted;
+			}
+
+			if (settings_changed.aspect_ratio) {
+				aspect_ratio_t& aspect_ratio = aspect_ratios[selected_option];
+				SDL_SetWindowSize(app.window, aspect_ratio.width, aspect_ratio.height);
+			}
+
+			settings_changed = settings_changed_t();
+		}
+		pop_style();
 
 		end_container();
 
@@ -370,7 +474,7 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t options_btn_style;
-		options_btn_style.background_color = create_color(255, 255, 255);
+		options_btn_style.background_color = WHITE;
 		options_btn_style.border_radius = 10.f;
 		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
@@ -391,6 +495,7 @@ void render(application_t& app) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
 			ui_updated = true;
+			settings_changed = settings_changed_t();
 		}
 		pop_style();
 
@@ -417,7 +522,7 @@ void render(application_t& app) {
 		float main_section_height_percent = 0.85f;
 
 		style_t main_section_style;
-		main_section_style.background_color = create_color(255, 255, 255);
+		main_section_style.background_color = WHITE;
 		main_section_style.content_spacing = 0;
 		main_section_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
@@ -444,7 +549,7 @@ void render(application_t& app) {
 		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
 
 		style_t options_btn_style;
-		options_btn_style.background_color = create_color(255, 255, 255);
+		options_btn_style.background_color = WHITE;
 		options_btn_style.border_radius = 10.f;
 		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
@@ -512,7 +617,7 @@ void render(application_t& app) {
 		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
 
 		style_t options_btn_style;
-		options_btn_style.background_color = create_color(255, 255, 255);
+		options_btn_style.background_color = WHITE;
 		options_btn_style.border_radius = 10.f;
 		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
@@ -540,7 +645,7 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t main_section_style;
-		main_section_style.background_color = create_color(255, 255, 255);
+		main_section_style.background_color = WHITE;
 		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
 		main_section_style.vertical_align_val = ALIGN::CENTER;
