@@ -125,6 +125,8 @@ void render(application_t& app) {
 
 	glm::vec3 dark_blue = DARK_BLUE;
 
+	ui_updated = ui_updated || app.controller_state_changed;
+
 	// main menu
 	if (app.scene_manager.cur_level == MAIN_MENU_LEVEL) {
 		
@@ -190,13 +192,46 @@ void render(application_t& app) {
 		push_style(options_btn_style);
 		
 		bool btn_clicked = false;
-		if (create_button("Settings")) {
+		bool change_to_settings = false;
+		if (app.game_controller) {
+			create_text("Settings (X)");
+			change_to_settings = input_state.controller_x_pressed;
+		} else if (create_button("Settings")) {
+			change_to_settings = true;
+		}
+		
+		if (change_to_settings) {
 			btn_clicked = true;
 			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = SETTINGS_LEVEL;
 		}
-		if (create_button("Quit")) {
+
+		bool change_to_level1 = false;
+		if (app.game_controller) {
+			create_text("Play (A)");
+			if (input_state.controller_a_pressed) {
+				change_to_level1 = true;
+			}
+		} else {
+			create_text("Play (Enter)");
+			change_to_level1 = input_state.enter_pressed;
+		}
+
+		if (change_to_level1) {
+			app.scene_manager.queue_level_load = true;
+			app.scene_manager.level_to_load = 1;
+		}
+
+		bool change_to_quit = false;
+		if (app.game_controller) {
+			create_text("Quit (B)");
+			change_to_quit = input_state.controller_b_pressed;
+		} else if (create_button("Quit")) {
+			change_to_quit = true;
+		}
+	
+		if (change_to_quit) {
 			// app.running = false;
 			btn_clicked = true;
 			ui_updated = true;
@@ -213,10 +248,10 @@ void render(application_t& app) {
 		autolayout_hierarchy();
 		render_ui();
 
-		if (!btn_clicked && input_state.some_key_pressed) {
-			app.scene_manager.queue_level_load = true;
-			app.scene_manager.level_to_load = 1;
-		}
+		// if (!btn_clicked && input_state.some_key_pressed) {
+		// 	app.scene_manager.queue_level_load = true;
+		// 	app.scene_manager.level_to_load = 1;
+		// }
 
 	} else if (app.scene_manager.cur_level == SETTINGS_LEVEL) {
 		start_of_frame(ui_updated);
@@ -261,7 +296,6 @@ void render(application_t& app) {
 		disabled_text_style.padding = glm::vec2(25, 10);
 
 		push_style(enabled_text_style);
-		create_text("RESOLUTION");
 		create_text("RESOLUTION OPTIONS");
 		pop_style();
 
@@ -312,7 +346,7 @@ void render(application_t& app) {
 		pop_style();
 
 		push_style(enabled_text_style);
-		create_text("V-SYNC");
+		// create_text("V-SYNC");
 		if (create_button("CREDITS")) {
 			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
@@ -343,7 +377,17 @@ void render(application_t& app) {
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 		
-		if (create_button("Back")) {
+		bool main_menu_load = false;
+		if (app.game_controller) {
+			create_text("Back (B)");
+			if (input_state.controller_b_pressed) {
+				main_menu_load = true;
+			}
+		} else if (create_button("Back")) {
+			main_menu_load = true;
+		}
+
+		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
 			ui_updated = true;
@@ -406,15 +450,30 @@ void render(application_t& app) {
 		options_btn_style.padding = glm::vec2(10);
 		push_style(options_btn_style);
 		
-		bool btn_clicked = false;
-		if (create_button("Yes")) {
+		if (app.game_controller) {
+			create_text("Yes (X)");
+			if (input_state.controller_x_pressed) {
+				app.running = false;
+			}
+		} else if (create_button("Yes")) {
 			app.running = false;	
 		}
 		pop_style();
 
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
-		if (create_button("No")) {
+
+		bool main_menu_load = false;
+		if (app.game_controller) {
+			create_text("No (B)");
+			if (input_state.controller_b_pressed) {
+				main_menu_load = true;
+			}
+		} else if (create_button("No")) {
+			main_menu_load = true;
+		}
+
+		if (main_menu_load) {
 			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
@@ -460,7 +519,17 @@ void render(application_t& app) {
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 		
-		if (create_button("Back")) {
+		bool back_pressed = false;
+		if (app.game_controller) {
+			create_text("Back (B)");
+			if (input_state.controller_b_pressed) {
+				back_pressed = true;
+			}
+		} else if (create_button("Back")) {
+			back_pressed = true;
+		}
+
+		if (back_pressed) {
 			app.scene_manager.queue_level_load = true;	
 			app.scene_manager.level_to_load = SETTINGS_LEVEL;
 			ui_updated = true;

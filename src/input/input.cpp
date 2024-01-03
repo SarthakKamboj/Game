@@ -18,6 +18,7 @@ namespace input {
 	}
 
 	void process_input(application_t& app, user_input_t& user_input) {
+		app.controller_state_changed = false;
 
 		SDL_GetMouseState(&user_input.x_pos, &user_input.y_pos);
 		// user_input.y_pos = WINDOW_HEIGHT - user_input.y_pos;
@@ -31,9 +32,12 @@ namespace input {
 		user_input.p_pressed = false;
 		user_input.l_pressed = false;
 		user_input.space_pressed = false;
+		user_input.enter_pressed = false;
 
 		user_input.controller_a_pressed = false;
 		user_input.controller_y_pressed = false;
+		user_input.controller_x_pressed = false;
+		user_input.controller_b_pressed = false;
 
 		user_input.quit = false;
 		user_input.left_clicked = false;
@@ -79,6 +83,7 @@ namespace input {
 				}
 				case SDL_CONTROLLERDEVICEADDED: {
 					if (!app.game_controller) {
+						app.controller_state_changed = true;
 						init_controller(app);
 					}
 					break;
@@ -87,11 +92,16 @@ namespace input {
 					if (app.game_controller) {
 						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
 						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
+							app.controller_state_changed = true;
 							app.game_controller = NULL;
 							user_input.controller_a_down = false;
 							user_input.controller_a_pressed = false;
 							user_input.controller_y_down = false;
 							user_input.controller_y_pressed = false;
+							user_input.controller_x_down = false;
+							user_input.controller_x_pressed = false;
+							user_input.controller_b_down = false;
+							user_input.controller_b_pressed = false;
 							user_input.controller_x_axis = 0;
 							user_input.controller_y_axis = 0;
 							init_controller(app);
@@ -112,6 +122,14 @@ namespace input {
 									user_input.controller_y_down = false;
 									break;
 								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B: {
+									user_input.controller_b_down = false;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X: {
+									user_input.controller_x_down = false;
+									break;
+								}
 								default: break;
 							}
 						}
@@ -121,6 +139,7 @@ namespace input {
 
 				case SDL_CONTROLLERBUTTONDOWN: {
 					if (app.game_controller) {
+						user_input.some_key_pressed = true;
 						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
 						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
 							switch (event.cbutton.button) {
@@ -132,6 +151,16 @@ namespace input {
 								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_Y: {
 									user_input.controller_y_pressed = true;
 									user_input.controller_y_down = true;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_B: {
+									user_input.controller_b_pressed = true;
+									user_input.controller_b_down = true;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X: {
+									user_input.controller_x_pressed = true;
+									user_input.controller_x_down = true;
 									break;
 								}
 								default: break;
@@ -168,6 +197,10 @@ namespace input {
 						}
 						case SDLK_l: {
 							user_input.l_down = false;
+							break;
+						}
+						case SDLK_RETURN: {
+							user_input.enter_down = false;
 							break;
 						}
 						default: break;
@@ -213,6 +246,11 @@ namespace input {
 						case SDLK_p: {
 							user_input.p_pressed = true;
 							user_input.p_down = true;
+							break;
+						}
+						case SDLK_RETURN: {
+							user_input.enter_down = true;
+							user_input.enter_pressed = true;
 							break;
 						}
 						default:
