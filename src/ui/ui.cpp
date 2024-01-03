@@ -86,7 +86,7 @@ static font_mode_t font_modes[2] = {
     },
     font_mode_t {
         TEXT_SIZE::REGULAR,
-        30 
+        20
     }
 };
 
@@ -180,10 +180,11 @@ void create_text(const char* text, TEXT_SIZE text_size) {
     
     style_t& latest_style = styles_stack[styles_stack.size() - 1];
     widget.width = text_dim.width + (2 * latest_style.padding.x);
-    widget.height = text_dim.height + (2 * latest_style.padding.y);
+    // widget.height = text_dim.height + (2 * latest_style.padding.y);
+    widget.height = text_dim.max_height_above_baseline + (2 * latest_style.padding.y);
 
-    widget.render_width = text_dim.width;
-    widget.render_height = text_dim.height;
+    widget.render_width = widget.width;
+    widget.render_height = widget.height;
 
     register_widget(widget, text);
 }
@@ -200,7 +201,8 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     widget.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     style_t& latest_style = styles_stack[styles_stack.size() - 1];
     widget.width = text_dim.width + (2 * latest_style.padding.x);
-    widget.height = text_dim.height + (2 * latest_style.padding.y);
+    // widget.height = text_dim.height + (2 * latest_style.padding.y);
+    widget.height = text_dim.max_height_above_baseline + (2 * latest_style.padding.y);
 
     widget.render_width = widget.width;
     widget.render_height = widget.height;
@@ -274,13 +276,18 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
             x_pos_terms.push_back(create_constraint_term(space_var_hor, idx));
             create_constraint(child_widget_x_pos_handle, x_pos_terms, constant);
 
-            std::vector<constraint_term_t> y_pos_terms;
-            y_pos_terms.push_back(create_constraint_term(start_offset_vert, 1));
-            y_pos_terms.push_back(create_constraint_term(y_pos_handle, 1));
             float vert_constant = 0;
-            if (widget.style.vertical_align_val == ALIGN::CENTER) {
-                y_pos_terms.push_back(create_constraint_term(widget_height_handle, -0.5f));
-                vert_constant = 0.5f * child_widget.content_height;
+            std::vector<constraint_term_t> y_pos_terms;
+            y_pos_terms.push_back(create_constraint_term(y_pos_handle, 1));
+            if (widget.style.vertical_align_val == ALIGN::END) {
+                y_pos_terms.push_back(create_constraint_term(widget_height_handle, -1.f));
+                vert_constant = child_widget.content_height;
+            } else {
+                y_pos_terms.push_back(create_constraint_term(start_offset_vert, 1));
+                if (widget.style.vertical_align_val == ALIGN::CENTER) {
+                    y_pos_terms.push_back(create_constraint_term(widget_height_handle, -0.5f));
+                    vert_constant = 0.5f * child_widget.content_height;
+                }
             }
             create_constraint(child_widget_y_pos_handle, y_pos_terms, vert_constant);
         } else {
@@ -291,13 +298,18 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
             y_pos_terms.push_back(create_constraint_term(space_var_vert, idx));
             create_constraint(child_widget_y_pos_handle, y_pos_terms, constant);
 
-            std::vector<constraint_term_t> x_pos_terms;
-            x_pos_terms.push_back(create_constraint_term(start_offset_hor, 1));
-            x_pos_terms.push_back(create_constraint_term(x_pos_handle, 1));
             float hor_constant = 0;
-            if (widget.style.horizontal_align_val == ALIGN::CENTER) {
-                x_pos_terms.push_back(create_constraint_term(widget_width_handle, 0.5f));
-                hor_constant = -0.5f * child_widget.content_width;
+            std::vector<constraint_term_t> x_pos_terms;
+            x_pos_terms.push_back(create_constraint_term(x_pos_handle, 1));
+            if (widget.style.horizontal_align_val == ALIGN::END) {
+                x_pos_terms.push_back(create_constraint_term(widget_width_handle, 1));
+                hor_constant = -child_widget.content_width;
+            } else {
+                x_pos_terms.push_back(create_constraint_term(start_offset_hor, 1));
+                if (widget.style.horizontal_align_val == ALIGN::CENTER) {
+                    x_pos_terms.push_back(create_constraint_term(widget_width_handle, 0.5f));
+                    hor_constant = -0.5f * child_widget.content_width;
+                }
             }
             create_constraint(child_widget_x_pos_handle, x_pos_terms, hor_constant);
         }
@@ -345,7 +357,7 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
             make_constraint_value_constant(space_var_hor, widget.style.content_spacing);
             if (widget.style.display_dir == DISPLAY_DIR::HORIZONTAL) {
                 float remaining_space = 0.f;
-                remaining_space = widget.content_width - content_size.x - (widget.style.content_spacing * (num_children + 1));
+                remaining_space = widget.content_width - content_size.x - (widget.style.content_spacing * (num_children - 1));
                 float offset = remaining_space / 2.f;
                 make_constraint_value_constant(start_offset_hor, offset);
             } else {
@@ -404,7 +416,7 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
         case ALIGN::CENTER: {
             make_constraint_value_constant(space_var_vert, -widget.style.content_spacing);
             if (widget.style.display_dir == DISPLAY_DIR::VERTICAL) {
-                float remaining_space = remaining_space = widget.content_height - content_size.y - (widget.style.content_spacing * (num_children + 1));
+                float remaining_space = remaining_space = widget.content_height - content_size.y - (widget.style.content_spacing * (num_children - 1));
                 float offset = remaining_space / 2.f;
                 make_constraint_value_constant(start_offset_vert, -offset);
             } else {
@@ -448,7 +460,8 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
     if (widget.text_based) {
         text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
         widget.width = text_dim.width;
-        widget.height = text_dim.height;
+        // widget.height = text_dim.height;
+        widget.height = text_dim.max_height_above_baseline;
 
         widget.render_width = widget.width + (widget.style.padding.x * 2);
         widget.render_height = widget.height + (widget.style.padding.y * 2);
@@ -774,7 +787,8 @@ text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size) {
             }
         }
     }
-    running_dim.height = running_dim.max_height_above_baseline + running_dim.max_height_below_baseline;
+    // running_dim.height = running_dim.max_height_above_baseline + running_dim.max_height_below_baseline;
+    // running_dim.height = running_dim.max_height_above_baseline;
 	return running_dim;
 }
 

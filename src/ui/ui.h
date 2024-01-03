@@ -7,6 +7,11 @@
 #include "renderer/opengl/object_data.h"
 #include "constants.h"
 
+#define GREEN create_color(0, 255, 0)
+#define BLUE create_color(0, 0, 255)
+#define RED create_color(255, 0, 0)
+#define DARK_BLUE create_color(1, 29, 45);
+
 // ui will be rendered immediate mode
 
 struct font_char_t {
@@ -45,7 +50,7 @@ struct font_mode_t {
 
 struct text_dim_t {
 	float width = 0;
-	float height = 0;
+	// float height = 0;
     float max_height_above_baseline = 0;
 	float max_height_below_baseline = 0;
 };
