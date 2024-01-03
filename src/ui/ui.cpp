@@ -38,9 +38,9 @@ glm::vec3 create_color(float r, float g, float b) {
 void start_of_frame(bool _ui_will_update) {
     ui_will_update = _ui_will_update;
 
+    glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
+    shader_set_mat4(font_char_t::ui_opengl_data.shader, "projection", projection);
    if (app.resized) {
-		glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
-		shader_set_mat4(font_char_t::ui_opengl_data.shader, "projection", projection);
         ui_will_update = true;
 	}
 

@@ -579,13 +579,11 @@ void update_parallax_bcks(camera_t& camera) {
 	transform_t* even_bck = get_transform(parallax_bck::transform_handles[0]);
 	transform_t* odd_bck = get_transform(parallax_bck::transform_handles[1]);
 
-	if (app.resized) {
-		set_quad_width_height(parallax_bck::rec_render_handles[0], app.window_width, app.window_height);
-		set_quad_width_height(parallax_bck::rec_render_handles[1], app.window_width, app.window_height);
-	
-		even_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
-		odd_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
-	}
+	set_quad_width_height(parallax_bck::rec_render_handles[0], app.window_width, app.window_height);
+	set_quad_width_height(parallax_bck::rec_render_handles[1], app.window_width, app.window_height);
+
+	even_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
+	odd_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
 
 	int cam_x = camera.pos.x;
 	int window_width_offset = floor(cam_x / app.window_width);
