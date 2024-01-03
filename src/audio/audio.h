@@ -33,7 +33,11 @@ void play_bck_sound();
 void pause_bck_sound();
 void resume_bck_sound();
 void stop_bck_sound();
+void mute_bck_sound();
+void unmute_bck_sound();
 
 void play_sound(const char* sound_name, bool overrule = false);
 void clear_sounds();
+void mute_sounds();
+void unmute_sounds();
 bool sound_finished_playing(const char* sound_name);

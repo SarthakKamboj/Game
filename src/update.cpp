@@ -18,7 +18,7 @@ namespace world {
     
     void update(application_t& app) {
 
-        if (app.scene_manager.cur_level == MAIN_MENU_LEVEL || app.scene_manager.cur_level == SETTINGS_LEVEL || app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL || app.scene_manager.cur_level == QUIT_LEVEL) return;
+        if (app.scene_manager.cur_level <= MAIN_MENU_LEVEL || app.scene_manager.cur_level >= GAME_OVER_SCREEN_LEVEL) return;
 
         update_parallax_bcks(app.camera);
 

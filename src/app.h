@@ -23,6 +23,10 @@ struct application_t {
 	float window_width = STARTING_WINDOW_WIDTH;
 	float window_height = STARTING_WINDOW_HEIGHT;
 	bool resized = false;
+	bool is_full_screen = true;
+
+	bool bck_muted = false;
+	bool sound_fx_muted = false;
 
 	bool running = true;
 	SDL_Window* window = NULL;

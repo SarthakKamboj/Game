@@ -56,7 +56,7 @@ void GLAPIENTRY MyOpenGLErrorCallbackFunc(GLenum source, GLenum debugErrorType, 
 /// </summary>
 /// <returns>The SDL window that gets created.</returns>
 /// <see>See constants.h for WINDOW_HEIGHT and WINDOW_WIDTH</see>
-SDL_Window* init_sdl() {
+void init_sdl(application_t& app) {
 	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
 		const char* sdl_error = SDL_GetError();
 		std::string error_msg = "SDL could not be initialized: " + std::string(sdl_error);
@@ -74,7 +74,8 @@ SDL_Window* init_sdl() {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLEBUFFERS, 1);
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1);
 
-	SDL_Window* window = SDL_CreateWindow("window", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	SDL_Window* window = SDL_CreateWindow("Night Run", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE);
+	app.is_full_screen = false;
 
     // if window is null, then window creation that an issue
 	if (window == NULL) {
@@ -82,6 +83,11 @@ SDL_Window* init_sdl() {
 		std::string error_msg = "SDL could not be initialized: " + std::string(sdl_error);
 		throw std::runtime_error(error_msg);
 	}
+
+	int window_width, window_height;
+	SDL_GetWindowSize(window, &window_width, &window_height);
+	app.window_width = window_width;
+	app.window_height = window_height;
 
 	SDL_GLContext context = SDL_GL_CreateContext(window);
     // load opengl functions
@@ -105,7 +111,7 @@ SDL_Window* init_sdl() {
 	// glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
 	// glDebugMessageCallback( MyOpenGLErrorCallbackFunc, 0 );
 
-	return window;
+	app.window = window;
 }
 
 /// <summary>
@@ -552,6 +558,10 @@ void load_level(application_t& app, int level_num) {
 		app.scene_manager.cur_level = QUIT_LEVEL;
 		std::cout << "quit menu" << std::endl;
 		return;
+	} else if (level_num == CREDITS_LEVEL) {
+		app.scene_manager.cur_level = CREDITS_LEVEL;
+		std::cout << "credits" << std::endl;
+		return;
 	} else if (level_num >= num_levels + 1) {
 		app.scene_manager.cur_level = GAME_OVER_SCREEN_LEVEL;
 		resume_bck_sound();
@@ -577,7 +587,7 @@ void load_level(application_t& app, int level_num) {
 
 
 void init(application_t& app) {
-	app.window = init_sdl();	
+	init_sdl(app);	
 	input::init_controller(app);
 	init_audio();
     // initialize opengl data for a rectangle

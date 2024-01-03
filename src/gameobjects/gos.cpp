@@ -31,6 +31,8 @@ std::vector<ground_block_t> ground_blocks;
 final_flag_t final_flag;
 static std::unordered_set<std::pair<int, int>, pair_hash> created_positions;
 
+extern application_t app;
+
 void unload_level(application_t& app) {
 	for (goomba_t& goomba : goombas) delete_goomba_by_kin_handle(goomba.rigidbody_handle);
 	goombas.clear();
@@ -82,7 +84,7 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
 	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE, false, 1, -1);
-	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8f, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, true);
+	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8f, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
 	mc.dash_start_time = -(main_character_t::DASH_WAIT_TIME + main_character_t::DASH_TIME);
 	return mc;
 }
@@ -557,8 +559,8 @@ int parallax_bck::bck_texture = -1;
 int parallax_bck::transform_handles[2] = {-1, -1};
 int parallax_bck::rec_render_handles[2] = {-1, -1};
 
+static int ground_height = -10;
 void init_parallax_bck_data() {
-	int ground_height = -10;
 	parallax_bck::transform_handles[0] = create_transform(glm::vec3(app.window_width/2, ground_height + (app.window_height-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
 	parallax_bck::transform_handles[1] = create_transform(glm::vec3(app.window_width + app.window_width/2, ground_height + (app.window_height-ground_height)/2, 0), glm::vec3(1), 0.f, 0.f);
 
@@ -572,18 +574,28 @@ void init_parallax_bck_data() {
 }
 
 void update_parallax_bcks(camera_t& camera) {
-	int cam_x = camera.pos.x;
-	int window_width_offset = cam_x / app.window_width;
 
 	transform_t* even_bck = get_transform(parallax_bck::transform_handles[0]);
+	transform_t* odd_bck = get_transform(parallax_bck::transform_handles[1]);
+
+	if (app.resized) {
+		set_quad_width_height(parallax_bck::rec_render_handles[0], app.window_width, app.window_height);
+		set_quad_width_height(parallax_bck::rec_render_handles[1], app.window_width, app.window_height);
+	
+		even_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
+		odd_bck->position.y = ground_height + ((app.window_height-ground_height)/2);
+	}
+
+	int cam_x = camera.pos.x;
+	int window_width_offset = floor(cam_x / app.window_width);
+
 	if (window_width_offset % 2 == 0) {
 		even_bck->position.x = (window_width_offset * app.window_width) + (app.window_width / 2);
 	} else {
 		even_bck->position.x = ((window_width_offset + 1) * app.window_width) + (app.window_width / 2);
 	}
 
-	transform_t* odd_bck = get_transform(parallax_bck::transform_handles[1]);
-	if (window_width_offset % 2 == 1) {
+	if (fabs(window_width_offset % 2) == 1) {
 		odd_bck->position.x = (window_width_offset * app.window_width) + (app.window_width / 2);
 	} else {
 		odd_bck->position.x = ((window_width_offset + 1) * app.window_width) + (app.window_width / 2);

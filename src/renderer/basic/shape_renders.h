@@ -40,6 +40,7 @@ void init_quad_data();
 int create_quad_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle);
 
 void set_quad_texture(int quad_handle, int tex_handle);
+void set_quad_width_height(int quad_handle, float width, float height);
 
 /// <summary>
 /// Draw a particular quad

@@ -89,6 +89,28 @@ void read_wav_sound(const char* name, const char *filename, bool bck_sound) {
     }
 }
 
+void mute_bck_sound() {
+    alSourcef(background_source.al_handle, AL_GAIN, 0.f);
+}
+
+void unmute_bck_sound() {
+    alSourcef(background_source.al_handle, AL_GAIN, 0.5f);
+}
+
+void mute_sounds() {
+    for (int i = 0; i < NUM_SOURCES_PER_FORMAT; i++) {
+        alSourcef(mono_sources[i].al_handle, AL_GAIN, 0.f);
+        alSourcef(stereo_sources[i].al_handle, AL_GAIN, 0.f);
+    }
+}
+
+void unmute_sounds() {
+    for (int i = 0; i < NUM_SOURCES_PER_FORMAT; i++) {
+        alSourcef(mono_sources[i].al_handle, AL_GAIN, 0.5f);
+        alSourcef(stereo_sources[i].al_handle, AL_GAIN, 0.5f);
+    }
+}
+
 audio_source_t create_audio_source() {
     audio_source_t audio_source;
     alGenSources(1, &audio_source.al_handle);
