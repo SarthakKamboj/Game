@@ -114,6 +114,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 			pause_bck_sound();
 			play_sound("level_finish", true);
 			waiting_for_level_finish_audio = true;
+			rb.use_gravity = true;
 			continue;
 		}
 
