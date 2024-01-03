@@ -7,10 +7,14 @@
 #include "renderer/opengl/object_data.h"
 #include "constants.h"
 
-#define GREEN create_color(0, 255, 0)
-#define BLUE create_color(0, 0, 255)
-#define RED create_color(255, 0, 0)
-#define DARK_BLUE create_color(1, 29, 45);
+#include "glm/glm.hpp"
+
+#define GREEN glm::vec3(0, 1, 0)
+#define BLUE glm::vec3(0, 0, 1)
+#define RED glm::vec3(1, 0, 0)
+#define DARK_BLUE glm::vec3(.003f, 0.1137f, 0.17647f)
+#define GREY glm::vec3(0.8274f,0.8274f,0.8274f)
+#define WHITE glm::vec3(1, 1, 1)
 
 // ui will be rendered immediate mode
 
@@ -95,6 +99,8 @@ struct image_container_t {
     float height = 0.f;
 };
 void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* img_name);
+
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option);
 
 struct widget_t {
     int handle = -1;

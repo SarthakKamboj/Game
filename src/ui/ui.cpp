@@ -76,7 +76,10 @@ void push_widget(int widget_handle) {
 }
 
 void pop_widget() {
-    if (widget_stack.size() > 0) widget_stack.pop_back();
+    if (widget_stack.size() > 0) {
+        std::cout << "popping off " << widgets_arr[widget_stack[widget_stack.size() - 1]].key << std::endl;
+        widget_stack.pop_back();
+    }
 }
 
 static font_mode_t font_modes[2] = {
@@ -165,6 +168,64 @@ void create_image_container(int texture_handle, float width, float height, WIDGE
     widget.height = height;
 
     register_widget(widget, img_name);
+}
+
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option) {
+    style_t container_style;
+    container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+    container_style.horizontal_align_val = ALIGN::SPACE_BETWEEN;
+    container_style.vertical_align_val = ALIGN::CENTER;
+    push_style(container_style);
+    create_container(width, height, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "selector container");
+    pop_style();
+    
+    bool changed = false;
+    
+    style_t enabled;
+    enabled.color = DARK_BLUE;
+    enabled.padding = glm::vec2(10);
+    
+    style_t disabled;
+    disabled.color = GREY;
+    disabled.padding = glm::vec2(10);
+    
+    bool can_go_left = selected_option >= 1;
+    if (can_go_left) {
+        push_style(enabled);
+    } else {
+        push_style(disabled);
+    }
+    
+    if (can_go_left) {
+        if (create_button("<")) {
+            updated_selected_option = selected_option - 1;
+            changed = true;
+        }
+    } else {
+        create_text("<");
+    }
+    pop_style();
+
+    create_text(options[selected_option]);
+
+    bool can_go_right = selected_option <= num_options - 2;
+    if (can_go_right) {
+        push_style(enabled);
+    } else {
+        push_style(disabled);
+    }
+    if (can_go_right) {
+        if (create_button(">")) {
+            updated_selected_option = selected_option + 1;
+            changed = true;
+        }
+    } else {
+        create_text(">");
+    }
+    pop_style();
+    
+    end_container();
+    return changed;
 }
 
 void create_text(const char* text, TEXT_SIZE text_size) {
