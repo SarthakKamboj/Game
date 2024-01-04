@@ -11,7 +11,7 @@
 
 extern input::user_input_t input_state;
 
-static bool ui_updated = true;
+bool ui_updated = true;
 
 static aspect_ratio_t aspect_ratios[5] = {
 	aspect_ratio_t {
@@ -295,11 +295,11 @@ void render(application_t& app) {
 		static bool_settings_state_t settings_state;
 
 		if (app.new_level_just_loaded) {
+			settings_changed = settings_changed_t();
+
 			settings_state.bck_muted = app.bck_muted;
 			settings_state.is_full_screen = app.is_full_screen;
 			settings_state.sound_fx_muted = app.sound_fx_muted;
-
-			settings_changed = settings_changed_t();
 		}
 
 		start_of_frame(ui_updated);
@@ -680,26 +680,6 @@ void render(application_t& app) {
 		};
 		render_infos(feature_pairs, 4);
 
-		// for (int i = 0; i < 3; i++) {
-		// 	info_pair_t& feature_pair = feature_pairs[i];
-
-		// 	// credit_pair_style.background_color = create_color(255 * (i/3.f), 0, 0);
-		// 	push_style(pair_style);
-		// 	create_container(0.f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "credit pair");
-
-		// 	push_style(dark_text_style);
-		// 	create_text(feature_pair.left);
-		// 	pop_style();
-
-		// 	push_style(right_text_style);
-		// 	create_text(feature_pair.right);
-		// 	pop_style();
-
-		// 	end_container();
-		// 	pop_style();
-
-		// }	
-
 		end_container();
 		pop_style();
 
@@ -708,23 +688,74 @@ void render(application_t& app) {
 		autolayout_hierarchy();
 		render_ui();	
 	} else if (app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL) {
+			
 		start_of_frame(ui_updated);
 		ui_updated = false;
-
+		
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
-		panel_style.horizontal_align_val = ALIGN::CENTER;
 		panel_style.vertical_align_val = ALIGN::CENTER;
+		panel_style.horizontal_align_val = ALIGN::CENTER;
 		push_style(panel_style);
-		create_panel("main menu panel");
-		pop_style();	
+		create_panel("main panel");
+		pop_style();
 
-		style_t title_style;
-		title_style.background_color = create_color(255, 60, 54);
-		title_style.padding = glm::vec2(10);
-		title_style.border_radius = 15.f;
-		push_style(title_style);
+		float main_section_height_percent = 0.85f;
+
+		style_t main_section_style;
+		main_section_style.background_color = WHITE;
+		main_section_style.content_spacing = 30;
+		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
+		main_section_style.horizontal_align_val = ALIGN::CENTER;
+		main_section_style.vertical_align_val = ALIGN::CENTER;
+		push_style(main_section_style);
+		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+
+		style_t text_style;
+		text_style.color = dark_blue;
+		push_style(text_style);
 		create_text("GAME OVER", TEXT_SIZE::TITLE);
+		create_text("THANK YOU FOR PLAYING!");
+		pop_style();
+
+		end_container();
+		pop_style();
+
+		style_t bottom_bar;
+		bottom_bar.background_color = dark_blue;
+		bottom_bar.content_spacing = 0;
+		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
+		bottom_bar.horizontal_align_val = ALIGN::END;
+		bottom_bar.vertical_align_val = ALIGN::CENTER;
+		push_style(bottom_bar);
+		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
+
+		style_t options_btn_style;
+		options_btn_style.background_color = WHITE;
+		options_btn_style.border_radius = 10.f;
+		options_btn_style.color = dark_blue;
+		options_btn_style.padding = glm::vec2(10);
+		options_btn_style.margin = glm::vec2(40, 0);
+		push_style(options_btn_style);
+		
+		bool go_to_main_menu = false;
+		if (app.game_controller) {
+			create_text("Continue (X)");
+			if (input_state.controller_x_pressed) {
+				go_to_main_menu = true;
+			}
+		} else if (create_button("Continue")) {
+			go_to_main_menu = true;
+		}
+		pop_style();
+
+		if (go_to_main_menu) {
+			ui_updated = true;
+			app.scene_manager.queue_level_load = true;
+			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
+		}
+
+		end_container();
 		pop_style();
 
 		end_panel();

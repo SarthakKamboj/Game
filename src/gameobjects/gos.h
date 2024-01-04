@@ -78,6 +78,9 @@ struct goomba_t {
 	static const int WIDTH = goomba_t::HEIGHT * 1.1f;
 	static const glm::vec3 GOOMBA_COLOR;
 	float move_speed = -50.f;
+
+	static const time_count_t TURN_WAIT_TIME;
+	time_count_t last_turn_time = -goomba_t::TURN_WAIT_TIME;
 };
 
 void init_goomba_data();
@@ -198,9 +201,18 @@ void init_final_flag_data();
 void create_final_flag(glm::vec3 pos);
 void delete_final_flag();
 
+enum PARALLAX_BCK {
+	EVEN1 = 0,
+	EVEN2,
+	ODD1,
+	ODD2,
+
+	NUM_BCKS
+};
+
 struct parallax_bck {
-	static int transform_handles[2];
-	static int rec_render_handles[2];
+	static int transform_handles[NUM_BCKS];
+	static int rec_render_handles[NUM_BCKS];
 	static int bck_texture;
 };
 void init_parallax_bck_data();

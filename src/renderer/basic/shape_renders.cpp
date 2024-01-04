@@ -72,6 +72,8 @@ void init_quad_data() {
 }
 
 int create_quad_render(int transform_handle, glm::vec3& color, float width, float height, bool wireframe, float tex_influence, int tex_handle) {
+	game_assert(tex_influence >= 0.f);
+	game_assert(tex_influence <= 1.f);
     static int running_count = 0;
 	quad_render_t quad;
 	quad._internal_transform.scale = glm::vec3(width, height, 1.f);
