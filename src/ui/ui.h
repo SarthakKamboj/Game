@@ -59,6 +59,35 @@ struct text_dim_t {
 	float max_height_below_baseline = 0;
 };
 
+struct sha256_t {
+    union {
+        uint64_t unsigned_double[4];
+        uint32_t unsigned_ints[8];
+    };
+};
+
+uint32_t mod_2_pow_32(uint64_t in);
+
+struct working_variables_t {
+    union {
+        struct {
+            uint32_t a, b, c, d, e, f, g, h; 
+        };
+        uint32_t vals[8];
+    };
+};
+
+struct uint512_t {
+    union {
+        uint64_t unsigned_double[8];
+        uint32_t unsigned_ints[16];
+        uint16_t unsigned_shorts[32];
+        uint8_t unsigned_bytes[64];
+    };
+};
+
+sha256_t sha256_hash(const char* key);
+
 void init_ui();
 
 text_dim_t get_text_dimensions(const char* text, TEXT_SIZE text_size);
