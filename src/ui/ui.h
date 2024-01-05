@@ -59,34 +59,33 @@ struct text_dim_t {
 	float max_height_below_baseline = 0;
 };
 
-struct sha256_t {
-    union {
-        uint64_t unsigned_double[4];
-        uint32_t unsigned_ints[8];
-    };
+union hash_t {
+    uint64_t unsigned_double[4];
+    uint32_t unsigned_ints[8];
 };
+
+bool is_same_hash(hash_t& hash1, hash_t& hash2);
 
 uint32_t mod_2_pow_32(uint64_t in);
+void print_sha(hash_t& sha);
 
-struct working_variables_t {
-    union {
-        struct {
-            uint32_t a, b, c, d, e, f, g, h; 
-        };
-        uint32_t vals[8];
+union working_variables_t {
+    struct {
+        uint32_t a, b, c, d, e, f, g, h; 
     };
+    uint32_t vals[8];
 };
 
-struct uint512_t {
-    union {
-        uint64_t unsigned_double[8];
-        uint32_t unsigned_ints[16];
-        uint16_t unsigned_shorts[32];
-        uint8_t unsigned_bytes[64];
-    };
+union uint512_t {
+    uint64_t unsigned_double[8];
+    uint32_t unsigned_ints[16];
+    uint16_t unsigned_shorts[32];
+    uint8_t unsigned_bytes[64];
 };
 
-sha256_t sha256_hash(const char* key);
+void print_512(uint512_t& i);
+
+hash_t hash(const char* key);
 
 void init_ui();
 
@@ -144,6 +143,7 @@ struct widget_t {
     int parent_widget_handle = NULL;
 
     char key[256]{};
+    hash_t hash;
 
     UI_PROPERTIES properties = UI_PROPERTIES::NONE;
     style_t style;
@@ -153,7 +153,6 @@ struct widget_t {
     WIDGET_SIZE widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     float width = -1.f;
     float height = -1.f; 
-
 
     // all specified in pixels with (x, y) using top left as the pt
     float x = -1.f;
@@ -169,7 +168,7 @@ struct widget_t {
 
 };
 
-void start_of_frame(bool ui_will_update = false);
+void start_of_frame();
 
 void push_style(style_t& style);
 void pop_style();
@@ -177,29 +176,11 @@ void pop_style();
 void push_widget(int widget_handle);
 void pop_widget();
 
-// struct container_t {
-//     std::vector<text_t> texts;
-//     style_t styling;
-// };
-// container_t create_container(style_t& style);
-
-// struct panel_t {
-//     int handle = -1;
-//     const static float WIDTH;
-//     const static float HEIGHT;
-//     std::vector<text_t> texts;
-//     std::vector<container_t> containers;
-//     style_t styling;
-// };
-
 void create_panel(const char* panel_name);
 void end_panel();
 
-// void create_container(float width, float height);
-// void create_container(float width, float height, WIDGET_SIZE widget_size);
 void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name);
 void end_container();
-// void add_text_to_panel(int panel_handle, text_t& text);
 
 int register_widget(widget_t& widget, const char* key, bool push_onto_stack = false);
 

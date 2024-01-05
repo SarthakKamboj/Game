@@ -22,9 +22,16 @@ bool level_finished = false;
 
 int main(int argc, char *argv[])
 {	 
-	sha256_t sha = sha256_hash("RedBlockBlue");
-	// printf("%016x %016x %016x %016x", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
-	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
+	// {
+	// 	hash_t sha = hash("RedBlockBlue");
+	// 	// printf("%016x %016x %016x %016x", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
+	// 	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
+	// }
+
+	// {
+	// 	hash_t sha = hash("RedBlockBlue");
+	// 	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
+	// }
 
 	bool running_in_vs = false;
 	if (argc > 1) {

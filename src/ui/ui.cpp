@@ -19,8 +19,17 @@ extern application_t app;
 
 static int cur_widget_count = 0;
 
-static std::vector<int> widget_stack;
-static std::vector<widget_t> widgets_arr;
+static std::vector<int> widget_stack1;
+static std::vector<widget_t> widgets_arr1;
+
+static std::vector<int> widget_stack2;
+static std::vector<widget_t> widgets_arr2;
+
+static std::vector<int>* curframe_widget_stack = &widget_stack2;
+static std::vector<widget_t>* curframe_widget_arr = &widgets_arr2;
+
+static std::vector<int>* prevframe_widget_stack = &widget_stack1;
+static std::vector<widget_t>* prevframe_widget_arr = &widgets_arr1;
 
 static std::vector<style_t> styles_stack;
 
@@ -30,6 +39,42 @@ static std::vector<constraint_t> constraints;
 static int constraint_running_cnt = 0;
 
 static bool ui_will_update = false;
+
+static std::unordered_map<int, hash_t> handle_hashes;
+
+bool is_same_hash(hash_t& hash1, hash_t& hash2) {
+    for (int i = 0; i < 8; i++) {
+        if (hash1.unsigned_ints[i] != hash2.unsigned_ints[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void print_byte(uint8_t in) {
+    for (int i = 7; i >= 0; i--) {
+        uint8_t bit = (in >> i) & (0x01);
+        if (bit) {
+            printf("1");
+        } else {
+            printf("0");
+        }
+    }
+}
+
+void print_512(uint512_t& in) {
+    for (int i = 0; i < 64; i++) {
+        uint8_t v = in.unsigned_bytes[i];
+        // printf(" %b ", v);
+        print_byte(v);
+        printf(" ");
+    }
+    printf("\n");
+}
+
+void print_sha(hash_t& sha) {
+	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
+}
 
 uint32_t wrap(uint32_t in, int num) {
     uint32_t res = 0;
@@ -113,18 +158,34 @@ uint32_t mod_2_pow_32(uint64_t in) {
     return res;
 }
 
-sha256_t sha256_hash(const char* key) {
+// not exactly sha 256 hash but does similar hash
+// TODO: for exact sha 256 hashing, need to look more closely at bit layouts
+// since things in mem r little endian but working with unions means
+// insert values cause diff little endian behavior
+
+// ex) settings the size in the last unsigned double looks fine for the double,
+// but when interpreted as unsigned ints, it is in M[14] rather than M[15] which
+// is need for sha256 exactly
+
+// all in all, sha256 switches between different representations of the same 512 bits,
+// but in acc memory this is weird cause diff representation is formatted diff in mem
+
+// but for rn...this is good enough...so for rn...its like sha-256 but not sha-256
+hash_t hash(const char* key) {
     uint512_t input{};
     int key_len = strlen(key);
-    uint64_t size = sizeof(unsigned char) * key_len;
+    uint64_t size = 8 * key_len;
     assert(size < 512);
     
-    memcpy(&input, key, size);
+    memcpy(&input, key, key_len);
 
     /*  PADDING */
     // last 8 bytes reserved for the padding size
     input.unsigned_bytes[key_len] = 0x80;
     input.unsigned_double[7] = size;
+
+    // print_sha()
+    // print_512(input);
 
     uint32_t h[8] = {
         0x6a09e667,
@@ -182,7 +243,7 @@ sha256_t sha256_hash(const char* key) {
         h[i] = mod_2_pow_32(v);
     }
 
-    sha256_t sha;
+    hash_t sha;
     for (int i = 0; i < 8; i++) {
         sha.unsigned_ints[i] = h[i];
     }
@@ -194,9 +255,7 @@ glm::vec3 create_color(float r, float g, float b) {
     return glm::vec3(r, g, b) / 255.f;
 }
 
-void start_of_frame(bool _ui_will_update) {
-    ui_will_update = _ui_will_update;
-
+void start_of_frame() {
     glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
     shader_set_mat4(font_char_t::ui_opengl_data.shader, "projection", projection);
    if (app.resized) {
@@ -207,9 +266,21 @@ void start_of_frame(bool _ui_will_update) {
     style_t default_style;
     styles_stack.push_back(default_style);
 
-    if (ui_will_update) {
-        widgets_arr.clear();
+    if (curframe_widget_arr == &widgets_arr1) {
+        curframe_widget_arr = &widgets_arr2;
+        curframe_widget_stack = &widget_stack2;
+        prevframe_widget_arr = &widgets_arr1;
+        prevframe_widget_stack = &widget_stack1;
+    } else {
+        curframe_widget_arr = &widgets_arr1;
+        curframe_widget_stack = &widget_stack1;
+        prevframe_widget_arr = &widgets_arr2;
+        prevframe_widget_stack = &widget_stack2;
     }
+
+    curframe_widget_arr->clear();
+    curframe_widget_stack->clear();
+
     cur_widget_count = 0;
 
     constraint_vars.clear();
@@ -231,13 +302,15 @@ void pop_style() {
 }
 
 void push_widget(int widget_handle) {
-    widget_stack.push_back(widget_handle);
+    curframe_widget_stack->push_back(widget_handle);
 }
 
 void pop_widget() {
-    if (widget_stack.size() > 0) {
-        std::cout << "popping off " << widgets_arr[widget_stack[widget_stack.size() - 1]].key << std::endl;
-        widget_stack.pop_back();
+    if (curframe_widget_stack->size() > 0) {
+        auto& arr = *curframe_widget_arr;
+        auto& stack = *curframe_widget_stack;
+        std::cout << "popping off " << arr[stack[stack.size() - 1]].key << std::endl;
+        stack.pop_back();
     }
 }
 
@@ -255,16 +328,30 @@ static font_mode_t font_modes[2] = {
 int register_widget(widget_t& widget, const char* key, bool push_onto_stack) {
     widget.handle = cur_widget_count++;
     memcpy(widget.key, key, strlen(key));
-    if (!ui_will_update) return widget.handle;
-    if (widget_stack.size() > 0) widget.parent_widget_handle = widget_stack[widget_stack.size() - 1];
+    hash_t new_hash = hash(key);
+
+    auto& arr = *curframe_widget_arr;
+    auto& stack = *curframe_widget_stack;
+
+    auto& prev_arr = *prevframe_widget_arr;
+
+    if (prev_arr.size() <= widget.handle) {
+        ui_will_update = true;
+    } else {
+        hash_t& prev_hash = prev_arr[widget.handle].hash;
+        ui_will_update = ui_will_update || !is_same_hash(new_hash, prev_hash);
+    }
+
+    widget.hash = new_hash;
+    if (stack.size() > 0) widget.parent_widget_handle = stack[stack.size() - 1];
     else widget.parent_widget_handle = -1;
     if (widget.parent_widget_handle != -1) {
-        widgets_arr[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
+        arr[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
     }
     widget.style = styles_stack[styles_stack.size() - 1];
-    widgets_arr.push_back(widget);
+    arr.push_back(widget);
     if (push_onto_stack) {
-        widget_stack.push_back(widget.handle);
+        stack.push_back(widget.handle);
     }
     return widget.handle;
 }
@@ -432,7 +519,8 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     int widget_handle = register_widget(widget, text);
 
     if (!ui_will_update) {
-        widget_t& cached_widget = widgets_arr[widget_handle];
+        auto& prev_arr = *prevframe_widget_arr;
+        widget_t& cached_widget = prev_arr[widget_handle];
         if (input_state.x_pos >= (cached_widget.x + cached_widget.style.margin.x) &&
             input_state.x_pos <= (cached_widget.x + cached_widget.render_width + cached_widget.style.margin.x) &&
             // render x and render y specified as the top left pivot and y in ui is 0 on the
@@ -456,7 +544,8 @@ struct helper_info_t {
 };
 
 helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_handle) {
-    widget_t& widget = widgets_arr[widget_handle];
+    auto& cur_arr = *curframe_widget_arr;
+    widget_t& widget = cur_arr[widget_handle];
 
     if (widget.text_based) {
         // render_width and render_height for text_based things are calculated upon instantiation
@@ -481,9 +570,10 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
         idx++;
     }
     glm::vec2 content_size(0);
+
     for (int child_widget_handle : widget.children_widget_handles) {
 
-        widget_t& child_widget = widgets_arr[child_widget_handle];
+        widget_t& child_widget = cur_arr[child_widget_handle];
         
         int child_widget_x_pos_handle = create_constraint_var("widget_x", &child_widget.x);
         int child_widget_y_pos_handle = create_constraint_var("widget_y", &child_widget.y);
@@ -676,7 +766,8 @@ helper_info_t resolve_positions(int widget_handle, int x_pos_handle, int y_pos_h
 }
 
 helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle, int parent_height_handle) {
-    widget_t& widget = widgets_arr[cur_widget_handle];
+    auto& cur_arr = *curframe_widget_arr;
+    widget_t& widget = cur_arr[cur_widget_handle];
     if (widget.text_based) {
         text_dim_t text_dim = get_text_dimensions(widget.text_info.text, widget.text_info.text_size);
         widget.width = text_dim.width;
@@ -736,8 +827,9 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
     }
 
     glm::vec2 content_size(0);
+
     for (int child_widget_handle : widget.children_widget_handles) {
-        widget_t& child_widget = widgets_arr[child_widget_handle]; 
+        widget_t& child_widget = cur_arr[child_widget_handle]; 
 
         helper_info_t child_helper_info = resolve_dimensions(child_widget_handle, widget_width_handle, widget_height_handle);
     
@@ -790,19 +882,20 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
 
 void autolayout_hierarchy() {
 
-    if (!ui_will_update) return;
+    // if (!ui_will_update) return;
 
-    game_assert(widget_stack.size() == 0);
+    game_assert(curframe_widget_stack->size() == 0);
     game_assert(styles_stack.size() == 1);
 
-    for (int i = 0; i < widgets_arr.size(); i++) {
-        widget_t& cur_widget = widgets_arr[i];
+    auto& cur_arr = *curframe_widget_arr;
+    for (int i = 0; i < cur_arr.size(); i++) {
+        widget_t& cur_widget = cur_arr[i];
         if (cur_widget.parent_widget_handle != -1) continue;
         resolve_dimensions(cur_widget.handle, -1, -1);
     }
 
-    for (int i = 0; i < widgets_arr.size(); i++) {
-        widget_t& cur_widget = widgets_arr[i];
+    for (int i = 0; i < cur_arr.size(); i++) {
+        widget_t& cur_widget = cur_arr[i];
         if (cur_widget.parent_widget_handle != -1) continue;
         int x_var = create_constraint_var_constant(cur_widget.x);
         int y_var = create_constraint_var_constant(cur_widget.y);
@@ -896,17 +989,21 @@ void render_ui_helper(widget_t& widget) {
         draw_text(widget.text_info.text, glm::vec2(widget.x + widget.style.padding.x + widget.style.margin.x, widget.y - widget.style.padding.y - widget.style.margin.y), widget.text_info.text_size, widget.style.color);
     } 
 
+    auto& cur_arr = *curframe_widget_arr;
     for (int child_handle : widget.children_widget_handles) {
-        render_ui_helper(widgets_arr[child_handle]);
+        render_ui_helper(cur_arr[child_handle]);
     }
 }
 
 void render_ui() {  
-    for (widget_t& widget : widgets_arr) {
+    auto& cur_arr = *curframe_widget_arr;
+    for (widget_t& widget : cur_arr) {
         if (widget.parent_widget_handle == -1) {
             render_ui_helper(widget);
         }
     }
+
+    ui_will_update = false;
 }
 
 opengl_object_data font_char_t::ui_opengl_data{};
