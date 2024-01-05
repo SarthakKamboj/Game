@@ -11,8 +11,6 @@
 
 extern input::user_input_t input_state;
 
-bool ui_updated = true;
-
 static aspect_ratio_t aspect_ratios[5] = {
 	aspect_ratio_t {
 		ASPECT_RATIO::A_1920x1080,
@@ -162,13 +160,10 @@ void render(application_t& app) {
 
 	glm::vec3 dark_blue = DARK_BLUE;
 
-	ui_updated = ui_updated || app.controller_state_changed;
-
 	// main menu
 	if (app.scene_manager.cur_level == MAIN_MENU_LEVEL) {
 		
-		start_of_frame(ui_updated);
-		ui_updated = false;
+		start_of_frame();
 		
 		static int tex_handle = -1;
 		static bool first = true;
@@ -228,7 +223,6 @@ void render(application_t& app) {
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 		
-		bool btn_clicked = false;
 		bool change_to_settings = false;
 		if (app.game_controller) {
 			create_text("Settings (X)");
@@ -238,8 +232,6 @@ void render(application_t& app) {
 		}
 		
 		if (change_to_settings) {
-			btn_clicked = true;
-			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = SETTINGS_LEVEL;
 		}
@@ -269,9 +261,6 @@ void render(application_t& app) {
 		}
 	
 		if (change_to_quit) {
-			// app.running = false;
-			btn_clicked = true;
-			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = QUIT_LEVEL;
 		}
@@ -302,8 +291,7 @@ void render(application_t& app) {
 			settings_state.sound_fx_muted = app.sound_fx_muted;
 		}
 
-		start_of_frame(ui_updated);
-		ui_updated = false;
+		start_of_frame();
 
 
 		style_t panel_style;
@@ -366,7 +354,6 @@ void render(application_t& app) {
 		};
 
 		if (create_selector(selected_option, options, 5, 200.f, 20.f, selected_option)) {
-			ui_updated = true;
 			aspect_ratio_t& ratio = aspect_ratios[selected_option];
 			settings_changed.aspect_ratio = (ratio.width != app.window_width || ratio.height != app.window_height);
 		}
@@ -377,7 +364,6 @@ void render(application_t& app) {
 		if (create_button("SOUND")) {
 			settings_changed.sound_fx = !settings_changed.sound_fx;
 			settings_state.sound_fx_muted = !settings_state.sound_fx_muted;
-			ui_updated = true;			
 		}
 		pop_style();
 
@@ -385,7 +371,6 @@ void render(application_t& app) {
 		if (create_button("MUSIC")) {
 			settings_changed.bck_music = !settings_changed.bck_music;
 			settings_state.bck_muted = !settings_state.bck_muted;
-			ui_updated = true;
 		}
 		pop_style();
 
@@ -399,13 +384,11 @@ void render(application_t& app) {
 		if (create_button("WINDOWED")) {
 			settings_changed.windowed = !settings_changed.windowed;
 			settings_state.is_full_screen = !settings_state.is_full_screen;
-			ui_updated = true;
 		}
 		pop_style();
 
 		push_style(enabled_text_style);
 		if (create_button("CREDITS")) {
-			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = CREDITS_LEVEL;
 		}
@@ -494,7 +477,6 @@ void render(application_t& app) {
 		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
-			ui_updated = true;
 			settings_changed = settings_changed_t();
 		}
 		pop_style();
@@ -508,8 +490,7 @@ void render(application_t& app) {
 
 	} else if (app.scene_manager.cur_level == QUIT_LEVEL) {
 		
-		start_of_frame(ui_updated);
-		ui_updated = false;
+		start_of_frame();
 		
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
@@ -579,7 +560,6 @@ void render(application_t& app) {
 		}
 
 		if (main_menu_load) {
-			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
 		}
@@ -594,8 +574,7 @@ void render(application_t& app) {
 		render_ui();
 	} else if (app.scene_manager.cur_level == CREDITS_LEVEL) {
 				
-		start_of_frame(ui_updated);
-		ui_updated = false;
+		start_of_frame();
 		
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
@@ -637,7 +616,6 @@ void render(application_t& app) {
 		if (back_pressed) {
 			app.scene_manager.queue_level_load = true;	
 			app.scene_manager.level_to_load = SETTINGS_LEVEL;
-			ui_updated = true;
 		}
 		pop_style();
 
@@ -689,8 +667,7 @@ void render(application_t& app) {
 		render_ui();	
 	} else if (app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL) {
 			
-		start_of_frame(ui_updated);
-		ui_updated = false;
+		start_of_frame();
 		
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
@@ -750,7 +727,6 @@ void render(application_t& app) {
 		pop_style();
 
 		if (go_to_main_menu) {
-			ui_updated = true;
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
 		}
