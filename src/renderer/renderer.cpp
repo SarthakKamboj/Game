@@ -225,7 +225,7 @@ void render(application_t& app) {
 		
 		bool change_to_settings = false;
 		if (app.game_controller) {
-			create_text("Settings (X)");
+			create_text("Settings (X)", TEXT_SIZE::REGULAR, true);
 			change_to_settings = input_state.controller_x_pressed;
 		} else if (create_button("Settings")) {
 			change_to_settings = true;
@@ -238,13 +238,17 @@ void render(application_t& app) {
 
 		bool change_to_level1 = false;
 		if (app.game_controller) {
-			create_text("Play (A)");
-			if (input_state.controller_a_pressed) {
+			if (create_button("Play")) {
 				change_to_level1 = true;
 			}
+			// create_text("Play (A)", TEXT_SIZE::REGULAR, true);
+			// if (input_state.controller_a_pressed) {
+			// 	change_to_level1 = true;
+			// }
 		} else {
-			create_text("Play (Enter)");
-			change_to_level1 = input_state.enter_pressed;
+			if (create_button("Play (Enter)") || input_state.enter_pressed) {
+				change_to_level1 = true;
+			}
 		}
 
 		if (change_to_level1) {
@@ -254,7 +258,7 @@ void render(application_t& app) {
 
 		bool change_to_quit = false;
 		if (app.game_controller) {
-			create_text("Quit (B)");
+			create_text("Quit (B)", TEXT_SIZE::REGULAR, true);
 			change_to_quit = input_state.controller_b_pressed;
 		} else if (create_button("Quit")) {
 			change_to_quit = true;
@@ -466,8 +470,7 @@ void render(application_t& app) {
 		
 		bool main_menu_load = false;
 		if (app.game_controller) {
-			create_text("Back (B)");
-			if (input_state.controller_b_pressed) {
+			if (create_button("Back (B)") || input_state.controller_b_pressed) {
 				main_menu_load = true;
 			}
 		} else if (create_button("Back")) {

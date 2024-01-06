@@ -33,10 +33,12 @@ enum class TEXT_SIZE {
     TITLE, REGULAR
 };
 
-enum class UI_PROPERTIES {
-    NONE = 0,
-    CLICKABLE = 1<<0,
-    HOVERABLE = 1<<1
+enum UI_PROPERTIES : unsigned int {
+    UI_PROP_NONE = 0,
+    UI_PROP_CLICKABLE = 1<<0,
+    UI_PROP_HOVERABLE = 1<<1,
+    UI_PROP_FOCUSABLE = 1<<2,
+    UI_PROP_CURRENTLY_FOCUSED = 1<<3
 };
 
 enum class WIDGET_SIZE {
@@ -118,7 +120,7 @@ struct text_t {
     char text[256]{};
     TEXT_SIZE text_size = TEXT_SIZE::REGULAR;
 };
-void create_text(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
+void create_text(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR, bool focusable = false);
 bool create_button(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
 
 struct image_container_t {
@@ -145,7 +147,7 @@ struct widget_t {
     char key[256]{};
     hash_t hash;
 
-    UI_PROPERTIES properties = UI_PROPERTIES::NONE;
+    UI_PROPERTIES properties = UI_PROPERTIES::UI_PROP_NONE;
     style_t style;
 
     // width of widget without padding or margins
@@ -169,6 +171,10 @@ struct widget_t {
 };
 
 void start_of_frame();
+void end_imgui();
+
+void traverse_to_right_focusable();
+void traverse_to_left_focusable();
 
 void push_style(style_t& style);
 void pop_style();

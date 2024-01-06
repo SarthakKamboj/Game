@@ -17,6 +17,8 @@
 extern input::user_input_t input_state;
 extern application_t app;
 
+static int cur_focused_handle = -1;
+
 static int cur_widget_count = 0;
 
 static std::vector<int> widget_stack1;
@@ -309,7 +311,6 @@ void pop_widget() {
     if (curframe_widget_stack->size() > 0) {
         auto& arr = *curframe_widget_arr;
         auto& stack = *curframe_widget_stack;
-        std::cout << "popping off " << arr[stack[stack.size() - 1]].key << std::endl;
         stack.pop_back();
     }
 }
@@ -474,11 +475,15 @@ bool create_selector(int selected_option, const char** options, int num_options,
     return changed;
 }
 
-void create_text(const char* text, TEXT_SIZE text_size) {
+void create_text(const char* text, TEXT_SIZE text_size, bool focusable) {
     widget_t widget;
     widget.text_based = true;
     memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), strlen(text)));
     widget.text_info.text_size = text_size;
+
+    if (focusable) {
+        widget.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_FOCUSABLE);
+    }
 
     text_dim_t text_dim = get_text_dimensions(text, text_size);
 
@@ -514,7 +519,7 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     widget.render_width = widget.width;
     widget.render_height = widget.height;
 
-    widget.properties = UI_PROPERTIES::CLICKABLE;
+    widget.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_CLICKABLE | UI_PROPERTIES::UI_PROP_FOCUSABLE);
 
     int widget_handle = register_widget(widget, text);
 
@@ -532,10 +537,89 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
         ) {
             return input_state.left_clicked;
         }
+
+        if (widget_handle == cur_focused_handle && input_state.controller_a_pressed) {
+            return true;
+        }
+
         return false;
     }
 
     return false;
+}
+
+
+bool traverse_to_right_focusable_helper(int widget_handle, bool focus_from_cur) {
+    auto& arr = *curframe_widget_arr;
+    widget_t& widget = arr[widget_handle];
+    for (int child_handle : widget.children_widget_handles) {
+        bool refocused = traverse_to_right_focusable_helper(child_handle, focus_from_cur);
+        if (refocused) return true;
+    }
+    if (widget.properties & UI_PROPERTIES::UI_PROP_FOCUSABLE) {
+        if (!focus_from_cur || (focus_from_cur && cur_focused_handle < widget.handle)) {
+            cur_focused_handle = widget_handle;
+            // widget.properties = static_cast<UI_PROPERTIES>(widget.properties | UI_PROPERTIES::UI_PROP_CURRENTLY_FOCUSED);
+            printf("focused on %s\n", widget.key);
+            return true;
+        }
+    }
+    return false;
+}
+
+void traverse_to_right_focusable() {
+    bool refocused = traverse_to_right_focusable_helper(0, true);
+    if (!refocused) traverse_to_right_focusable_helper(0, false);
+}
+
+bool traverse_to_left_focusable_helper(int widget_handle, bool focus_from_cur) {
+    auto& arr = *curframe_widget_arr;
+    widget_t& widget = arr[widget_handle];
+    for (int i = widget.children_widget_handles.size() - 1; i >= 0; i--) {
+        int child_handle = widget.children_widget_handles[i];
+        bool refocused = traverse_to_left_focusable_helper(child_handle, focus_from_cur);
+        if (refocused) return true;
+    }
+    if (widget.properties & UI_PROPERTIES::UI_PROP_FOCUSABLE) {
+        if (!focus_from_cur || (focus_from_cur && cur_focused_handle > widget.handle)) {
+            cur_focused_handle = widget_handle;
+            // widget.properties = static_cast<UI_PROPERTIES>(widget.properties | UI_PROPERTIES::UI_PROP_CURRENTLY_FOCUSED);
+            printf("focused on %s\n", widget.key);
+            return true;
+        }
+    }
+    return false;
+}
+
+void traverse_to_left_focusable() {
+    bool refocused = traverse_to_left_focusable_helper(0, true);
+    if (!refocused) traverse_to_left_focusable_helper(0, false);
+}
+
+void end_imgui() {
+    static bool controller_centered = true;
+    controller_centered = controller_centered || fabs(input_state.controller_x_axis) <= 0.4f;
+    bool right_move = false;
+    if (controller_centered && input_state.controller_x_axis >= 0.9f) {
+        right_move = true;
+        controller_centered = false;
+    } else if (input_state.d_pressed) {
+        right_move = true;
+    }
+    if (right_move) {
+        traverse_to_right_focusable();
+    }
+
+    bool left_move = false;
+    if (controller_centered && input_state.controller_x_axis <= -0.9f) {
+        left_move = true;
+        controller_centered = false;
+    } else if (input_state.a_pressed) {
+        left_move = true;
+    }
+    if (left_move) {
+        traverse_to_left_focusable();
+    }
 }
 
 struct helper_info_t {
@@ -887,6 +971,8 @@ void autolayout_hierarchy() {
     game_assert(curframe_widget_stack->size() == 0);
     game_assert(styles_stack.size() == 1);
 
+    end_imgui();
+
     auto& cur_arr = *curframe_widget_arr;
     for (int i = 0; i < cur_arr.size(); i++) {
         widget_t& cur_widget = cur_arr[i];
@@ -979,7 +1065,10 @@ void resolve_constraints() {
 
 void render_ui_helper(widget_t& widget) {
 
-    if (widget.style.background_color != TRANSPARENT_COLOR) {
+    if (widget.handle == cur_focused_handle) {
+        widget.style.background_color = GREEN;
+        draw_background(widget);
+    } else if (widget.style.background_color != TRANSPARENT_COLOR) {
         draw_background(widget);
     }
 

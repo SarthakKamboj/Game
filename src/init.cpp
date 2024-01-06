@@ -565,7 +565,6 @@ void load_level(application_t& app, int level_num) {
 		std::cout << "credits" << std::endl;
 		return;
 	} else if (level_num >= num_levels + 1) {
-		// ui_updated = true;
 		app.scene_manager.cur_level = GAME_OVER_SCREEN_LEVEL;
 		resume_bck_sound();
 		std::cout << "loaded game over" << std::endl;
