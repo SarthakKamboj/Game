@@ -970,8 +970,6 @@ helper_info_t resolve_dimensions(int cur_widget_handle, int parent_width_handle,
 
 void autolayout_hierarchy() {
 
-    // if (!ui_will_update) return;
-
     game_assert(curframe_widget_stack->size() == 0);
     game_assert(styles_stack.size() == 1);
 

@@ -11,39 +11,6 @@
 
 extern input::user_input_t input_state;
 
-// static aspect_ratio_t aspect_ratios[5] = {
-// 	aspect_ratio_t {
-// 		ASPECT_RATIO::A_1920x1080,
-// 		"1920 x 1080",
-// 		1920,
-// 		1080
-// 	},
-// 	aspect_ratio_t {
-// 		ASPECT_RATIO::A_1600x900,
-// 		"1600 x 900",
-// 		1600,
-// 		900
-// 	},
-// 	aspect_ratio_t {
-// 		ASPECT_RATIO::A_1440x990,
-// 		"1440 x 990",
-// 		1440,
-// 		990
-// 	},
-// 	aspect_ratio_t {
-// 		ASPECT_RATIO::A_1366x768,
-// 		"1366 x 768",
-// 		1366,
-// 		768
-// 	},
-// 	aspect_ratio_t {
-// 		ASPECT_RATIO::A_1280x1024,
-// 		"1280 x 1024",
-// 		1280,
-// 		1024
-// 	}
-// };
-
 static aspect_ratio_t aspect_ratios[ASPECT_RATIO::NUM_RATIOS] = {
 	aspect_ratio_t {
 		ASPECT_RATIO::A_1600x900,
@@ -63,18 +30,6 @@ static aspect_ratio_t aspect_ratios[ASPECT_RATIO::NUM_RATIOS] = {
 		1600,
 		1200
 	}
-	// aspect_ratio_t {
-	// 	ASPECT_RATIO::A_2100x900,
-	// 	"2100 x 900",
-	// 	2100,
-	// 	900
-	// },
-	// aspect_ratio_t {
-	// 	ASPECT_RATIO::A_800x800,
-	// 	"800 x 800",
-	// 	800,
-	// 	800
-	// }
 };
 
 bool something_changed(settings_changed_t settings_changed) {
@@ -91,7 +46,6 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 	style_t dark_text_style;
 	glm::vec3 dark_blue = DARK_BLUE;
 	dark_text_style.color = dark_blue;
-	// dark_text_style.background_color = RED;
 
 	style_t right_text_style;
 	right_text_style.color = create_color(111, 111, 111);
@@ -101,20 +55,16 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 	info_pairs_container_style.horizontal_align_val = ALIGN::CENTER;
 	info_pairs_container_style.vertical_align_val = ALIGN::CENTER;
 	info_pairs_container_style.content_spacing = 20;
-	// info_pairs_container_style.background_color = GREEN;
 
 	style_t col_style;
 	col_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 	col_style.horizontal_align_val = ALIGN::CENTER;
 	col_style.vertical_align_val = ALIGN::CENTER;
 	col_style.content_spacing = 20;
-	// col_style.background_color = GREEN;
 
 	push_style(info_pairs_container_style);
 	create_container(1.f, 200, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "col info");
 	pop_style();
-
- #if 1	
 
 	for (int i = 0; i < num_pairs; i++) {
 		info_pair_t& credit_pair = pairs[i];
@@ -127,7 +77,6 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 		left_col_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		left_col_style.horizontal_align_val = ALIGN::END;
 		left_col_style.vertical_align_val = ALIGN::CENTER;
-		// left_col_style.background_color = RED;
 		push_style(left_col_style);
 		create_container(.5f, 0.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "");
 		pop_style();
@@ -142,7 +91,6 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 		right_col_style.display_dir = DISPLAY_DIR::HORIZONTAL;
 		right_col_style.horizontal_align_val = ALIGN::START;
 		right_col_style.vertical_align_val = ALIGN::CENTER;
-		// right_col_style.background_color = BLUE;
 		push_style(right_col_style);
 		create_container(.5f, 0.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "");
 		pop_style();
@@ -155,34 +103,6 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 
 		end_container();	
 	}	
-
- #else
-	push_style(left_col_style);
-	create_container(.4f, 1.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "left col roles");
-	pop_style();
-
-	for (int i = 0; i < num_pairs; i++) {
-		info_pair_t& credit_pair = pairs[i];
-		push_style(dark_text_style);
-		create_text(credit_pair.left);
-		pop_style();
-	}	
-
-	end_container();
-
-	push_style(right_col_style);
-	create_container(.4f, 1.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "right col roles");
-	pop_style();
-
-	for (int i = 0; i < num_pairs; i++) {
-		info_pair_t& credit_pair = pairs[i];
-		push_style(right_text_style);
-		create_text(credit_pair.right);
-		pop_style();
-	}	
-
-	end_container();
-#endif
 
 	end_container();
 }
@@ -250,7 +170,7 @@ void render(application_t& app) {
 
 		style_t options_btn_style;
 		options_btn_style.background_color = WHITE;
-		options_btn_style.hover_background_color = GREY;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
 		options_btn_style.border_radius = 10.f;
 		options_btn_style.color = DARK_BLUE;
 		options_btn_style.hover_color = WHITE;
@@ -262,12 +182,6 @@ void render(application_t& app) {
 		if (create_button("Settings")) {
 			change_to_settings = true;
 		}
-		// if (app.game_controller) {
-		// 	create_text("Settings (X)", TEXT_SIZE::REGULAR, true);
-		// 	change_to_settings = input_state.controller_x_pressed;
-		// } else if (create_button("Settings")) {
-		// 	change_to_settings = true;
-		// }
 		
 		if (change_to_settings) {
 			app.scene_manager.queue_level_load = true;
@@ -278,20 +192,6 @@ void render(application_t& app) {
 		if (create_button("Play")) {
 			change_to_level1 = true;
 		}
-		// if (app.game_controller) {
-		// 	if (create_button("Play")) {
-		// 		change_to_level1 = true;
-		// 	}
-		// 	// create_text("Play (A)", TEXT_SIZE::REGULAR, true);
-		// 	// if (input_state.controller_a_pressed) {
-		// 	// 	change_to_level1 = true;
-		// 	// }
-		// } else {
-		// 	// if (create_button("Play (Enter)") || input_state.enter_pressed) {
-		// 	if (create_button("Play")) {
-		// 		change_to_level1 = true;
-		// 	}
-		// }
 
 		if (change_to_level1) {
 			app.scene_manager.queue_level_load = true;
@@ -302,12 +202,6 @@ void render(application_t& app) {
 		if (create_button("Quit")) {
 			change_to_quit = true;
 		}
-		// if (app.game_controller) {
-		// 	create_text("Quit (B)", TEXT_SIZE::REGULAR, true);
-		// 	change_to_quit = input_state.controller_b_pressed;
-		// } else if (create_button("Quit")) {
-		// 	change_to_quit = true;
-		// }
 	
 		if (change_to_quit) {
 			app.scene_manager.queue_level_load = true;
@@ -323,11 +217,6 @@ void render(application_t& app) {
 		autolayout_hierarchy();
 		render_ui();
 
-		// if (!btn_clicked && input_state.some_key_pressed) {
-		// 	app.scene_manager.queue_level_load = true;
-		// 	app.scene_manager.level_to_load = 1;
-		// }
-
 	} else if (app.scene_manager.cur_level == SETTINGS_LEVEL) {
 		static settings_changed_t settings_changed;
 		static bool_settings_state_t settings_state;
@@ -342,7 +231,6 @@ void render(application_t& app) {
 
 		start_of_frame();
 
-
 		style_t panel_style;
 		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
 		panel_style.vertical_align_val = ALIGN::CENTER;
@@ -353,7 +241,6 @@ void render(application_t& app) {
 		pop_style();
 
 		float main_section_height_percent = 0.85f;
-		// static bool something_changed = false;
 
 		style_t main_section_style;	
 		main_section_style.background_color = WHITE;
@@ -361,7 +248,6 @@ void render(application_t& app) {
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
 		main_section_style.vertical_align_val = ALIGN::CENTER;
 		main_section_style.content_spacing = 50;
-		// main_section_style.background_color = RED;
 		push_style(main_section_style);
 		create_container(0.9f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
 		pop_style();
@@ -408,11 +294,9 @@ void render(application_t& app) {
 			aspect_ratio_t& ratio = aspect_ratios[selected_option];
 			float cur_ratio = app.window_width / app.window_height;
 			float selected_ratio = ratio.width / ratio.height;
-			// settings_changed.aspect_ratio = (ratio.width != app.window_width || ratio.height != app.window_height);
 			printf("aspect ratio changed, cur: %f, selected: %f\n", cur_ratio, selected_ratio);
-			// settings_changed.aspect_ratio = cur_ratio != selected_ratio;
+
 			int num_display_modes = SDL_GetNumDisplayModes(0);
-			// SDL_SetWindowDisplayMode(app.window, );
 			for (int i = 0; i < num_display_modes; ++i) {
 				SDL_DisplayMode display_mode{};
 				if (SDL_GetDisplayMode(0, i, &display_mode) != 0) {
@@ -422,7 +306,6 @@ void render(application_t& app) {
 						i,
 						SDL_GetPixelFormatName(display_mode.format),
 						display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
-				// SDL_GetDisplayMode(0, i, &display_mode);
 				if (static_cast<float>(display_mode.w) / display_mode.h == selected_ratio) {
 					ratio.mode_index = i;
 					settings_changed.aspect_ratio = true;
@@ -575,13 +458,6 @@ void render(application_t& app) {
 		if (create_button("Back")) {
 			main_menu_load = true;
 		}
-		// if (app.game_controller) {
-		// 	if (create_button("Back (B)") || input_state.controller_b_pressed) {
-		// 		main_menu_load = true;
-		// 	}
-		// } else if (create_button("Back")) {
-		// 	main_menu_load = true;
-		// }
 
 		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
@@ -640,22 +516,17 @@ void render(application_t& app) {
 
 		style_t options_btn_style;
 		options_btn_style.background_color = WHITE;
+		options_btn_style.color = DARK_BLUE;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+		options_btn_style.hover_color = WHITE;
 		options_btn_style.border_radius = 10.f;
-		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
 		push_style(options_btn_style);
 		
 		if (create_button("Yes")) {
 			app.running = false;	
 		}
-		// if (app.game_controller) {
-		// 	create_text("Yes (X)");
-		// 	if (input_state.controller_x_pressed) {
-		// 		app.running = false;
-		// 	}
-		// } else if (create_button("Yes")) {
-		// 	app.running = false;	
-		// }
+		
 		pop_style();
 
 		options_btn_style.margin = glm::vec2(40, 0);
@@ -665,14 +536,6 @@ void render(application_t& app) {
 		if (create_button("No")) {
 			main_menu_load = true;
 		}
-		// if (app.game_controller) {
-		// 	create_text("No (B)");
-		// 	if (input_state.controller_b_pressed) {
-		// 		main_menu_load = true;
-		// 	}
-		// } else if (create_button("No")) {
-		// 	main_menu_load = true;
-		// }
 
 		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
@@ -711,9 +574,11 @@ void render(application_t& app) {
 		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
 
 		style_t options_btn_style;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+		options_btn_style.hover_color = WHITE;
 		options_btn_style.background_color = WHITE;
+		options_btn_style.color = DARK_BLUE;
 		options_btn_style.border_radius = 10.f;
-		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
@@ -722,14 +587,6 @@ void render(application_t& app) {
 		if (create_button("Back")) {
 			back_pressed = true;
 		}
-		// if (app.game_controller) {
-		// 	create_text("Back (B)");
-		// 	if (input_state.controller_b_pressed) {
-		// 		back_pressed = true;
-		// 	}
-		// } else if (create_button("Back")) {
-		// 	back_pressed = true;
-		// }
 
 		if (back_pressed) {
 			app.scene_manager.queue_level_load = true;	
@@ -827,8 +684,10 @@ void render(application_t& app) {
 
 		style_t options_btn_style;
 		options_btn_style.background_color = WHITE;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+		options_btn_style.color = DARK_BLUE;
+		options_btn_style.hover_color = WHITE;
 		options_btn_style.border_radius = 10.f;
-		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
@@ -837,14 +696,6 @@ void render(application_t& app) {
 		if (create_button("Continue")) {
 			go_to_main_menu = true;
 		}
-		// if (app.game_controller) {
-		// 	create_text("Continue (X)");
-		// 	if (input_state.controller_x_pressed) {
-		// 		go_to_main_menu = true;
-		// 	}
-		// } else if (create_button("Continue")) {
-		// 	go_to_main_menu = true;
-		// }
 		pop_style();
 
 		if (go_to_main_menu) {
