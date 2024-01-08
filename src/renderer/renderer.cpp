@@ -11,13 +11,40 @@
 
 extern input::user_input_t input_state;
 
-static aspect_ratio_t aspect_ratios[5] = {
-	aspect_ratio_t {
-		ASPECT_RATIO::A_1920x1080,
-		"1920 x 1080",
-		1920,
-		1080
-	},
+// static aspect_ratio_t aspect_ratios[5] = {
+// 	aspect_ratio_t {
+// 		ASPECT_RATIO::A_1920x1080,
+// 		"1920 x 1080",
+// 		1920,
+// 		1080
+// 	},
+// 	aspect_ratio_t {
+// 		ASPECT_RATIO::A_1600x900,
+// 		"1600 x 900",
+// 		1600,
+// 		900
+// 	},
+// 	aspect_ratio_t {
+// 		ASPECT_RATIO::A_1440x990,
+// 		"1440 x 990",
+// 		1440,
+// 		990
+// 	},
+// 	aspect_ratio_t {
+// 		ASPECT_RATIO::A_1366x768,
+// 		"1366 x 768",
+// 		1366,
+// 		768
+// 	},
+// 	aspect_ratio_t {
+// 		ASPECT_RATIO::A_1280x1024,
+// 		"1280 x 1024",
+// 		1280,
+// 		1024
+// 	}
+// };
+
+static aspect_ratio_t aspect_ratios[ASPECT_RATIO::NUM_RATIOS] = {
 	aspect_ratio_t {
 		ASPECT_RATIO::A_1600x900,
 		"1600 x 900",
@@ -25,23 +52,29 @@ static aspect_ratio_t aspect_ratios[5] = {
 		900
 	},
 	aspect_ratio_t {
-		ASPECT_RATIO::A_1440x990,
-		"1440 x 990",
-		1440,
-		990
+		ASPECT_RATIO::A_1600x1000,
+		"1600 x 1000",
+		1600,
+		1000
 	},
 	aspect_ratio_t {
-		ASPECT_RATIO::A_1366x768,
-		"1366 x 768",
-		1366,
-		768
-	},
-	aspect_ratio_t {
-		ASPECT_RATIO::A_1280x1024,
-		"1280 x 1024",
-		1280,
-		1024
+		ASPECT_RATIO::A_1600x1200,
+		"1600 x 1200",
+		1600,
+		1200
 	}
+	// aspect_ratio_t {
+	// 	ASPECT_RATIO::A_2100x900,
+	// 	"2100 x 900",
+	// 	2100,
+	// 	900
+	// },
+	// aspect_ratio_t {
+	// 	ASPECT_RATIO::A_800x800,
+	// 	"800 x 800",
+	// 	800,
+	// 	800
+	// }
 };
 
 bool something_changed(settings_changed_t settings_changed) {
@@ -207,7 +240,7 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t bottom_bar;
-		bottom_bar.background_color = dark_blue;
+		bottom_bar.background_color = DARK_BLUE;
 		bottom_bar.content_spacing = 0;
 		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
 		bottom_bar.horizontal_align_val = ALIGN::SPACE_BETWEEN;
@@ -217,19 +250,24 @@ void render(application_t& app) {
 
 		style_t options_btn_style;
 		options_btn_style.background_color = WHITE;
+		options_btn_style.hover_background_color = GREY;
 		options_btn_style.border_radius = 10.f;
-		options_btn_style.color = dark_blue;
+		options_btn_style.color = DARK_BLUE;
+		options_btn_style.hover_color = WHITE;
 		options_btn_style.padding = glm::vec2(10);
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 		
 		bool change_to_settings = false;
-		if (app.game_controller) {
-			create_text("Settings (X)", TEXT_SIZE::REGULAR, true);
-			change_to_settings = input_state.controller_x_pressed;
-		} else if (create_button("Settings")) {
+		if (create_button("Settings")) {
 			change_to_settings = true;
 		}
+		// if (app.game_controller) {
+		// 	create_text("Settings (X)", TEXT_SIZE::REGULAR, true);
+		// 	change_to_settings = input_state.controller_x_pressed;
+		// } else if (create_button("Settings")) {
+		// 	change_to_settings = true;
+		// }
 		
 		if (change_to_settings) {
 			app.scene_manager.queue_level_load = true;
@@ -237,19 +275,23 @@ void render(application_t& app) {
 		}
 
 		bool change_to_level1 = false;
-		if (app.game_controller) {
-			if (create_button("Play")) {
-				change_to_level1 = true;
-			}
-			// create_text("Play (A)", TEXT_SIZE::REGULAR, true);
-			// if (input_state.controller_a_pressed) {
-			// 	change_to_level1 = true;
-			// }
-		} else {
-			if (create_button("Play (Enter)") || input_state.enter_pressed) {
-				change_to_level1 = true;
-			}
+		if (create_button("Play")) {
+			change_to_level1 = true;
 		}
+		// if (app.game_controller) {
+		// 	if (create_button("Play")) {
+		// 		change_to_level1 = true;
+		// 	}
+		// 	// create_text("Play (A)", TEXT_SIZE::REGULAR, true);
+		// 	// if (input_state.controller_a_pressed) {
+		// 	// 	change_to_level1 = true;
+		// 	// }
+		// } else {
+		// 	// if (create_button("Play (Enter)") || input_state.enter_pressed) {
+		// 	if (create_button("Play")) {
+		// 		change_to_level1 = true;
+		// 	}
+		// }
 
 		if (change_to_level1) {
 			app.scene_manager.queue_level_load = true;
@@ -257,12 +299,15 @@ void render(application_t& app) {
 		}
 
 		bool change_to_quit = false;
-		if (app.game_controller) {
-			create_text("Quit (B)", TEXT_SIZE::REGULAR, true);
-			change_to_quit = input_state.controller_b_pressed;
-		} else if (create_button("Quit")) {
+		if (create_button("Quit")) {
 			change_to_quit = true;
 		}
+		// if (app.game_controller) {
+		// 	create_text("Quit (B)", TEXT_SIZE::REGULAR, true);
+		// 	change_to_quit = input_state.controller_b_pressed;
+		// } else if (create_button("Quit")) {
+		// 	change_to_quit = true;
+		// }
 	
 		if (change_to_quit) {
 			app.scene_manager.queue_level_load = true;
@@ -340,26 +385,54 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t enabled_text_style;
-		enabled_text_style.color = dark_blue;
+		enabled_text_style.hover_background_color = DARK_BLUE;
+		enabled_text_style.hover_color = WHITE;
+
+		enabled_text_style.color = DARK_BLUE;
 		enabled_text_style.padding = glm::vec2(25, 10);
 
 		style_t disabled_text_style;
+		disabled_text_style.hover_background_color = DARK_BLUE;
 		disabled_text_style.color = GREY;
 		disabled_text_style.padding = glm::vec2(25, 10);
 
 		push_style(enabled_text_style);
 		static int selected_option = 0;
-		const char* options[5] = {
-			aspect_ratios[0].str,
-			aspect_ratios[1].str,
-			aspect_ratios[2].str,
-			aspect_ratios[3].str,
-			aspect_ratios[4].str
-		};
+		const char* options[ASPECT_RATIO::NUM_RATIOS]{};
 
-		if (create_selector(selected_option, options, 5, 200.f, 20.f, selected_option)) {
+		for (int i = 0; i < ASPECT_RATIO::NUM_RATIOS; i++) {
+			options[i] = aspect_ratios[i].str;
+		}
+
+		if (create_selector(selected_option, options, ASPECT_RATIO::NUM_RATIOS, 200.f, 20.f, selected_option)) {
 			aspect_ratio_t& ratio = aspect_ratios[selected_option];
-			settings_changed.aspect_ratio = (ratio.width != app.window_width || ratio.height != app.window_height);
+			float cur_ratio = app.window_width / app.window_height;
+			float selected_ratio = ratio.width / ratio.height;
+			// settings_changed.aspect_ratio = (ratio.width != app.window_width || ratio.height != app.window_height);
+			printf("aspect ratio changed, cur: %f, selected: %f\n", cur_ratio, selected_ratio);
+			// settings_changed.aspect_ratio = cur_ratio != selected_ratio;
+			int num_display_modes = SDL_GetNumDisplayModes(0);
+			// SDL_SetWindowDisplayMode(app.window, );
+			for (int i = 0; i < num_display_modes; ++i) {
+				SDL_DisplayMode display_mode{};
+				if (SDL_GetDisplayMode(0, i, &display_mode) != 0) {
+					SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+				}
+				SDL_Log("Mode %i\tname: %s\t%i x %i and ratio is %f",
+						i,
+						SDL_GetPixelFormatName(display_mode.format),
+						display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
+				// SDL_GetDisplayMode(0, i, &display_mode);
+				if (static_cast<float>(display_mode.w) / display_mode.h == selected_ratio) {
+					ratio.mode_index = i;
+					settings_changed.aspect_ratio = true;
+					printf("selected mode index %i\n", ratio.mode_index);
+					break;
+				}
+			}
+			if (ratio.mode_index == -1) {
+				printf("could not find a display mode for %s\n", ratio.str);
+			}
 		}
 
 		pop_style();
@@ -407,6 +480,7 @@ void render(application_t& app) {
 		style_t btn_style;
 		btn_style.color = WHITE;
 		btn_style.background_color = changed ? DARK_BLUE : GREY;
+		btn_style.hover_background_color = btn_style.background_color + glm::vec3(0.1f);
 		btn_style.border_radius = 10.f;
 		btn_style.padding = glm::vec2(10);
 		push_style(btn_style);
@@ -441,7 +515,32 @@ void render(application_t& app) {
 
 			if (settings_changed.aspect_ratio) {
 				aspect_ratio_t& aspect_ratio = aspect_ratios[selected_option];
-				SDL_SetWindowSize(app.window, aspect_ratio.width, aspect_ratio.height);
+				if (app.is_full_screen) {
+					if (aspect_ratio.mode_index != -1) {
+						SDL_DisplayMode mode;
+						SDL_GetDisplayMode(0, aspect_ratio.mode_index, &mode);
+						int success = SDL_SetWindowDisplayMode(app.window, &mode);
+						if (success != 0) {
+							printf("ran into an issue with setting display mode index %i\n", aspect_ratio.mode_index);
+							const char* sdlError = SDL_GetError();
+							if (sdlError && sdlError[0] != '\0') {
+								std::cout << "SDL Error: " << sdlError << std::endl;
+								SDL_ClearError();
+							}	
+						}
+						SDL_SetWindowSize(app.window, app.window_width, app.window_width * (app.window_width / aspect_ratio.width));
+						const char* sdlError = SDL_GetError();
+						if (sdlError && sdlError[0] != '\0') {
+							printf("ran into an issue with setting window size after display mode\n");
+							std::cout << "SDL Error: " << sdlError << std::endl;
+							SDL_ClearError();
+						}	
+					} else {
+						printf("could not update because display mode index is -1\n");
+					}
+				} else {
+					SDL_SetWindowSize(app.window, aspect_ratio.width, aspect_ratio.height);
+				}
 			}
 
 			settings_changed = settings_changed_t();
@@ -461,21 +560,28 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t options_btn_style;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.2f);
+		options_btn_style.hover_color = WHITE;
+
 		options_btn_style.background_color = WHITE;
+		options_btn_style.color = DARK_BLUE;
+
 		options_btn_style.border_radius = 10.f;
-		options_btn_style.color = dark_blue;
 		options_btn_style.padding = glm::vec2(10);
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 		
 		bool main_menu_load = false;
-		if (app.game_controller) {
-			if (create_button("Back (B)") || input_state.controller_b_pressed) {
-				main_menu_load = true;
-			}
-		} else if (create_button("Back")) {
+		if (create_button("Back")) {
 			main_menu_load = true;
 		}
+		// if (app.game_controller) {
+		// 	if (create_button("Back (B)") || input_state.controller_b_pressed) {
+		// 		main_menu_load = true;
+		// 	}
+		// } else if (create_button("Back")) {
+		// 	main_menu_load = true;
+		// }
 
 		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
@@ -515,7 +621,7 @@ void render(application_t& app) {
 		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
 
 		style_t text_style;
-		text_style.color = dark_blue;
+		text_style.color = DARK_BLUE;
 		push_style(text_style);
 		create_text("ARE YOU SURE YOU WANT TO QUIT?");
 		pop_style();
@@ -539,28 +645,34 @@ void render(application_t& app) {
 		options_btn_style.padding = glm::vec2(10);
 		push_style(options_btn_style);
 		
-		if (app.game_controller) {
-			create_text("Yes (X)");
-			if (input_state.controller_x_pressed) {
-				app.running = false;
-			}
-		} else if (create_button("Yes")) {
+		if (create_button("Yes")) {
 			app.running = false;	
 		}
+		// if (app.game_controller) {
+		// 	create_text("Yes (X)");
+		// 	if (input_state.controller_x_pressed) {
+		// 		app.running = false;
+		// 	}
+		// } else if (create_button("Yes")) {
+		// 	app.running = false;	
+		// }
 		pop_style();
 
 		options_btn_style.margin = glm::vec2(40, 0);
 		push_style(options_btn_style);
 
 		bool main_menu_load = false;
-		if (app.game_controller) {
-			create_text("No (B)");
-			if (input_state.controller_b_pressed) {
-				main_menu_load = true;
-			}
-		} else if (create_button("No")) {
+		if (create_button("No")) {
 			main_menu_load = true;
 		}
+		// if (app.game_controller) {
+		// 	create_text("No (B)");
+		// 	if (input_state.controller_b_pressed) {
+		// 		main_menu_load = true;
+		// 	}
+		// } else if (create_button("No")) {
+		// 	main_menu_load = true;
+		// }
 
 		if (main_menu_load) {
 			app.scene_manager.queue_level_load = true;
@@ -607,14 +719,17 @@ void render(application_t& app) {
 		push_style(options_btn_style);
 		
 		bool back_pressed = false;
-		if (app.game_controller) {
-			create_text("Back (B)");
-			if (input_state.controller_b_pressed) {
-				back_pressed = true;
-			}
-		} else if (create_button("Back")) {
+		if (create_button("Back")) {
 			back_pressed = true;
 		}
+		// if (app.game_controller) {
+		// 	create_text("Back (B)");
+		// 	if (input_state.controller_b_pressed) {
+		// 		back_pressed = true;
+		// 	}
+		// } else if (create_button("Back")) {
+		// 	back_pressed = true;
+		// }
 
 		if (back_pressed) {
 			app.scene_manager.queue_level_load = true;	
@@ -719,14 +834,17 @@ void render(application_t& app) {
 		push_style(options_btn_style);
 		
 		bool go_to_main_menu = false;
-		if (app.game_controller) {
-			create_text("Continue (X)");
-			if (input_state.controller_x_pressed) {
-				go_to_main_menu = true;
-			}
-		} else if (create_button("Continue")) {
+		if (create_button("Continue")) {
 			go_to_main_menu = true;
 		}
+		// if (app.game_controller) {
+		// 	create_text("Continue (X)");
+		// 	if (input_state.controller_x_pressed) {
+		// 		go_to_main_menu = true;
+		// 	}
+		// } else if (create_button("Continue")) {
+		// 	go_to_main_menu = true;
+		// }
 		pop_style();
 
 		if (go_to_main_menu) {

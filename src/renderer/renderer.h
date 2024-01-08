@@ -22,12 +22,24 @@ struct settings_changed_t {
 };
 bool something_changed(settings_changed_t settings_changed);
 
-enum class ASPECT_RATIO {
-    A_1920x1080,
-    A_1600x900,
-    A_1440x990,
-    A_1366x768,
-    A_1280x1024,
+// enum class ASPECT_RATIO {
+//     A_1920x1080,
+//     A_1600x900,
+//     A_1440x990,
+//     A_1366x768,
+//     A_1280x1024,
+// };
+
+enum ASPECT_RATIO {
+    A_1600x900 = 0,
+    A_1600x1000,
+    A_1600x1200,
+
+    NUM_RATIOS,
+
+    A_2100x900,
+    A_800x800,
+
 };
 
 struct aspect_ratio_t {
@@ -35,6 +47,7 @@ struct aspect_ratio_t {
     const char* str;
     float width = 0.f;
     float height = 0.f;
+    int mode_index = -1;
 };
 
 /// <summary>

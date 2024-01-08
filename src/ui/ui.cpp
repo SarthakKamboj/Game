@@ -429,10 +429,13 @@ bool create_selector(int selected_option, const char** options, int num_options,
     bool changed = false;
     
     style_t enabled;
+	enabled.hover_background_color = DARK_BLUE;
+	enabled.hover_color = WHITE;
     enabled.color = DARK_BLUE;
     enabled.padding = glm::vec2(10);
     
     style_t disabled;
+	enabled.hover_background_color = DARK_BLUE;
     disabled.color = GREY;
     disabled.padding = glm::vec2(10);
     
@@ -533,12 +536,13 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
             // widget and cached_widget.y - cached_widget.render_height is the bottom y 
             // of the widget
             input_state.y_pos <= (cached_widget.y - cached_widget.style.margin.y) &&
-            input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y)
+            input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y) &&
+            input_state.left_clicked
         ) {
-            return input_state.left_clicked;
+            return true;
         }
 
-        if (widget_handle == cur_focused_handle && input_state.controller_a_pressed) {
+        if (widget_handle == cur_focused_handle && (input_state.enter_pressed || input_state.controller_a_pressed)) {
             return true;
         }
 
@@ -1065,10 +1069,24 @@ void resolve_constraints() {
 
 void render_ui_helper(widget_t& widget) {
 
+    // glm::vec
+
     if (widget.handle == cur_focused_handle) {
-        widget.style.background_color = GREEN;
-        draw_background(widget);
-    } else if (widget.style.background_color != TRANSPARENT_COLOR) {
+        if (widget.style.hover_background_color != TRANSPARENT_COLOR) {
+            widget.style.background_color = widget.style.hover_background_color;
+        }
+        if (widget.style.hover_color != TRANSPARENT_COLOR) {
+            widget.style.color = widget.style.hover_color;
+        }
+        // if (widget.style.color == DARK_BLUE) {
+        //     widget.style.color = WHITE;
+        // }
+        // widget.style.background_color.r += 0.05f;
+        // widget.style.background_color.g += 0.05f;
+        // widget.style.background_color. += 0.05f;
+    }
+
+    if (widget.style.background_color != TRANSPARENT_COLOR) {
         draw_background(widget);
     }
 
@@ -1085,6 +1103,11 @@ void render_ui_helper(widget_t& widget) {
 }
 
 void render_ui() {  
+
+    if (ui_will_update) {
+        cur_focused_handle = -1;
+    }
+
     auto& cur_arr = *curframe_widget_arr;
     for (widget_t& widget : cur_arr) {
         if (widget.parent_widget_handle == -1) {

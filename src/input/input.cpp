@@ -71,8 +71,10 @@ namespace input {
 						}
 						// seems like this is called 1x on resizes
 						case SDL_WINDOWEVENT_SIZE_CHANGED: {
+							printf("prev window size: %f, %f\n", app.window_width, app.window_height);
 							app.window_width = event.window.data1;
 							app.window_height = event.window.data2;
+							printf("new window size: %f, %f\n", app.window_width, app.window_height);
 							app.resized = true;
 							glViewport(0, 0, app.window_width, app.window_height);
 							break;

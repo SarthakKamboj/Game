@@ -13,7 +13,8 @@
 #define BLUE glm::vec3(0, 0, 1)
 #define RED glm::vec3(1, 0, 0)
 #define DARK_BLUE glm::vec3(.003f, 0.1137f, 0.17647f)
-#define GREY glm::vec3(0.8274f,0.8274f,0.8274f)
+#define SELECTED glm::vec3(.003f, 0.0537f, 0.085647f)
+#define GREY glm::vec3(0.6274f,0.6274f,0.6274f)
 #define WHITE glm::vec3(1, 1, 1)
 
 // ui will be rendered immediate mode
@@ -114,6 +115,10 @@ struct style_t {
     glm::vec3 background_color = TRANSPARENT_COLOR;
     float border_radius = 0;
     glm::vec3 color = glm::vec3(1,1,1);
+
+    // hover
+    glm::vec3 hover_background_color = TRANSPARENT_COLOR;
+    glm::vec3 hover_color = TRANSPARENT_COLOR;
 };
 
 struct text_t {
