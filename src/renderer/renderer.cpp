@@ -106,6 +106,34 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 	end_container();
 }
 
+void init_renderer() {
+	for (int i = 0; i < ASPECT_RATIO::NUM_RATIOS; i++)	 {
+		aspect_ratio_t& aspect_ratio = aspect_ratios[i];
+		aspect_ratio.mode_index = get_mode_index(aspect_ratio.width, aspect_ratio.height);
+	}
+}
+
+int get_mode_index(float w, float h) {
+	int num_display_modes = SDL_GetNumDisplayModes(0);
+	float ratio = w / h;
+	for (int i = 0; i < num_display_modes; i++) {
+		SDL_DisplayMode display_mode{};
+		if (SDL_GetDisplayMode(0, i, &display_mode) != 0) {
+			SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+		}
+		SDL_Log("Mode %i\tname: %s\t%i x %i and ratio is %f",
+				i,
+				SDL_GetPixelFormatName(display_mode.format),
+				display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
+		
+		float display_ratio = static_cast<float>(display_mode.w) / display_mode.h;
+		if (floor(display_ratio * 1000) == floor(ratio * 1000)) {
+			return i;
+		}
+	}
+	return -1;
+}
+
 void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
@@ -224,11 +252,22 @@ void render(application_t& app) {
 		render_ui();
 
 	} else if (app.scene_manager.cur_level == SETTINGS_LEVEL) {
+		static int selected_option = 0;
+
 		static settings_changed_t settings_changed;
 		static bool_settings_state_t settings_state;
 
 		if (app.new_level_just_loaded) {
 			settings_changed = settings_changed_t();
+
+			aspect_ratio_t& ratio = aspect_ratios[selected_option];
+			float cur_ratio = app.window_width / app.window_height;
+			float selected_ratio = ratio.width / ratio.height;
+			printf("aspect ratio int, cur: %f, selected: %f\n", cur_ratio, selected_ratio);
+
+			settings_changed.aspect_ratio = floor(cur_ratio * 100) != floor(selected_ratio * 100);
+
+			printf("aspect ratio int * 100, cur: %f, selected: %f\n", floor(cur_ratio * 100), floor(selected_ratio * 100));
 
 			settings_state.bck_muted = app.bck_muted;
 			settings_state.is_full_screen = app.is_full_screen;
@@ -289,7 +328,6 @@ void render(application_t& app) {
 		disabled_text_style.padding = glm::vec2(25, 10);
 
 		push_style(enabled_text_style);
-		static int selected_option = 0;
 		const char* options[ASPECT_RATIO::NUM_RATIOS]{};
 
 		for (int i = 0; i < ASPECT_RATIO::NUM_RATIOS; i++) {
@@ -302,25 +340,13 @@ void render(application_t& app) {
 			float selected_ratio = ratio.width / ratio.height;
 			printf("aspect ratio changed, cur: %f, selected: %f\n", cur_ratio, selected_ratio);
 
-			int num_display_modes = SDL_GetNumDisplayModes(0);
-			for (int i = 0; i < num_display_modes; ++i) {
-				SDL_DisplayMode display_mode{};
-				if (SDL_GetDisplayMode(0, i, &display_mode) != 0) {
-					SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
+			if (floor(cur_ratio * 100) == floor(selected_ratio * 100)) {
+				settings_changed.aspect_ratio = false;
+			} else {
+				settings_changed.aspect_ratio = (ratio.mode_index != -1);
+				if (ratio.mode_index == -1) {
+					printf("could not find a display mode for %s\n", ratio.str);
 				}
-				SDL_Log("Mode %i\tname: %s\t%i x %i and ratio is %f",
-						i,
-						SDL_GetPixelFormatName(display_mode.format),
-						display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
-				if (static_cast<float>(display_mode.w) / display_mode.h == selected_ratio) {
-					ratio.mode_index = i;
-					settings_changed.aspect_ratio = true;
-					printf("selected mode index %i\n", ratio.mode_index);
-					break;
-				}
-			}
-			if (ratio.mode_index == -1) {
-				printf("could not find a display mode for %s\n", ratio.str);
 			}
 		}
 
@@ -376,6 +402,7 @@ void render(application_t& app) {
 		if (create_button("Save") && changed) {
 			
 			if (settings_changed.windowed) {
+				printf("full screen mode changed");
 				if (app.is_full_screen) {
 					SDL_SetWindowFullscreen(app.window, 0);
 				} else {
@@ -385,6 +412,7 @@ void render(application_t& app) {
 			}
 
 			if (settings_changed.bck_music) {
+				printf("bck music changed");
 				if (app.bck_muted) {
 					unmute_bck_sound();
 				} else {
@@ -394,6 +422,7 @@ void render(application_t& app) {
 			}
 
 			if (settings_changed.sound_fx) {
+				printf("sound fx changed");
 				if (app.sound_fx_muted) {
 					unmute_sounds();
 				} else {
@@ -403,6 +432,7 @@ void render(application_t& app) {
 			}
 
 			if (settings_changed.aspect_ratio) {
+				printf("aspect ratio changed");
 				aspect_ratio_t& aspect_ratio = aspect_ratios[selected_option];
 				if (app.is_full_screen) {
 					if (aspect_ratio.mode_index != -1) {
@@ -417,7 +447,7 @@ void render(application_t& app) {
 								SDL_ClearError();
 							}	
 						}
-						SDL_SetWindowSize(app.window, app.window_width, app.window_width * (app.window_width / aspect_ratio.width));
+						SDL_SetWindowSize(app.window, app.window_width, app.window_width * (aspect_ratio.height / aspect_ratio.width));
 						const char* sdlError = SDL_GetError();
 						if (sdlError && sdlError[0] != '\0') {
 							printf("ran into an issue with setting window size after display mode\n");

@@ -50,6 +50,9 @@ struct aspect_ratio_t {
     int mode_index = -1;
 };
 
+int get_mode_index(float w, float h);
+void init_renderer();
+
 /// <summary>
 /// Render the application
 /// </summary>

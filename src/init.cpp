@@ -16,6 +16,7 @@
 #include "audio/audio.h"
 #include "utils/io.h"
 #include "input/input.h"
+#include "renderer/renderer.h"
 
 #include <filesystem>
 
@@ -552,8 +553,6 @@ void load_level(application_t& app, int level_num) {
 	app.scene_manager.queue_level_load = false; 
 	app.scene_manager.level_to_load = -1;
 
-	std::cout << "loading level " << level_num << std::endl;
-
 	if (level_num == MAIN_MENU_LEVEL) {
 		app.scene_manager.cur_level = MAIN_MENU_LEVEL;
 		std::cout << "loaded main menu" << std::endl;
@@ -597,6 +596,7 @@ void load_level(application_t& app, int level_num) {
 void init(application_t& app) {
 	init_sdl(app);	
 	input::init_controller(app);
+	init_renderer();
 	init_audio();
     // initialize opengl data for a rectangle
 	init_quad_data();	
