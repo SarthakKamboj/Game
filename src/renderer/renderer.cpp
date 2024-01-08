@@ -44,8 +44,7 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 	pair_style.vertical_align_val = ALIGN::CENTER;
 
 	style_t dark_text_style;
-	glm::vec3 dark_blue = DARK_BLUE;
-	dark_text_style.color = dark_blue;
+	dark_text_style.color = DARK_BLUE;
 
 	style_t right_text_style;
 	right_text_style.color = create_color(111, 111, 111);
@@ -111,7 +110,14 @@ void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
 
-	glm::vec3 dark_blue = DARK_BLUE;
+	style_t btn_style;
+	btn_style.background_color = WHITE;
+	btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+	btn_style.color = DARK_BLUE;
+	btn_style.hover_color = WHITE;
+	btn_style.border_radius = 10.f;
+	btn_style.padding = glm::vec2(10);
+	btn_style.margin = glm::vec2(40, 0);
 
 	// main menu
 	if (app.scene_manager.cur_level == MAIN_MENU_LEVEL) {
@@ -151,7 +157,7 @@ void render(application_t& app) {
 		create_image_container(tex_handle, app.window_height * 0.5f, app.window_height * 0.5f, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "character image");
 
 		style_t text_style;
-		text_style.color = dark_blue;
+		text_style.color = DARK_BLUE;
 		push_style(text_style);
 		create_text("Night Run", TEXT_SIZE::TITLE);
 		pop_style();
@@ -433,7 +439,7 @@ void render(application_t& app) {
 		end_container();
 
 		style_t bottom_bar;
-		bottom_bar.background_color = dark_blue;
+		bottom_bar.background_color = DARK_BLUE;
 		bottom_bar.content_spacing = 0;
 		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
 		bottom_bar.horizontal_align_val = ALIGN::START;
@@ -506,7 +512,7 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t bottom_bar;
-		bottom_bar.background_color = dark_blue;
+		bottom_bar.background_color = DARK_BLUE;
 		bottom_bar.content_spacing = 0;
 		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
 		bottom_bar.horizontal_align_val = ALIGN::END;
@@ -565,7 +571,7 @@ void render(application_t& app) {
 		float main_section_height_percent = 0.85f;
 
 		style_t top_bar;
-		top_bar.background_color = dark_blue;
+		top_bar.background_color = DARK_BLUE;
 		top_bar.content_spacing = 0;
 		top_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
 		top_bar.horizontal_align_val = ALIGN::START;
@@ -606,7 +612,7 @@ void render(application_t& app) {
 		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
 
 		style_t dark_text_style;
-		dark_text_style.color = dark_blue;
+		dark_text_style.color = DARK_BLUE;
   		dark_text_style.margin.y = 10;
 		// dark_text_style.background_color = RED;
 
@@ -664,7 +670,7 @@ void render(application_t& app) {
 		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
 
 		style_t text_style;
-		text_style.color = dark_blue;
+		text_style.color = DARK_BLUE;
 		push_style(text_style);
 		create_text("GAME OVER", TEXT_SIZE::TITLE);
 		create_text("THANK YOU FOR PLAYING!");
@@ -674,7 +680,7 @@ void render(application_t& app) {
 		pop_style();
 
 		style_t bottom_bar;
-		bottom_bar.background_color = dark_blue;
+		bottom_bar.background_color = DARK_BLUE;
 		bottom_bar.content_spacing = 0;
 		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
 		bottom_bar.horizontal_align_val = ALIGN::END;
@@ -712,8 +718,70 @@ void render(application_t& app) {
 		render_ui();
 
 	} else {
-		// regular stuff
-		draw_quad_renders(app);
+		static bool pause = false;
+		if (input_state.p_pressed || input_state.controller_start_pressed) {
+			app.paused = !app.paused;
+		}
+
+		if (app.paused) {
+			start_of_frame();
+			
+			style_t panel_style;
+			panel_style.display_dir = DISPLAY_DIR::VERTICAL;
+			panel_style.vertical_align_val = ALIGN::CENTER;
+			panel_style.horizontal_align_val = ALIGN::CENTER;
+			push_style(panel_style);
+			create_panel("main panel");
+			pop_style();
+
+			float main_section_height_percent = 0.85f;
+
+			style_t main_section_style;
+			main_section_style.background_color = WHITE;
+			main_section_style.content_spacing = 30;
+			main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
+			main_section_style.horizontal_align_val = ALIGN::CENTER;
+			main_section_style.vertical_align_val = ALIGN::CENTER;
+			push_style(main_section_style);
+			create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+
+			style_t text_style;
+			text_style.color = DARK_BLUE;
+			text_style.margin.y = 20;
+			push_style(text_style);
+			create_text("PAUSED", TEXT_SIZE::TITLE);
+			pop_style();
+			push_style(btn_style);
+			if (create_button("Continue")) {
+				app.paused = false;	
+			}
+			if (create_button("Main Menu")) {
+				app.scene_manager.level_to_load = MAIN_MENU_LEVEL;	
+				app.scene_manager.queue_level_load = true;
+				app.paused = false;
+				resume_bck_sound();
+				clear_sounds();
+			}
+			pop_style();
+
+			end_container();
+			pop_style();
+
+			style_t bottom_bar;
+			bottom_bar.background_color = DARK_BLUE;
+			push_style(bottom_bar);
+			create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
+			end_container();
+			pop_style();
+
+			end_panel();
+
+			autolayout_hierarchy();
+			render_ui();	
+		} else {
+			// regular stuff
+			draw_quad_renders(app);
+		}
 	}
 
 

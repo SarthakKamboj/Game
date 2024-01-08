@@ -93,6 +93,7 @@ void delete_mc(main_character_t& mc) {
 	delete_transform(mc.transform_handle);
 	delete_quad_render(mc.rec_render_handle);
 	delete_rigidbody(mc.rigidbody_handle);
+	mc.waiting_for_level_finish_audio = false;
 }
 
 extern bool level_finished;
@@ -106,7 +107,7 @@ void main_character_t::update(application_t& app, input::user_input_t& user_inpu
 	rigidbody_t& rb = *rb_ptr;	
 
 	bool prev_dead = dead;
-	static bool waiting_for_level_finish_audio = false;
+	// static bool waiting_for_level_finish_audio = false;
 
 	std::vector<general_collision_info_t>& col_infos = get_general_cols_for_non_kin_type(PHYSICS_RB_TYPE::PLAYER); 
 	for (general_collision_info_t& col_info : col_infos) {

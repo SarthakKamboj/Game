@@ -37,6 +37,8 @@ struct application_t {
 	scene_manager_t scene_manager;
 	bool clicked = false;
 
+	bool paused = false;
+
 	bool controller_state_changed = false;
 	SDL_GameController* game_controller = NULL;
 };

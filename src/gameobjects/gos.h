@@ -30,6 +30,8 @@ struct main_character_t {
 	int num_jumps_since_grounded = 0;
 	bool dead = false;
 
+	bool waiting_for_level_finish_audio = false;
+
 	bool dashing_left = false;
 	bool dashing_right = false;
 	time_count_t dash_start_time = 0;

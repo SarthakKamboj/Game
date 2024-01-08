@@ -258,6 +258,11 @@ glm::vec3 create_color(float r, float g, float b) {
 }
 
 void start_of_frame() {
+
+    if (!app.game_controller) {
+        cur_focused_handle = -1;
+    }
+
     glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
     shader_set_mat4(font_char_t::ui_opengl_data.shader, "projection", projection);
    if (app.resized) {
@@ -529,16 +534,21 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     if (!ui_will_update) {
         auto& prev_arr = *prevframe_widget_arr;
         widget_t& cached_widget = prev_arr[widget_handle];
-        if (input_state.x_pos >= (cached_widget.x + cached_widget.style.margin.x) &&
-            input_state.x_pos <= (cached_widget.x + cached_widget.render_width + cached_widget.style.margin.x) &&
-            // render x and render y specified as the top left pivot and y in ui is 0 on the
-            // bottom and WINDOW_HEIGHT on the top, so cached_widget.y is the top y of the 
-            // widget and cached_widget.y - cached_widget.render_height is the bottom y 
-            // of the widget
-            input_state.y_pos <= (cached_widget.y - cached_widget.style.margin.y) &&
-            input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y) &&
-            input_state.left_clicked
-        ) {
+
+        bool mouse_over_widget = input_state.x_pos >= (cached_widget.x + cached_widget.style.margin.x) &&
+                input_state.x_pos <= (cached_widget.x + cached_widget.render_width + cached_widget.style.margin.x) &&
+                // render x and render y specified as the top left pivot and y in ui is 0 on the
+                // bottom and WINDOW_HEIGHT on the top, so cached_widget.y is the top y of the 
+                // widget and cached_widget.y - cached_widget.render_height is the bottom y 
+                // of the widget
+                input_state.y_pos <= (cached_widget.y - cached_widget.style.margin.y) &&
+                input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y);
+
+        if (mouse_over_widget && !app.game_controller) {
+            cur_focused_handle = widget_handle;
+        }
+
+        if (mouse_over_widget && input_state.left_clicked) {
             return true;
         }
 

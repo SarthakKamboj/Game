@@ -25,6 +25,7 @@ namespace input {
         bool controller_y_pressed = false;
         bool controller_x_pressed = false;
         bool controller_b_pressed = false;
+        bool controller_start_pressed = false;
 
 		// true while continuously button is down
         bool w_down = false;
@@ -39,6 +40,7 @@ namespace input {
         bool controller_y_down = false;
         bool controller_x_down = false;
         bool controller_b_down = false;
+        bool controller_start_down = false;
 
         bool right_clicked = false;
         bool left_clicked = false;

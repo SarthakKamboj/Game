@@ -38,6 +38,7 @@ namespace input {
 		user_input.controller_y_pressed = false;
 		user_input.controller_x_pressed = false;
 		user_input.controller_b_pressed = false;
+		user_input.controller_start_pressed = false;
 
 		user_input.quit = false;
 		user_input.left_clicked = false;
@@ -104,6 +105,8 @@ namespace input {
 							user_input.controller_x_pressed = false;
 							user_input.controller_b_down = false;
 							user_input.controller_b_pressed = false;
+							user_input.controller_start_down = false;
+							user_input.controller_start_pressed = false;
 							user_input.controller_x_axis = 0;
 							user_input.controller_y_axis = 0;
 							init_controller(app);
@@ -115,6 +118,7 @@ namespace input {
 					if (app.game_controller) {
 						SDL_Joystick* controller_joystick = SDL_GameControllerGetJoystick(app.game_controller);
 						if (event.cdevice.which == SDL_JoystickInstanceID(controller_joystick)) {
+							printf("button: %i\n", (int)event.cbutton.button);
 							switch (event.cbutton.button) {
 								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_A: {
 									user_input.controller_a_down = false;
@@ -130,6 +134,10 @@ namespace input {
 								}
 								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X: {
 									user_input.controller_x_down = false;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START: {
+									user_input.controller_start_down = false;
 									break;
 								}
 								default: break;
@@ -163,6 +171,11 @@ namespace input {
 								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_X: {
 									user_input.controller_x_pressed = true;
 									user_input.controller_x_down = true;
+									break;
+								}
+								case SDL_GameControllerButton::SDL_CONTROLLER_BUTTON_START: {
+									user_input.controller_start_down = true;
+									user_input.controller_start_pressed = true;
 									break;
 								}
 								default: break;
