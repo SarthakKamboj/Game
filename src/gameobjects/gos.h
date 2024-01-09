@@ -110,7 +110,7 @@ void add_goomba_turn_point(glm::vec3 pos);
  * @brief Delete a goomba based on its rigidbody handle
  * @param kin_handle Rigidbody handle of the goomba
 */
-void delete_goomba_by_kin_handle(int kin_handle);
+bool delete_goomba_by_kin_handle(int kin_handle);
 
 /**
  * @brief Pipe

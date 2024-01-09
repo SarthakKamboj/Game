@@ -34,12 +34,26 @@ static std::unordered_set<std::pair<int, int>, pair_hash> created_positions;
 extern application_t app;
 
 void unload_level(application_t& app) {
-	for (goomba_t& goomba : goombas) delete_goomba_by_kin_handle(goomba.rigidbody_handle);
+	for (goomba_t& goomba : goombas) {
+		delete_rigidbody(goomba.rigidbody_handle);
+		delete_quad_render(goomba.rec_render_handle);
+		delete_transform(goomba.transform_handle);
+		// bool deleted = delete_goomba_by_kin_handle(goomba.rigidbody_handle);
+		// if (!deleted) {
+		// 	int a = 10;
+		// 	bool deleted = delete_goomba_by_kin_handle(goomba.rigidbody_handle);
+		// }
+	}
 	goombas.clear();
 	goomba_turn_pts.clear();
 	for (coin_t& coin : coins) delete_coin(coin);
-	coins.clear();
-	for (brick_t& brick : bricks) delete_brick(brick);
+	// coins.clear();
+	for (brick_t& brick : bricks) {
+		// delete_brick(brick);
+		delete_quad_render(brick.rec_render_handle);
+		delete_rigidbody(brick.rigidbody_handle);
+		delete_transform(brick.transform_handle);
+	}
 	bricks.clear();
 	for (ice_power_up_t& ipu : ice_power_ups) delete_ice_powerup_by_kin_handle(ipu.rigidbody_handle);
 	ice_power_ups.clear();
@@ -360,7 +374,7 @@ void update_goomba(goomba_t& goomba) {
 	transform_ptr->position.x += goomba.move_speed * platformer::time_t::delta_time;
 }
 
-void delete_goomba_by_kin_handle(int kin_handle) {
+bool delete_goomba_by_kin_handle(int kin_handle) {
 	int i_to_remove = -1;
 	for (goomba_t& goomba : goombas) {
 		i_to_remove++;
@@ -369,9 +383,10 @@ void delete_goomba_by_kin_handle(int kin_handle) {
 			delete_quad_render(goomba.rec_render_handle);
 			delete_transform(goomba.transform_handle);
 			goombas.erase(goombas.begin() + i_to_remove);
-			return;
+			return true;
 		}
 	}
+	return false;
 }
 
 void add_goomba_turn_point(glm::vec3 pos) {
@@ -527,6 +542,7 @@ void delete_ice_powerup_by_kin_handle(int kin_handle) {
 			delete_rigidbody(power_up.rigidbody_handle);
 			delete_transform(power_up.transform_handle);
 			ice_power_ups.erase(ice_power_ups.begin() + i);
+			return;
 		}
 	}
 }
