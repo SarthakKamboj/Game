@@ -550,7 +550,7 @@ void create_final_flag(glm::vec3 pos) {
 	final_flag.transform_handle = create_transform(center_origin, glm::vec3(1), 0.f);
 	int render_transform = create_transform(pos + glm::vec3(-20 + (final_flag_t::RENDER_WIDTH/2), -20 + (final_flag_t::RENDER_HEIGHT/2), 0), glm::vec3(1), 0.f); 
 	final_flag.rec_render_handle = create_quad_render(render_transform, final_flag_t::FINAL_FLAG_COLOR, final_flag_t::RENDER_WIDTH, final_flag_t::RENDER_HEIGHT, false, 1.f, final_flag_t::tex_handle);
-	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true, true);
+	final_flag.rigidbody_handle = create_rigidbody(final_flag.transform_handle, false, final_flag_t::WIDTH, final_flag_t::HEIGHT, true, PHYSICS_RB_TYPE::FINAL_FLAG, true, false);
 }
 
 void delete_final_flag() {
