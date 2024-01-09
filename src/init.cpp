@@ -545,6 +545,7 @@ void set_num_levels() {
 	for (auto& level_folder : fs::directory_iterator(levels_folder_full_path)) {
 		num_levels++;
 	}
+	num_levels = 1;
 }
 
 // extern bool ui_updated;
@@ -579,6 +580,7 @@ void load_level(application_t& app, int level_num) {
 		resume_bck_sound();
 		std::cout << "loaded game over" << std::endl;
 		printf("that run took %f s", app.time_spent_in_levels);
+		update_high_scores(app.high_scores, app.time_spent_in_levels);
 		return;
 	}
 
@@ -606,6 +608,7 @@ void load_level(application_t& app, int level_num) {
 void init(application_t& app) {
 	init_sdl(app);	
 	input::init_controller(app);
+	init_high_scores(app.high_scores);
 	init_renderer(app);
 	init_audio();
     // initialize opengl data for a rectangle

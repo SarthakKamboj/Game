@@ -641,3 +641,49 @@ void gos_update() {
 	}
 }
 
+void init_high_scores(high_scores_t& hs) {
+	char resources_path[256]{};
+	io::get_resources_folder_path(resources_path);
+	char high_scores_path[256]{};
+	sprintf(high_scores_path, "%s\\high_scores.txt", resources_path);
+	FILE* file = fopen(high_scores_path, "r");
+	if (!file) return;
+	int i = 0;
+	while (!feof(file) && i < 4) {
+		char line[128]{};
+		fscanf(file, "%lf\n", &hs.times[i]);
+		i++;
+	}
+	fclose(file);
+}
+
+void update_high_scores(high_scores_t& hs, time_count_t new_time) {
+
+	int new_time_slot = -1;
+	for (int i = 0; i < 4; i++) {
+		if (new_time < hs.times[i] || hs.times[i] == -1) {
+			new_time_slot = i;	
+			break;
+		}
+	}
+
+	if (new_time_slot == -1) return;
+
+	for (int i = 3; i > new_time_slot; i--) {
+		hs.times[i] = hs.times[i-1];
+	}
+
+	hs.times[new_time_slot] = new_time;
+
+	char resources_path[256]{};
+	io::get_resources_folder_path(resources_path);
+	char high_scores_path[256]{};
+	sprintf(high_scores_path, "%s\\high_scores.txt", resources_path);
+	FILE* file = fopen(high_scores_path, "w");
+	if (!file) return;
+	for (int i = 0; i < 4; i++) {
+		char line[128]{};
+		fprintf(file, "%lf\n", hs.times[i]);
+	}
+	fclose(file);	
+}

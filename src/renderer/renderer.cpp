@@ -156,6 +156,14 @@ int get_mode_index(float w, float h) {
 	return -1;
 }
 
+void hs_score_to_char(float in, char* out) {
+	if (in == -1.f) {
+		sprintf(out, "N/A", in);
+	} else {
+		sprintf(out, "%.3fs", in);
+	}
+}
+
 void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
@@ -673,11 +681,21 @@ void render(application_t& app) {
 		create_text("High Scores", TEXT_SIZE::TITLE);
 		pop_style();
 
+		char first[64]{};
+		char second[64]{};
+		char third[64]{};
+		char fourth[64]{};
+
+		hs_score_to_char(app.high_scores.times[0], first);
+		hs_score_to_char(app.high_scores.times[1], second);
+		hs_score_to_char(app.high_scores.times[2], third);	
+		hs_score_to_char(app.high_scores.times[3], fourth);
+
 		info_pair_t high_scores[4] = {
-			{"1", "100s"},
-			{"2", "120s"},
-			{"3", "140s"},
-			{"4", "160s"}
+			{"1", first},
+			{"2", second},
+			{"3", third},
+			{"4", fourth}
 		};
 		render_infos(high_scores, 4);
 

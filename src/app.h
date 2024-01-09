@@ -39,6 +39,8 @@ struct application_t {
 
 	bool paused = false;
 
+	high_scores_t high_scores;	
+
 	time_count_t time_spent_in_levels = 0;
 
 	bool controller_state_changed = false;

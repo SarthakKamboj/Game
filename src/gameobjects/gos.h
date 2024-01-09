@@ -223,3 +223,10 @@ void update_parallax_bcks(camera_t& camera);
 
 struct application_t;
 void unload_level(application_t& app);
+
+struct high_scores_t {
+	time_count_t times[4]{-1, -1, -1, -1};
+};
+
+void init_high_scores(high_scores_t& hs);
+void update_high_scores(high_scores_t& hs, time_count_t new_time);
