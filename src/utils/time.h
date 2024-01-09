@@ -21,7 +21,12 @@ namespace utils {
         game_time_t end_time;
         time_count_t elapsed_time_sec;
         bool running = false;
+        char msg[256]{};
+
+        ~game_timer_t();
     };
+
+    void create_debug_timer(const char* msg, game_timer_t& debug_timer);
 
     /// <summary>
     /// Start the timer

@@ -23,25 +23,7 @@ bool level_finished = false;
 
 int main(int argc, char *argv[])
 {	 
-	// high_scores_t hs{};
-	high_scores_t* hs = new high_scores_t;
-	// {
-	// 	hash_t sha = hash("RedBlockBlue");
-	// 	// printf("%016x %016x %016x %016x", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
-	// 	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
-	// }
-
-	// {
-	// 	hash_t sha = hash("RedBlockBlue");
-	// 	printf("%0llx %0llx %0llx %0llx", sha.unsigned_double[0], sha.unsigned_double[1], sha.unsigned_double[2], sha.unsigned_double[3]);
-	// }
-
-	for (int i = 0; i < 4; i++) {
-		std::cout << hs->times[i] << std::endl;
-	}
-	// for (int i = 0; i < 4; i++) {
-	// 	std::cout << hs->times_init[i] << std::endl;
-	// }
+	
 	bool running_in_vs = false;
 	if (argc > 1) {
 		for (int i = 1; i < argc; i++) {

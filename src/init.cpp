@@ -17,6 +17,7 @@
 #include "utils/io.h"
 #include "input/input.h"
 #include "renderer/renderer.h"
+#include "utils/time.h"
 
 #include <filesystem>
 
@@ -583,11 +584,10 @@ void load_level(application_t& app, int level_num) {
 		return;
 	}
 
-	if (level_num == 1) {
+	if (app.scene_manager.cur_level != 1 && level_num == 1) {
 		app.time_spent_in_levels = 0;
 	}
 
-	// level_num = std::min(std::max(1, level_num), 4);
 	char json_file[512]{};
 	char img_file[512]{};
 	
@@ -603,25 +603,88 @@ void load_level(application_t& app, int level_num) {
 	std::cout << "loaded level " << level_num << std::endl;
 }
 
+using namespace utils;
 
 void init(application_t& app) {
-	init_sdl(app);	
-	input::init_controller(app);
-	init_high_scores(app.high_scores);
-	init_renderer(app);
-	init_audio();
+	game_timer_t init_debug_timer;
+	create_debug_timer("init", init_debug_timer);
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init sdl", debug_timer);
+		init_sdl(app);	
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init controller", debug_timer);
+		input::init_controller(app);
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_high_scores", debug_timer);
+		init_high_scores(app.high_scores);
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init renderer", debug_timer);
+		init_renderer(app);
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init audio", debug_timer);
+		init_audio();
+	}
     // initialize opengl data for a rectangle
-	init_quad_data();	
-	init_ui();
-	// make sure this is first so that backgrond quads get created first and are always rendered in the back
-	init_parallax_bck_data();
-	init_brick_data();
-	init_mc_data();
-	init_final_flag_data();
-	init_goomba_data();
-	init_ground_block_data();
-	set_num_levels();
-	load_level(app, MAIN_MENU_LEVEL);
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init quad data", debug_timer);
+		init_quad_data();	
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init ui", debug_timer);
+		init_ui();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_parallax_bck_data", debug_timer);
+		// make sure this is first so that backgrond quads get created first and are always rendered in the back
+		init_parallax_bck_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_brick_data", debug_timer);
+		init_brick_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_mc_data", debug_timer);
+		init_mc_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_final_flag_data", debug_timer);
+		init_final_flag_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_goomba_data", debug_timer);
+		init_goomba_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("init_ground_block_data", debug_timer);
+		init_ground_block_data();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("set num levels", debug_timer);
+		set_num_levels();
+	}
+	{
+		game_timer_t debug_timer;
+		create_debug_timer("load level", debug_timer);
+		load_level(app, MAIN_MENU_LEVEL);
+	}
 }
 
 void scene_manager_load_level(scene_manager_t& sm, int level_num) {
