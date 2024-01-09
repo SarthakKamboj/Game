@@ -106,11 +106,33 @@ void render_infos(info_pair_t* pairs, int num_pairs) {
 	end_container();
 }
 
-void init_renderer() {
+void init_renderer(application_t& app) {
 	for (int i = 0; i < ASPECT_RATIO::NUM_RATIOS; i++)	 {
 		aspect_ratio_t& aspect_ratio = aspect_ratios[i];
 		aspect_ratio.mode_index = get_mode_index(aspect_ratio.width, aspect_ratio.height);
+
+		if (aspect_ratio.ratio == ASPECT_RATIO::A_1600x900) {
+			SDL_DisplayMode mode{};
+			SDL_GetDisplayMode(0, aspect_ratio.mode_index, &mode);
+			int success = SDL_SetWindowDisplayMode(app.window, &mode);
+			if (success != 0) {
+				printf("ran into an issue with setting display mode index %i\n", aspect_ratio.mode_index);
+				const char* sdlError = SDL_GetError();
+				if (sdlError && sdlError[0] != '\0') {
+					std::cout << "SDL Error: " << sdlError << std::endl;
+					SDL_ClearError();
+				}	
+			}
+			SDL_SetWindowSize(app.window, app.window_width, app.window_width * (aspect_ratio.height / aspect_ratio.width));
+			const char* sdlError = SDL_GetError();
+			if (sdlError && sdlError[0] != '\0') {
+				printf("ran into an issue with setting window size after display mode\n");
+				std::cout << "SDL Error: " << sdlError << std::endl;
+				SDL_ClearError();
+			}
+		}
 	}
+	
 }
 
 int get_mode_index(float w, float h) {
@@ -384,7 +406,10 @@ void render(application_t& app) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = CREDITS_LEVEL;
 		}
-		create_text("RESET GAME");
+		if (create_button("HIGH SCORES")) {
+			app.scene_manager.queue_level_load = true;
+			app.scene_manager.level_to_load = HIGH_SCORES_LEVEL;
+		}
 		pop_style();
 
 		end_container();
@@ -578,6 +603,153 @@ void render(application_t& app) {
 			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
 		}
 		pop_style();
+
+		end_container();
+		pop_style();
+
+		end_panel();
+
+		autolayout_hierarchy();
+		render_ui();
+	}  else if (app.scene_manager.cur_level == HIGH_SCORES_LEVEL) {
+		start_of_frame();
+		
+		style_t panel_style;
+		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
+		panel_style.vertical_align_val = ALIGN::CENTER;
+		panel_style.horizontal_align_val = ALIGN::CENTER;
+		push_style(panel_style);
+		create_panel("main panel");
+		pop_style();
+
+		float main_section_height_percent = 0.85f;
+
+		style_t top_bar;
+		top_bar.background_color = DARK_BLUE;
+		top_bar.content_spacing = 0;
+		top_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
+		top_bar.horizontal_align_val = ALIGN::START;
+		top_bar.vertical_align_val = ALIGN::CENTER;
+		push_style(top_bar);
+		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
+
+		style_t options_btn_style;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+		options_btn_style.hover_color = WHITE;
+		options_btn_style.background_color = WHITE;
+		options_btn_style.color = DARK_BLUE;
+		options_btn_style.border_radius = 10.f;
+		options_btn_style.padding = glm::vec2(10);
+		options_btn_style.margin = glm::vec2(40, 0);
+		push_style(options_btn_style);
+		
+		bool back_pressed = false;
+		if (create_button("Back")) {
+			back_pressed = true;
+		}
+
+		if (back_pressed) {
+			app.scene_manager.queue_level_load = true;	
+			app.scene_manager.level_to_load = SETTINGS_LEVEL;
+		}
+		pop_style();
+
+		end_container();
+		pop_style();
+
+		style_t main_section_style;
+		main_section_style.background_color = WHITE;
+		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
+		main_section_style.horizontal_align_val = ALIGN::CENTER;
+		main_section_style.vertical_align_val = ALIGN::CENTER;
+		push_style(main_section_style);
+		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+
+		style_t dark_text_style;
+		dark_text_style.color = DARK_BLUE;
+  		dark_text_style.margin.y = 10;
+
+		push_style(dark_text_style);
+		create_text("High Scores", TEXT_SIZE::TITLE);
+		pop_style();
+
+		info_pair_t high_scores[4] = {
+			{"1", "100s"},
+			{"2", "120s"},
+			{"3", "140s"},
+			{"4", "160s"}
+		};
+		render_infos(high_scores, 4);
+
+		end_container();
+		pop_style();
+
+		end_panel();
+
+		autolayout_hierarchy();
+		render_ui();	
+	} else if (app.scene_manager.cur_level == GAME_OVER_SCREEN_LEVEL) {
+			
+		start_of_frame();
+		
+		style_t panel_style;
+		panel_style.display_dir = DISPLAY_DIR::VERTICAL;
+		panel_style.vertical_align_val = ALIGN::CENTER;
+		panel_style.horizontal_align_val = ALIGN::CENTER;
+		push_style(panel_style);
+		create_panel("main panel");
+		pop_style();
+
+		float main_section_height_percent = 0.85f;
+
+		style_t main_section_style;
+		main_section_style.background_color = WHITE;
+		main_section_style.content_spacing = 30;
+		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
+		main_section_style.horizontal_align_val = ALIGN::CENTER;
+		main_section_style.vertical_align_val = ALIGN::CENTER;
+		push_style(main_section_style);
+		create_container(1.f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+
+		style_t text_style;
+		text_style.color = DARK_BLUE;
+		push_style(text_style);
+		create_text("GAME OVER", TEXT_SIZE::TITLE);
+		create_text("THANK YOU FOR PLAYING!");
+		pop_style();
+
+		end_container();
+		pop_style();
+
+		style_t bottom_bar;
+		bottom_bar.background_color = DARK_BLUE;
+		bottom_bar.content_spacing = 0;
+		bottom_bar.display_dir = DISPLAY_DIR::HORIZONTAL;
+		bottom_bar.horizontal_align_val = ALIGN::END;
+		bottom_bar.vertical_align_val = ALIGN::CENTER;
+		push_style(bottom_bar);
+		create_container(1.f, 1.f - main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "bottom bar");
+
+		style_t options_btn_style;
+		options_btn_style.background_color = WHITE;
+		options_btn_style.hover_background_color = DARK_BLUE + glm::vec3(0.1f);
+		options_btn_style.color = DARK_BLUE;
+		options_btn_style.hover_color = WHITE;
+		options_btn_style.border_radius = 10.f;
+		options_btn_style.padding = glm::vec2(10);
+		options_btn_style.margin = glm::vec2(40, 0);
+		push_style(options_btn_style);
+		
+		bool go_to_main_menu = false;
+		if (create_button("Continue")) {
+			go_to_main_menu = true;
+		}
+		pop_style();
+
+		if (go_to_main_menu) {
+			app.scene_manager.queue_level_load = true;
+			app.scene_manager.level_to_load = MAIN_MENU_LEVEL;
+		}
 
 		end_container();
 		pop_style();
@@ -808,9 +980,32 @@ void render(application_t& app) {
 
 			autolayout_hierarchy();
 			render_ui();	
-		} else {
+		} else {	
 			// regular stuff
 			draw_quad_renders(app);
+
+			start_of_frame();
+
+			style_t panel_style;
+			panel_style.display_dir = DISPLAY_DIR::VERTICAL;
+			panel_style.vertical_align_val = ALIGN::START;
+			panel_style.horizontal_align_val = ALIGN::START;
+			push_style(panel_style);
+			create_panel("main panel");
+			pop_style();
+
+			char timer_buf[128]{};
+			sprintf(timer_buf, "time: %.3fs", app.time_spent_in_levels);
+			style_t text_style;
+			text_style.margin = glm::vec2(20.f);
+			push_style(text_style);
+			create_text(timer_buf);
+			pop_style();
+
+			end_panel();
+
+			autolayout_hierarchy();
+			render_ui();	
 		}
 	}
 

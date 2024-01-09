@@ -1158,7 +1158,7 @@ void init_ui() {
             }
 
             font_char_t font_char;
-            font_char.c = c;
+            font_char.c = c; 
             if (c == ' ') {
                 font_char.width = 10;
                 font_char.advance = font_char.width;
@@ -1169,6 +1169,9 @@ void init_ui() {
             } else {
                 font_char.width = face->glyph->bitmap.width;
                 font_char.advance = font_char.width * 1.025f;
+				if (c == '.') {
+                    font_char.advance = font_char.width * 2.f;
+				}
                 font_char.height = face->glyph->bitmap.rows;
                 font_char.bearing.x = face->glyph->bitmap_left;
                 font_char.bearing.y = face->glyph->bitmap_top;

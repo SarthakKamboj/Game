@@ -569,11 +569,21 @@ void load_level(application_t& app, int level_num) {
 		app.scene_manager.cur_level = CREDITS_LEVEL;
 		std::cout << "credits" << std::endl;
 		return;
+	} else if (level_num == HIGH_SCORES_LEVEL) {
+		app.scene_manager.cur_level = HIGH_SCORES_LEVEL;
+		std::cout << "high score level" << std::endl;
+		return;
 	} else if (level_num >= num_levels + 1) {
+		// update high score stuff
 		app.scene_manager.cur_level = GAME_OVER_SCREEN_LEVEL;
 		resume_bck_sound();
 		std::cout << "loaded game over" << std::endl;
+		printf("that run took %f s", app.time_spent_in_levels);
 		return;
+	}
+
+	if (level_num == 1) {
+		app.time_spent_in_levels = 0;
 	}
 
 	// level_num = std::min(std::max(1, level_num), 4);
@@ -596,7 +606,7 @@ void load_level(application_t& app, int level_num) {
 void init(application_t& app) {
 	init_sdl(app);	
 	input::init_controller(app);
-	init_renderer();
+	init_renderer(app);
 	init_audio();
     // initialize opengl data for a rectangle
 	init_quad_data();	

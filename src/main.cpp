@@ -66,21 +66,7 @@ int main(int argc, char *argv[])
 
 		input::process_input(app, input_state);
 
-		// static bool pause = true;
-		// if (input_state.left_clicked) {
-		// 	if (pause) {
-		// 		pause_bck_sound();
-		// 	} else {
-		// 		resume_bck_sound();
-		// 	}
-		// 	pause = !pause;
-		// }
-
 		app.running = !input_state.quit;
-
-		// if (input_state.p_pressed) {
-		// 	paused = !paused;
-		// }
 
 		world::update(app);
 		render(app);

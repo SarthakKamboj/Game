@@ -26,6 +26,7 @@
 #define SETTINGS_LEVEL 1025
 #define QUIT_LEVEL 1026
 #define CREDITS_LEVEL 1027
+#define HIGH_SCORES_LEVEL 1028
 
 // #define game_assert(exp) if ((exp) == false) std::cout << "on line " << __LINE__ << " in file " << __FILE__ << " the game_assert failed" << std::endl;
 #define game_assert(exp) assert(exp)

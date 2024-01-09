@@ -39,6 +39,8 @@ struct application_t {
 
 	bool paused = false;
 
+	time_count_t time_spent_in_levels = 0;
+
 	bool controller_state_changed = false;
 	SDL_GameController* game_controller = NULL;
 };

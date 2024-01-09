@@ -21,6 +21,8 @@ namespace world {
         if (app.scene_manager.cur_level <= MAIN_MENU_LEVEL || app.scene_manager.cur_level >= GAME_OVER_SCREEN_LEVEL) return;
         if (app.paused) return;
 
+        app.time_spent_in_levels += platformer::time_t::delta_time;
+
         update_parallax_bcks(app.camera);
 
         update_rigidbodies();
