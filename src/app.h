@@ -45,6 +45,9 @@ struct application_t {
 
 	bool controller_state_changed = false;
 	SDL_GameController* game_controller = NULL;
+
+	int controller_img = -1;
+	int keyboard_img = -1;
 };
 
 /// <summary>

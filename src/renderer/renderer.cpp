@@ -322,7 +322,7 @@ void render(application_t& app) {
 		main_section_style.display_dir = DISPLAY_DIR::VERTICAL;
 		main_section_style.horizontal_align_val = ALIGN::CENTER;
 		main_section_style.vertical_align_val = ALIGN::CENTER;
-		main_section_style.content_spacing = 50;
+		main_section_style.content_spacing = 25;
 		push_style(main_section_style);
 		create_container(0.9f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
 		pop_style();
@@ -340,7 +340,7 @@ void render(application_t& app) {
 		col_style.display_dir = DISPLAY_DIR::VERTICAL;
 		col_style.horizontal_align_val = ALIGN::START;
 		col_style.vertical_align_val = ALIGN::SPACE_BETWEEN;
-		col_style.content_spacing = 30;
+		col_style.content_spacing = 15;
 		push_style(col_style);
 		create_container(0.f, 0.f, WIDGET_SIZE::FIT_CONTENT, WIDGET_SIZE::FIT_CONTENT, "left column text");
 		pop_style();
@@ -498,6 +498,23 @@ void render(application_t& app) {
 			settings_changed = settings_changed_t();
 		}
 		pop_style();
+
+		style_t container_style;
+		container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+		container_style.vertical_align_val = ALIGN::START;
+		container_style.horizontal_align_val = ALIGN::CENTER;
+		container_style.content_spacing = 10;
+		push_style(container_style);
+		create_container(1.f, 0.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "controls");	
+		pop_style();
+		
+		texture_t* t = get_tex(app.keyboard_img);
+		float height = app.window_height * 0.3f;
+		float width = height * static_cast<float>(t->width) / static_cast<float>(t->height);
+		create_image_container(app.controller_img, width, height, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "controller image");
+		create_image_container(app.keyboard_img, width, height, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "keyboard image");
+
+		end_container();
 
 		end_container();
 
@@ -954,7 +971,7 @@ void render(application_t& app) {
 			create_panel("main panel");
 			pop_style();
 
-			float main_section_height_percent = 0.85f;
+			float main_section_height_percent = 0.9f;
 
 			style_t main_section_style;
 			main_section_style.background_color = WHITE;
@@ -983,6 +1000,23 @@ void render(application_t& app) {
 				clear_sounds();
 			}
 			pop_style();
+
+			style_t container_style;
+			container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
+			container_style.vertical_align_val = ALIGN::START;
+			container_style.horizontal_align_val = ALIGN::CENTER;
+			container_style.content_spacing = 10;
+			push_style(container_style);
+			create_container(1.f, 0.f, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::FIT_CONTENT, "controls");	
+			pop_style();
+			
+			float width = app.window_width * 0.4f;
+			texture_t* t = get_tex(app.keyboard_img);
+			float height = width * static_cast<float>(t->height) / static_cast<float>(t->width);
+			create_image_container(app.controller_img, width, height, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "controller image");
+			create_image_container(app.keyboard_img, width, height, WIDGET_SIZE::PIXEL_BASED, WIDGET_SIZE::PIXEL_BASED, "keyboard image");
+
+			end_container();
 
 			end_container();
 			pop_style();
@@ -1018,7 +1052,7 @@ void render(application_t& app) {
 			text_style.margin = glm::vec2(20.f);
 			push_style(text_style);
 			create_text(timer_buf);
-			pop_style();
+			pop_style();	
 
 			end_panel();
 

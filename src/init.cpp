@@ -685,6 +685,16 @@ void init(application_t& app) {
 		create_debug_timer("load level", debug_timer);
 		load_level(app, MAIN_MENU_LEVEL);
 	}
+
+	char resource_path[256]{};
+	io::get_resources_folder_path(resource_path);
+	char img_path[256]{};
+	sprintf(img_path, "%s\\%s\\controls\\controller.png", resource_path, ART_FOLDER);
+	app.controller_img = create_texture(img_path, 1);
+
+	memset(img_path, 0, 256);
+	sprintf(img_path, "%s\\%s\\controls\\keyboard.png", resource_path, ART_FOLDER);
+	app.keyboard_img = create_texture(img_path, 1);
 }
 
 void scene_manager_load_level(scene_manager_t& sm, int level_num) {
