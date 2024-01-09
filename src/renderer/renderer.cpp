@@ -143,10 +143,10 @@ int get_mode_index(float w, float h) {
 		if (SDL_GetDisplayMode(0, i, &display_mode) != 0) {
 			SDL_Log("SDL_GetDisplayMode failed: %s", SDL_GetError());
 		}
-		SDL_Log("Mode %i\tname: %s\t%i x %i and ratio is %f",
-				i,
-				SDL_GetPixelFormatName(display_mode.format),
-				display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
+		// SDL_Log("Mode %i\tname: %s\t%i x %i and ratio is %f",
+		// 		i,
+		// 		SDL_GetPixelFormatName(display_mode.format),
+		// 		display_mode.w, display_mode.h, static_cast<float>(display_mode.w) / display_mode.h);
 		
 		float display_ratio = static_cast<float>(display_mode.w) / display_mode.h;
 		if (floor(display_ratio * 1000) == floor(ratio * 1000)) {
