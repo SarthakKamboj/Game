@@ -364,7 +364,7 @@ void render(application_t& app) {
 			options[i] = aspect_ratios[i].str;
 		}
 
-		if (create_selector(selected_option, options, ASPECT_RATIO::NUM_RATIOS, 200.f, 20.f, selected_option)) {
+		if (create_selector(selected_option, options, ASPECT_RATIO::NUM_RATIOS, 200.f, 20.f, selected_option, "aspect_ratio_selector")) {
 			aspect_ratio_t& ratio = aspect_ratios[selected_option];
 			float cur_ratio = app.window_width / app.window_height;
 			float selected_ratio = ratio.width / ratio.height;

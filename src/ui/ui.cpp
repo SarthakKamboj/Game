@@ -422,7 +422,7 @@ void create_image_container(int texture_handle, float width, float height, WIDGE
     register_widget(widget, img_name);
 }
 
-bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option) {
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary) {
     style_t container_style;
     container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
     container_style.horizontal_align_val = ALIGN::SPACE_BETWEEN;
@@ -461,7 +461,9 @@ bool create_selector(int selected_option, const char** options, int num_options,
     }
     pop_style();
 
-    create_text(options[selected_option]);
+    char text_buffer[256]{};
+    sprintf(text_buffer, "%s###%s", options[selected_option], selector_summary);
+    create_text(text_buffer);
 
     bool can_go_right = selected_option <= num_options - 2;
     if (can_go_right) {
@@ -484,9 +486,18 @@ bool create_selector(int selected_option, const char** options, int num_options,
 }
 
 void create_text(const char* text, TEXT_SIZE text_size, bool focusable) {
+
+    const char* key = text;
+    int text_len = strlen(text);
+    const char* triple_hash = strstr(text, "###");
+    if (triple_hash != NULL) {
+        key = triple_hash + 3;
+        text_len = triple_hash - text;
+    }
+
     widget_t widget;
     widget.text_based = true;
-    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), strlen(text)));
+    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), text_len));
     widget.text_info.text_size = text_size;
 
     if (focusable) {
@@ -506,13 +517,22 @@ void create_text(const char* text, TEXT_SIZE text_size, bool focusable) {
     widget.render_width = widget.width;
     widget.render_height = widget.height;
 
-    register_widget(widget, text);
+    register_widget(widget, key);
 }
 
 bool create_button(const char* text, TEXT_SIZE text_size) {
+
+    const char* key = text;
+    int text_len = strlen(text);
+    const char* triple_hash = strstr(text, "###");
+    if (triple_hash != NULL) {
+        key = triple_hash + 3;
+        text_len = triple_hash - text;
+    }
+
     widget_t widget;
     widget.text_based = true;
-    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), strlen(text)));
+    memcpy(widget.text_info.text, text, fmin(sizeof(widget.text_info.text), text_len));
     widget.text_info.text_size = text_size;
 
     text_dim_t text_dim = get_text_dimensions(text, text_size);
@@ -529,7 +549,7 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
 
     widget.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_CLICKABLE | UI_PROPERTIES::UI_PROP_FOCUSABLE);
 
-    int widget_handle = register_widget(widget, text);
+    int widget_handle = register_widget(widget, key);
 
     if (!ui_will_update) {
         auto& prev_arr = *prevframe_widget_arr;

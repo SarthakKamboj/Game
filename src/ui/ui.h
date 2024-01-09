@@ -135,7 +135,7 @@ struct image_container_t {
 };
 void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* img_name);
 
-bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option);
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary);
 
 struct widget_t {
     int handle = -1;
