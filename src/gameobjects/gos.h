@@ -193,7 +193,7 @@ struct final_flag_t {
 	static int tex_handle;
 	glm::vec3 color;
 	static const int WIDTH = GAME_GRID_SIZE;
-	static const int HEIGHT = 500;
+	static const int HEIGHT = 800;
 	static const int RENDER_WIDTH = 30;
 	static const int RENDER_HEIGHT = RENDER_WIDTH * 2;
 	static glm::vec3 FINAL_FLAG_COLOR;

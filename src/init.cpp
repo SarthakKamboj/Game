@@ -545,7 +545,6 @@ void set_num_levels() {
 	for (auto& level_folder : fs::directory_iterator(levels_folder_full_path)) {
 		num_levels++;
 	}
-	num_levels = 1;
 }
 
 // extern bool ui_updated;
