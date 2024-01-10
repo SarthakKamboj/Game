@@ -38,11 +38,6 @@ void unload_level(application_t& app) {
 		delete_rigidbody(goomba.rigidbody_handle);
 		delete_quad_render(goomba.rec_render_handle);
 		delete_transform(goomba.transform_handle);
-		// bool deleted = delete_goomba_by_kin_handle(goomba.rigidbody_handle);
-		// if (!deleted) {
-		// 	int a = 10;
-		// 	bool deleted = delete_goomba_by_kin_handle(goomba.rigidbody_handle);
-		// }
 	}
 	goombas.clear();
 	goomba_turn_pts.clear();
