@@ -265,6 +265,7 @@ void start_of_frame() {
     if (!app.game_controller) {
         cur_focused_internal_handle = -1;
         cur_final_focused_handle = -1;
+        stack_nav_cur = false;
     }
 
     glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
@@ -700,12 +701,16 @@ void end_imgui() {
         up_move = true;
     } 
 
+    if (ui_will_update) {
+        stack_nav_cur = false;   
+    }
+
     if (!stack_nav_cur) {
-        if (right_move) {
+        if (right_move || down_move) {
             traverse_to_right_focusable();
         }
 
-        if (left_move) {
+        if (left_move || up_move) {
             traverse_to_left_focusable();
         }
     }
@@ -1215,6 +1220,13 @@ void render_ui() {
         cur_final_focused_handle = -1;
         stack_nav_cur = false;
     }
+
+    // if (app.controller_state_changed) {
+    //     if (!app.game_controller) {
+    //         stack_nav_cur = false;
+    //         cur_focused_internal_handle = cur_final_focused_handle;
+    //     }
+    // }
 
     auto& cur_arr = *curframe_widget_arr;
     for (widget_t& widget : cur_arr) {
