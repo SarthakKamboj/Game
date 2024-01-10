@@ -36,9 +36,12 @@ function(configure_game)
         src/ui/ui.cpp
         src/audio/audio.cpp
         src/main.cpp
+
+        resources/ico.rc
     )
 
     add_executable(${PROJECT_NAME} 
+        WIN32
         ${FILES}
     )
 
