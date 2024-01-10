@@ -15,6 +15,7 @@
 #define DARK_BLUE glm::vec3(.003f, 0.1137f, 0.17647f)
 #define SELECTED glm::vec3(.003f, 0.0537f, 0.085647f)
 #define GREY glm::vec3(0.6274f,0.6274f,0.6274f)
+#define LIGHT_GREY glm::vec3(0.8774f,0.8774f,0.8774f)
 #define WHITE glm::vec3(1, 1, 1)
 
 // ui will be rendered immediate mode
@@ -126,7 +127,7 @@ struct text_t {
     TEXT_SIZE text_size = TEXT_SIZE::REGULAR;
 };
 void create_text(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR, bool focusable = false);
-bool create_button(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR);
+bool create_button(const char* text, TEXT_SIZE text_size = TEXT_SIZE::REGULAR, int user_handle = -1);
 
 struct image_container_t {
     int texture_handle = -1;
@@ -135,7 +136,9 @@ struct image_container_t {
 };
 void create_image_container(int texture_handle, float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* img_name);
 
-bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary);
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary, int left_arrow_user_handle, int right_arrow_user_handle);
+
+typedef int(*stacked_nav_handler_func_t)(bool right, bool left, bool up, bool down);
 
 struct widget_t {
     int handle = -1;
@@ -173,6 +176,11 @@ struct widget_t {
     float content_width = -1.f;
     float content_height = -1.f;
 
+    // extra info for stacked navigation
+    bool stacked_navigation = false;
+    stacked_nav_handler_func_t stack_nav_handler_func = NULL;
+    int user_handle = -1;
+
 };
 
 void start_of_frame();
@@ -184,13 +192,12 @@ void traverse_to_left_focusable();
 void push_style(style_t& style);
 void pop_style();
 
-void push_widget(int widget_handle);
 void pop_widget();
 
 void create_panel(const char* panel_name);
 void end_panel();
 
-void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name);
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name, bool focusable = false, stacked_nav_handler_func_t func = NULL);
 void end_container();
 
 int register_widget(widget_t& widget, const char* key, bool push_onto_stack = false);

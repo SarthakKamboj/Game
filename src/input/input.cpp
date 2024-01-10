@@ -49,7 +49,7 @@ namespace input {
 
 		if (app.game_controller) {
 			user_input.controller_x_axis = SDL_GameControllerGetAxis(app.game_controller, SDL_CONTROLLER_AXIS_LEFTX) / 32768.f;
-			user_input.controller_y_axis = SDL_GameControllerGetAxis(app.game_controller, SDL_CONTROLLER_AXIS_LEFTY) / 32768.f;
+			user_input.controller_y_axis = SDL_GameControllerGetAxis(app.game_controller, SDL_CONTROLLER_AXIS_LEFTY) / -32768.f;
 		}
 
 		SDL_Event event;

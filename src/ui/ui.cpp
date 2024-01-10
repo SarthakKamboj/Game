@@ -17,7 +17,9 @@
 extern input::user_input_t input_state;
 extern application_t app;
 
-static int cur_focused_handle = -1;
+static int cur_focused_internal_handle = -1;
+static int cur_final_focused_handle = -1;
+static bool stack_nav_cur = false;
 
 static int cur_widget_count = 0;
 
@@ -29,6 +31,7 @@ static std::vector<widget_t> widgets_arr2;
 
 static std::vector<int>* curframe_widget_stack = &widget_stack2;
 static std::vector<widget_t>* curframe_widget_arr = &widgets_arr2;
+static bool stacked_nav_widget_in_stack = false;
 
 static std::vector<int>* prevframe_widget_stack = &widget_stack1;
 static std::vector<widget_t>* prevframe_widget_arr = &widgets_arr1;
@@ -260,7 +263,8 @@ glm::vec3 create_color(float r, float g, float b) {
 void start_of_frame() {
 
     if (!app.game_controller) {
-        cur_focused_handle = -1;
+        cur_focused_internal_handle = -1;
+        cur_final_focused_handle = -1;
     }
 
     glm::mat4 projection = glm::ortho(0.0f, app.window_width, 0.0f, app.window_height);
@@ -308,14 +312,13 @@ void pop_style() {
     styles_stack.pop_back();
 }
 
-void push_widget(int widget_handle) {
-    curframe_widget_stack->push_back(widget_handle);
-}
-
 void pop_widget() {
     if (curframe_widget_stack->size() > 0) {
         auto& arr = *curframe_widget_arr;
         auto& stack = *curframe_widget_stack;
+        if (arr[stack[stack.size()-1]].stacked_navigation) {
+            stacked_nav_widget_in_stack = false;
+        }
         stack.pop_back();
     }
 }
@@ -355,9 +358,13 @@ int register_widget(widget_t& widget, const char* key, bool push_onto_stack) {
         arr[widget.parent_widget_handle].children_widget_handles.push_back(widget.handle);
     }
     widget.style = styles_stack[styles_stack.size() - 1];
+
     arr.push_back(widget);
     if (push_onto_stack) {
         stack.push_back(widget.handle);
+        if (widget.stacked_navigation) {
+            stacked_nav_widget_in_stack = true;
+        }
     }
     return widget.handle;
 }
@@ -387,13 +394,19 @@ void end_panel() {
 }
 
 // void create_container(float width, float height, WIDGET_SIZE widget_size) {
-void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name) {
+void create_container(float width, float height, WIDGET_SIZE widget_size_width, WIDGET_SIZE widget_size_height, const char* container_name, bool focusable, stacked_nav_handler_func_t func) {
     widget_t container;
     memcpy(container.key, container_name, strlen(container_name));
     container.height = height;
     container.width = width;
     container.widget_size_width = widget_size_width;
     container.widget_size_height = widget_size_height;
+
+    if (focusable) {
+        container.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_FOCUSABLE);
+        container.stacked_navigation = true;
+        container.stack_nav_handler_func = func;
+    }
 
     register_widget(container, container_name, true); 
 }
@@ -422,7 +435,7 @@ void create_image_container(int texture_handle, float width, float height, WIDGE
     register_widget(widget, img_name);
 }
 
-bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary) {
+bool create_selector(int selected_option, const char** options, int num_options, float width, float height, int& updated_selected_option, const char* selector_summary, int left_arrow_user_handle, int right_arrow_user_handle) {
     style_t container_style;
     container_style.display_dir = DISPLAY_DIR::HORIZONTAL;
     container_style.horizontal_align_val = ALIGN::SPACE_BETWEEN;
@@ -440,7 +453,7 @@ bool create_selector(int selected_option, const char** options, int num_options,
     enabled.padding = glm::vec2(10);
     
     style_t disabled;
-	enabled.hover_background_color = DARK_BLUE;
+	disabled.hover_background_color = LIGHT_GREY;
     disabled.color = GREY;
     disabled.padding = glm::vec2(10);
     
@@ -451,13 +464,11 @@ bool create_selector(int selected_option, const char** options, int num_options,
         push_style(disabled);
     }
     
-    if (can_go_left) {
-        if (create_button("<")) {
+    if (create_button("<", TEXT_SIZE::REGULAR, left_arrow_user_handle)) {
+        if (can_go_left) {
             updated_selected_option = selected_option - 1;
             changed = true;
         }
-    } else {
-        create_text("<");
     }
     pop_style();
 
@@ -471,13 +482,11 @@ bool create_selector(int selected_option, const char** options, int num_options,
     } else {
         push_style(disabled);
     }
-    if (can_go_right) {
-        if (create_button(">")) {
+    if (create_button(">", TEXT_SIZE::REGULAR, right_arrow_user_handle)) {
+        if (can_go_right) {
             updated_selected_option = selected_option + 1;
             changed = true;
         }
-    } else {
-        create_text(">");
     }
     pop_style();
     
@@ -520,7 +529,7 @@ void create_text(const char* text, TEXT_SIZE text_size, bool focusable) {
     register_widget(widget, key);
 }
 
-bool create_button(const char* text, TEXT_SIZE text_size) {
+bool create_button(const char* text, TEXT_SIZE text_size, int user_handle) {
 
     const char* key = text;
     int text_len = strlen(text);
@@ -541,13 +550,18 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
     widget.widget_size_height = WIDGET_SIZE::PIXEL_BASED;
     style_t& latest_style = styles_stack[styles_stack.size() - 1];
     widget.width = text_dim.width + (2 * latest_style.padding.x);
-    // widget.height = text_dim.height + (2 * latest_style.padding.y);
     widget.height = text_dim.max_height_above_baseline + (2 * latest_style.padding.y);
 
     widget.render_width = widget.width;
     widget.render_height = widget.height;
 
-    widget.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_CLICKABLE | UI_PROPERTIES::UI_PROP_FOCUSABLE);
+    widget.properties = static_cast<UI_PROPERTIES>(UI_PROPERTIES::UI_PROP_CLICKABLE);
+    auto& stack = *curframe_widget_stack;
+    if (stacked_nav_widget_in_stack) {
+        widget.user_handle = user_handle;
+    } else {
+        widget.properties = static_cast<UI_PROPERTIES>(widget.properties | UI_PROPERTIES::UI_PROP_FOCUSABLE);
+    }
 
     int widget_handle = register_widget(widget, key);
 
@@ -565,14 +579,14 @@ bool create_button(const char* text, TEXT_SIZE text_size) {
                 input_state.y_pos >= (cached_widget.y - cached_widget.render_height - cached_widget.style.margin.y);
 
         if (mouse_over_widget && !app.game_controller) {
-            cur_focused_handle = widget_handle;
+            cur_focused_internal_handle = widget_handle;
         }
 
         if (mouse_over_widget && input_state.left_clicked) {
             return true;
         }
 
-        if (widget_handle == cur_focused_handle && (input_state.enter_pressed || input_state.controller_a_pressed)) {
+        if (widget_handle == cur_final_focused_handle && (input_state.enter_pressed || input_state.controller_a_pressed)) {
             return true;
         }
 
@@ -591,8 +605,9 @@ bool traverse_to_right_focusable_helper(int widget_handle, bool focus_from_cur) 
         if (refocused) return true;
     }
     if (widget.properties & UI_PROPERTIES::UI_PROP_FOCUSABLE) {
-        if (!focus_from_cur || (focus_from_cur && cur_focused_handle < widget.handle)) {
-            cur_focused_handle = widget_handle;
+        if (!focus_from_cur || (focus_from_cur && cur_focused_internal_handle < widget.handle)) {
+            cur_focused_internal_handle = widget_handle;
+            stack_nav_cur = widget.stacked_navigation;
             // widget.properties = static_cast<UI_PROPERTIES>(widget.properties | UI_PROPERTIES::UI_PROP_CURRENTLY_FOCUSED);
             printf("focused on %s\n", widget.key);
             return true;
@@ -615,8 +630,9 @@ bool traverse_to_left_focusable_helper(int widget_handle, bool focus_from_cur) {
         if (refocused) return true;
     }
     if (widget.properties & UI_PROPERTIES::UI_PROP_FOCUSABLE) {
-        if (!focus_from_cur || (focus_from_cur && cur_focused_handle > widget.handle)) {
-            cur_focused_handle = widget_handle;
+        if (!focus_from_cur || (focus_from_cur && cur_focused_internal_handle > widget.handle)) {
+            cur_focused_internal_handle = widget_handle;
+            stack_nav_cur = widget.stacked_navigation;
             // widget.properties = static_cast<UI_PROPERTIES>(widget.properties | UI_PROPERTIES::UI_PROP_CURRENTLY_FOCUSED);
             printf("focused on %s\n", widget.key);
             return true;
@@ -630,30 +646,92 @@ void traverse_to_left_focusable() {
     if (!refocused) traverse_to_left_focusable_helper(0, false);
 }
 
+void update_custom_stack_nav(bool right_move, bool left_move, bool up_move, bool down_move) {
+    auto& arr = *curframe_widget_arr;
+    widget_t& widget = arr[cur_focused_internal_handle];
+    int focused_user_handle = widget.stack_nav_handler_func(right_move, left_move, up_move, down_move);
+    if (focused_user_handle == -1) {
+        stack_nav_cur = false;
+    } else {
+        for (widget_t& widget : arr) {
+            if (widget.user_handle == focused_user_handle) {
+                cur_final_focused_handle = widget.handle;
+            }
+        }
+    }
+}
+
 void end_imgui() {
-    static bool controller_centered = true;
-    controller_centered = controller_centered || fabs(input_state.controller_x_axis) <= 0.4f;
+    static bool controller_centered_x = true;
+    static bool controller_centered_y = true;
+    controller_centered_x = controller_centered_x || fabs(input_state.controller_x_axis) <= 0.4f;
+    controller_centered_y = controller_centered_y || fabs(input_state.controller_y_axis) <= 0.4f;
+
     bool right_move = false;
-    if (controller_centered && input_state.controller_x_axis >= 0.9f) {
+    bool left_move = false;
+    bool up_move = false;
+    bool down_move = false;
+
+    if (controller_centered_x && input_state.controller_x_axis >= 0.9f) {
         right_move = true;
-        controller_centered = false;
+        controller_centered_x = false;
     } else if (input_state.d_pressed) {
         right_move = true;
     }
-    if (right_move) {
-        traverse_to_right_focusable();
-    }
 
-    bool left_move = false;
-    if (controller_centered && input_state.controller_x_axis <= -0.9f) {
+    if (controller_centered_x && input_state.controller_x_axis <= -0.9f) {
         left_move = true;
-        controller_centered = false;
+        controller_centered_x = false;
     } else if (input_state.a_pressed) {
         left_move = true;
     }
-    if (left_move) {
-        traverse_to_left_focusable();
+
+    if (controller_centered_y && input_state.controller_y_axis <= -0.9f) {
+        down_move = true;
+        controller_centered_y = false;
+    } else if (input_state.s_pressed) {
+        down_move = true;
     }
+
+    if (controller_centered_y && input_state.controller_y_axis >= 0.9f) {
+        up_move = true;
+        controller_centered_y = false;
+    } else if (input_state.w_pressed) {
+        up_move = true;
+    } 
+
+    if (!stack_nav_cur) {
+        if (right_move) {
+            traverse_to_right_focusable();
+        }
+
+        if (left_move) {
+            traverse_to_left_focusable();
+        }
+    }
+
+    if (stack_nav_cur) {
+        update_custom_stack_nav(right_move, left_move, up_move, down_move);
+
+        if (!stack_nav_cur) {
+            if (right_move || down_move) {
+                traverse_to_right_focusable();
+            }
+        
+            if (left_move || up_move) {
+                traverse_to_left_focusable();
+            }
+
+            if (stack_nav_cur) {
+                update_custom_stack_nav(right_move, left_move, up_move, down_move);
+            } else {
+                cur_final_focused_handle = cur_focused_internal_handle;
+            }
+        }
+
+    } else { 
+        cur_final_focused_handle = cur_focused_internal_handle;
+    } 
 }
 
 struct helper_info_t {
@@ -1099,7 +1177,7 @@ void render_ui_helper(widget_t& widget) {
 
     // glm::vec
 
-    if (widget.handle == cur_focused_handle) {
+    if (widget.handle == cur_final_focused_handle) {
         if (widget.style.hover_background_color != TRANSPARENT_COLOR) {
             widget.style.background_color = widget.style.hover_background_color;
         }
@@ -1133,7 +1211,9 @@ void render_ui_helper(widget_t& widget) {
 void render_ui() {  
 
     if (ui_will_update) {
-        cur_focused_handle = -1;
+        cur_focused_internal_handle = -1;
+        cur_final_focused_handle = -1;
+        stack_nav_cur = false;
     }
 
     auto& cur_arr = *curframe_widget_arr;

@@ -164,6 +164,56 @@ void hs_score_to_char(float in, char* out) {
 	}
 }
 
+/*
+
+0 1 	2
+3		4
+5		6
+    7
+*/
+
+int settings_options_nav(bool right, bool left, bool up, bool down) {
+	static int cur_handle = -1;
+
+	if (right) {
+		if (cur_handle == -1) {
+			cur_handle = 0;
+		} else if (cur_handle == 7) {
+			cur_handle = -1;
+		} else {
+			cur_handle++;
+		}
+	} else if (left) {
+		if (cur_handle == -1) {
+			cur_handle = 7;
+		} else if (cur_handle == 0) {
+			cur_handle = -1;
+		} else {
+			cur_handle--;
+		}
+	} else if (up) {
+		if (cur_handle == -1) {
+			cur_handle = 7;
+		} else if (cur_handle == 0 || cur_handle == 1 || cur_handle == 2) {
+			cur_handle = -1;
+		} else {
+			cur_handle -= 2;
+		}
+	} else if (down) {
+		if (cur_handle == -1) {
+			cur_handle = 0;
+		} else if (cur_handle == 7) {
+			cur_handle = -1;
+		} else if (cur_handle == 0) {
+			cur_handle = 3;
+		} else {
+			cur_handle = fmin(cur_handle + 2, 7);
+		}
+	}
+
+	return cur_handle;
+}
+
 void render(application_t& app) {
 	glClearColor(0.f, 0.f, 0.f, 1.f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);		
@@ -324,7 +374,7 @@ void render(application_t& app) {
 		main_section_style.vertical_align_val = ALIGN::CENTER;
 		main_section_style.content_spacing = 25;
 		push_style(main_section_style);
-		create_container(0.9f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section");
+		create_container(0.9f, main_section_height_percent, WIDGET_SIZE::PARENT_PERCENT_BASED, WIDGET_SIZE::PARENT_PERCENT_BASED, "main section", app.game_controller != NULL, settings_options_nav);
 		pop_style();
 
 		style_t options_sections_style;
@@ -364,7 +414,7 @@ void render(application_t& app) {
 			options[i] = aspect_ratios[i].str;
 		}
 
-		if (create_selector(selected_option, options, ASPECT_RATIO::NUM_RATIOS, 200.f, 20.f, selected_option, "aspect_ratio_selector")) {
+		if (create_selector(selected_option, options, ASPECT_RATIO::NUM_RATIOS, 200.f, 20.f, selected_option, "aspect_ratio_selector", 0, 1)) {
 			aspect_ratio_t& ratio = aspect_ratios[selected_option];
 			float cur_ratio = app.window_width / app.window_height;
 			float selected_ratio = ratio.width / ratio.height;
@@ -383,14 +433,14 @@ void render(application_t& app) {
 		pop_style();
 
 		push_style(settings_state.sound_fx_muted ? disabled_text_style : enabled_text_style);
-		if (create_button("SOUND")) {
+		if (create_button("SOUND", TEXT_SIZE::REGULAR, 3)) {
 			settings_changed.sound_fx = !settings_changed.sound_fx;
 			settings_state.sound_fx_muted = !settings_state.sound_fx_muted;
 		}
 		pop_style();
 
 		push_style(settings_state.bck_muted ? disabled_text_style : enabled_text_style);
-		if (create_button("MUSIC")) {
+		if (create_button("MUSIC", TEXT_SIZE::REGULAR, 5)) {
 			settings_changed.bck_music = !settings_changed.bck_music;
 			settings_state.bck_muted = !settings_state.bck_muted;
 		}
@@ -403,18 +453,18 @@ void render(application_t& app) {
 		pop_style();
 
 		push_style(settings_state.is_full_screen ? disabled_text_style : enabled_text_style);
-		if (create_button("WINDOWED")) {
+		if (create_button("WINDOWED", TEXT_SIZE::REGULAR, 2)) {
 			settings_changed.windowed = !settings_changed.windowed;
 			settings_state.is_full_screen = !settings_state.is_full_screen;
 		}
 		pop_style();
 
 		push_style(enabled_text_style);
-		if (create_button("CREDITS")) {
+		if (create_button("CREDITS", TEXT_SIZE::REGULAR, 4)) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = CREDITS_LEVEL;
 		}
-		if (create_button("HIGH SCORES")) {
+		if (create_button("HIGH SCORES", TEXT_SIZE::REGULAR, 6)) {
 			app.scene_manager.queue_level_load = true;
 			app.scene_manager.level_to_load = HIGH_SCORES_LEVEL;
 		}
@@ -432,7 +482,7 @@ void render(application_t& app) {
 		btn_style.border_radius = 10.f;
 		btn_style.padding = glm::vec2(10);
 		push_style(btn_style);
-		if (create_button("Save") && changed) {
+		if (create_button("Save", TEXT_SIZE::REGULAR, 7) && changed) {
 			
 			if (settings_changed.windowed) {
 				printf("full screen mode changed");
