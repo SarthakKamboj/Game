@@ -77,7 +77,7 @@ void init_sdl(application_t& app) {
 	SDL_GL_SetAttribute(SDL_GL_MULTISAMPLESAMPLES, 1);
 
 	SDL_Window* window = NULL;
-	app.is_full_screen = false;
+	app.is_full_screen = true;
 	if (app.is_full_screen) {
 		window = SDL_CreateWindow("Night Run", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, STARTING_WINDOW_WIDTH, STARTING_WINDOW_HEIGHT, SDL_WINDOW_SHOWN | SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_FULLSCREEN);
 	}
