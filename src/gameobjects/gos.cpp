@@ -93,7 +93,7 @@ main_character_t create_main_character(const glm::vec3& pos, const glm::vec3& sc
 	main_character_t mc;
 	mc.transform_handle = create_transform(pos, scale, rot);
 	mc.rec_render_handle = create_quad_render(mc.transform_handle, color, GAME_GRID_SIZE, GAME_GRID_SIZE, false, 1, -1);
-	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.8f, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
+	mc.rigidbody_handle = create_rigidbody(mc.transform_handle, true, GAME_GRID_SIZE * 0.75f, GAME_GRID_SIZE, false, PHYSICS_RB_TYPE::PLAYER, true, false);
 	mc.dash_start_time = -(main_character_t::DASH_WAIT_TIME + main_character_t::DASH_TIME);
 	return mc;
 }
@@ -332,7 +332,7 @@ void create_goomba(const glm::vec3& pos) {
 	goomba.transform_handle = create_transform(pos, glm::vec3(1), 0.f, 180.f);
 	glm::vec3 color = goomba_t::GOOMBA_COLOR;
 	goomba.rec_render_handle = create_quad_render(goomba.transform_handle, color, goomba_t::WIDTH, goomba_t::HEIGHT, false, 1.f, -1);
-	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH, goomba_t::HEIGHT, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
+	goomba.rigidbody_handle = create_rigidbody(goomba.transform_handle, false, goomba_t::WIDTH * 0.8f, goomba_t::HEIGHT * .8f, true, PHYSICS_RB_TYPE::GOOMBA, true, false);
 	char sm_name[64]{};
 	sprintf(sm_name, "goomba_%i", goomba.handle);
 
